@@ -14,25 +14,21 @@ RUN git clone --branch 3.6 --depth 1 https://github.com/google/nsjail.git /nsjai
     && cd /nsjail && git submodule update --init --recursive && make clean && make
 
 FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim AS build
+# The loamz-python clients are git dependencies until they are on PyPI.
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 ENV UV_LINK_MODE=copy UV_COMPILE_BYTECODE=1 UV_PYTHON_DOWNLOADS=never
 WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
 COPY server/engine/pyproject.toml server/engine/
 COPY server/server/pyproject.toml server/server/
-COPY sdk/python/core/pyproject.toml sdk/python/core/
-COPY sdk/python/identity/pyproject.toml sdk/python/identity/
-COPY sdk/python/data/pyproject.toml sdk/python/data/
-COPY meta/loamz/pyproject.toml meta/loamz/
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-install-workspace --package loamz-server --extra agents
 
 COPY server/engine server/engine
 COPY server/server server/server
-COPY sdk/python/core sdk/python/core
-COPY sdk/python/identity sdk/python/identity
-COPY sdk/python/data sdk/python/data
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-editable --package loamz-server --extra agents
