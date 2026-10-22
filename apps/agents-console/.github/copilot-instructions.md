@@ -194,7 +194,7 @@ Shared fetch helpers live in `_client.ts`. Add new endpoints to the appropriate 
 NEXT_PUBLIC_API_URL=http://localhost:8000
 BACKEND_API_URL=http://localhost:8000     # server-side only (Next.js API routes)
 OIDC_ISSUER=...            # the Keycloak realm
-OIDC_CLIENT_SECRET=...     # the substrate-ui client
+OIDC_CLIENT_SECRET=...     # the agents-console client
 SESSION_SECRET=...         # 32+ characters
 SPOTIFY_CLIENT_ID=...      # optional
 SPOTIFY_CLIENT_SECRET=...  # optional
@@ -237,5 +237,5 @@ Look and feel is decided in one place: `src/design/` (tokens + primitives). Read
 - Use `Button`, `Input`, `Menu`, `Dialog`, `Toolbar`… from `@/design`; never a raw `<button>`/`<input>`.
 - Colours are token utilities (`bg-card`, `text-muted`), never hex. Sizes come from the scales; no `[13px]`.
 - Controls are 28 / 32 / 40px high (`sm` / `md` / `lg`) so rows align by construction.
-- This repo owns it: after changing `src/design/`, run `scripts/sync-design.sh` to copy it into `agent-substrate-platform`.
+- This repo owns it: after changing `src/design/`, run `scripts/sync-design.sh` to copy it into `loamz-platform`.
 - `pnpm check:design` fails if raw buttons, hex colours or arbitrary sizes increase (baseline in `design-baseline.json`).

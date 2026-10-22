@@ -4,7 +4,7 @@ import { ArrowLeft, Bell, CalendarClock, FileText, MessageSquare, MessagesSquare
 import { useEffect, useMemo, useState } from "react";
 import { Button, cn, Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger, Text, Tooltip, TooltipProvider, confirmAction } from "@/design";
 import { SidebarToggleIcon } from "@/components/SidebarToggleIcon";
-import { SubstrateMark } from "@/components/SubstrateMark";
+import { LoamzMark } from "@/components/LoamzMark";
 import { Avatar } from "@/components/groups/Avatar";
 import { buildChatItems, isOpenChat } from "@/components/chats/items";
 import { useAuth } from "@/contexts/AuthContext";
@@ -174,7 +174,7 @@ export function CollapsedRail({
             aria-label="Open sidebar"
             className={BUTTON}
           >
-            {hoverLogo ? <SidebarToggleIcon direction="open" /> : <SubstrateMark className="size-5" />}
+            {hoverLogo ? <SidebarToggleIcon direction="open" /> : <LoamzMark className="size-5" />}
           </Button>
         </Tooltip>
 

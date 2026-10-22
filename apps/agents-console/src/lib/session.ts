@@ -1,7 +1,7 @@
 /**
  * Sign-in and session, for every route handler of this app.
  *
- * The browser session is the shared backend-for-frontend library (`@substrate/oidc-bff`, ADR 0007): Keycloak authorization code + PKCE,
+ * The browser session is the shared backend-for-frontend library (`@loamz/oidc-bff`, ADR 0007): Keycloak authorization code + PKCE,
  * tokens in an encrypted httpOnly cookie, refresh rotation. The browser never holds an access token. The Agent API is called with the
  * user's own Keycloak access token; tenant and roles come from that token (one organization per token).
  *
@@ -30,7 +30,7 @@ export function oidcConfig() {
     issuer,
     clientSecret,
     sessionSecret,
-    clientId: process.env.OIDC_CLIENT_ID || "substrate-ui",
+    clientId: process.env.OIDC_CLIENT_ID || "agents-console",
     // The address users reach the app at (origin only). Redirect URIs and cookies must agree on it.
     publicUrl: (process.env.PUBLIC_URL || "http://127.0.0.1:3000").replace(/\/$/, ""),
     // Pins the organization (tenant) of the session; unset lets Keycloak pick the user's only organization.
@@ -171,7 +171,7 @@ export function adminOnly<C = unknown>(
     if (!auth.user.isAdmin) {
       return new Response(
         JSON.stringify({
-          type: "https://substrate.dev/problems/forbidden",
+          type: "https://loamz.dev/problems/forbidden",
           title: "Forbidden",
           status: 403,
           detail: "This needs the tenant_admin role",

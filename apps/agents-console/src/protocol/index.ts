@@ -82,7 +82,7 @@ export function assertProtocolVersion(engineVersion: string): void {
     console.error(
       `[protocol] version mismatch: engine sent ${engineVersion}, ` +
         `UI generated against ${PROTOCOL_VERSION}. ` +
-        `Run: cd ../agent-substrate && make protocol-schema && cd ../substrate-ui && pnpm gen:protocol`
+        `Run: cd ../loamz-server && make protocol-schema && cd ../agents-console && pnpm gen:protocol`
     );
   }
 }

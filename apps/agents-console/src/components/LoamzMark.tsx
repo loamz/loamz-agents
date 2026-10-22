@@ -4,7 +4,7 @@ import type { SVGProps } from "react";
  * The product mark, shown in the sidebar and empty states. The default is the platform's two-square logo, so a chatbot deployed from the
  * platform looks like it. To use your own, set `NEXT_PUBLIC_BRAND_LOGO_URL` (any image URL) and it replaces this everywhere.
  */
-export function SubstrateMark({ className, ...props }: SVGProps<SVGSVGElement>) {
+export function LoamzMark({ className, ...props }: SVGProps<SVGSVGElement>) {
   const custom = process.env.NEXT_PUBLIC_BRAND_LOGO_URL;
   if (custom) {
     // eslint-disable-next-line @next/next/no-img-element -- a deployer-supplied URL of unknown origin and size

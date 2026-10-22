@@ -18,7 +18,7 @@ export async function setPinned(kind: ChatKind, id: string, pinned: boolean): Pr
   }
 }
 
-const LEGACY_KEY = "substrate.pinned-chats";
+const LEGACY_KEY = "loamz.pinned-chats";
 
 /** Pins used to be kept in this browser only. Move them to the account once, then forget them. Returns whether any were found. */
 export async function importLocalPins(): Promise<boolean> {

@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeAll } from "vitest";
 
 beforeAll(() => {
-  process.env.OIDC_ISSUER = "http://keycloak.test/realms/substrate";
+  process.env.OIDC_ISSUER = "http://keycloak.test/realms/loamz";
   process.env.OIDC_CLIENT_SECRET = "client-secret";
   process.env.SESSION_SECRET = "s".repeat(40);
   process.env.PUBLIC_URL = "http://127.0.0.1:3000";
@@ -85,7 +85,7 @@ describe("bffFor", () => {
     const { bffFor } = await import("./session");
     const response = await bffFor("acme").loginHandler(new Request("http://127.0.0.1:3000/chat/auth/login?next=/chat/agents"));
     const target = new URL(response.headers.get("location")!);
-    expect(target.origin + target.pathname).toBe("http://keycloak.test/realms/substrate/protocol/openid-connect/auth");
+    expect(target.origin + target.pathname).toBe("http://keycloak.test/realms/loamz/protocol/openid-connect/auth");
     expect(target.searchParams.get("scope")).toBe("openid profile email organization:acme");
     expect(target.searchParams.get("code_challenge_method")).toBe("S256");
     expect(target.searchParams.get("redirect_uri")).toBe("http://127.0.0.1:3000/chat/auth/callback");

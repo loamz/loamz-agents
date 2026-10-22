@@ -182,47 +182,47 @@ select {
 .writing-mode-vertical { writing-mode:vertical-rl; text-orientation:mixed; }
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
-/* ─── Substrate UI Motion System ────────────────────────────────────────── */
+/* ─── Loamz UI Motion System ────────────────────────────────────────── */
 /* Shared animation tokens, keyframes, and utility classes used across       */
-/* Substrate UI for a consistent, premium feel.                              */
+/* Loamz UI for a consistent, premium feel.                              */
 
 /* ─── Keyframes ──────────────────────────────────────────────────────────── */
-@keyframes substrate-fade-in {
+@keyframes loamz-fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
 
-@keyframes substrate-fade-up {
+@keyframes loamz-fade-up {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes substrate-fade-down {
+@keyframes loamz-fade-down {
   from { opacity: 0; transform: translateY(-8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes substrate-slide-in-left {
+@keyframes loamz-slide-in-left {
   from { transform: translateX(-100%); opacity: 0; }
   to   { transform: translateX(0);     opacity: 1; }
 }
 
-@keyframes substrate-slide-in-right {
+@keyframes loamz-slide-in-right {
   from { transform: translateX(24px); opacity: 0; }
   to   { transform: translateX(0);    opacity: 1; }
 }
 
-@keyframes substrate-slide-down {
+@keyframes loamz-slide-down {
   from { transform: translateY(-6px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
 
-@keyframes substrate-scale-in {
+@keyframes loamz-scale-in {
   from { opacity: 0; transform: scale(0.95); }
   to   { opacity: 1; transform: scale(1); }
 }
 
-@keyframes substrate-pop-in {
+@keyframes loamz-pop-in {
   from { opacity: 0; transform: scale(0.9) translateY(4px); }
   to   { opacity: 1; transform: scale(1)   translateY(0); }
 }
@@ -230,61 +230,61 @@ select {
 /* ─── Utility classes ────────────────────────────────────────────────────── */
 /* All support optional --stagger delay: set --stagger on the element.       */
 /* e.g. style="--stagger: 1" → 60ms delay (index × 60ms)                    */
-.substrate-fade-in {
-  animation: substrate-fade-in var(--duration-normal) var(--ease-out-expo) both;
+.loamz-fade-in {
+  animation: loamz-fade-in var(--duration-normal) var(--ease-out-expo) both;
   animation-delay: calc(var(--stagger, 0) * 60ms);
 }
 
-.substrate-fade-up {
-  animation: substrate-fade-up var(--duration-slow) var(--ease-out-expo) both;
+.loamz-fade-up {
+  animation: loamz-fade-up var(--duration-slow) var(--ease-out-expo) both;
   animation-delay: calc(var(--stagger, 0) * 60ms);
 }
 
-.substrate-fade-down {
-  animation: substrate-fade-down var(--duration-normal) var(--ease-out-expo) both;
+.loamz-fade-down {
+  animation: loamz-fade-down var(--duration-normal) var(--ease-out-expo) both;
   animation-delay: calc(var(--stagger, 0) * 60ms);
 }
 
-.substrate-slide-in-left {
-  animation: substrate-slide-in-left var(--duration-normal) var(--ease-spring) both;
+.loamz-slide-in-left {
+  animation: loamz-slide-in-left var(--duration-normal) var(--ease-spring) both;
 }
 
-.substrate-slide-in-right {
-  animation: substrate-slide-in-right var(--duration-slow) var(--ease-out-expo) both;
+.loamz-slide-in-right {
+  animation: loamz-slide-in-right var(--duration-slow) var(--ease-out-expo) both;
   animation-delay: calc(var(--stagger, 0) * 60ms);
 }
 
-.substrate-slide-down {
-  animation: substrate-slide-down var(--duration-normal) var(--ease-out-expo) both;
+.loamz-slide-down {
+  animation: loamz-slide-down var(--duration-normal) var(--ease-out-expo) both;
   animation-delay: calc(var(--stagger, 0) * 40ms);
 }
 
-.substrate-scale-in {
-  animation: substrate-scale-in var(--duration-normal) var(--ease-out-back) both;
+.loamz-scale-in {
+  animation: loamz-scale-in var(--duration-normal) var(--ease-out-back) both;
 }
 
-.substrate-pop-in {
-  animation: substrate-pop-in var(--duration-normal) var(--ease-out-back) both;
+.loamz-pop-in {
+  animation: loamz-pop-in var(--duration-normal) var(--ease-out-back) both;
   animation-delay: calc(var(--stagger, 0) * 50ms);
 }
 
 /* ─── Interaction helpers ────────────────────────────────────────────────── */
-.substrate-hover-lift {
+.loamz-hover-lift {
   transition: transform var(--duration-normal) var(--ease-out-expo),
               box-shadow var(--duration-normal) var(--ease-out-expo);
 }
-.substrate-hover-lift:hover {
+.loamz-hover-lift:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
-.substrate-hover-lift:active {
+.loamz-hover-lift:active {
   transform: translateY(0);
 }
 
-.substrate-press {
+.loamz-press {
   transition: transform 120ms var(--ease-in-out);
 }
-.substrate-press:active {
+.loamz-press:active {
   transform: scale(0.97);
 }
 

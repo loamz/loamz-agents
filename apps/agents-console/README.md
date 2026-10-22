@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="public/logo.svg" alt="substrate-ui" width="72" height="72" />
+<img src="public/logo.svg" alt="agents-console" width="72" height="72" />
 
-# substrate-ui
+# agents-console
 
 **The chat that hands you back editable files — not just text.**
 
@@ -18,7 +18,7 @@ other.
   <img alt="pnpm" src="https://img.shields.io/badge/pnpm-11-F69220?logo=pnpm&logoColor=white" />
 </p>
 
-<img src="docs/screenshots/demo.gif" alt="substrate-ui: streaming chat, Scheduled, Approvals, Notifications and Settings" width="900" />
+<img src="docs/screenshots/demo.gif" alt="agents-console: streaming chat, Scheduled, Approvals, Notifications and Settings" width="900" />
 
 </div>
 
@@ -26,7 +26,7 @@ other.
 
 ## What it does
 
-`substrate-ui` is the end-user chatbot for the **agent-framework** platform. It streams an agent's responses and renders them as a live, interactive workspace, then lets you take the wheel on anything the agent produces.
+`agents-console` is the end-user chatbot for the **agent-framework** platform. It streams an agent's responses and renders them as a live, interactive workspace, then lets you take the wheel on anything the agent produces.
 
 - 💬 **Streaming chat**: SSE with reasoning, tool calls, citations, read-aloud and regenerate. Per-model thinking effort.
 - 📎 **Artifact panel**: code-interpreter output (HTML / PDF / images / CSV / Office / code) opens on the right. Office files edit in **BetterOffice** (client-side) and code in **Monaco**, saving through a version lineage so **human edits and the agent's rewrites reconcile**.
@@ -52,20 +52,20 @@ Everything uses one design system (`src/design`, see [`DESIGN.md`](src/design/DE
 ## How it fits together
 
 ```
-agent-substrate-platform (SaaS control plane)
+loamz-platform (SaaS control plane)
   └─ user creates a chatbot Instance
-        └─ substrate-ui  ← you are here (the chat shell)
-              └─ talks to agent-substrate over HTTP + SSE
+        └─ agents-console  ← you are here (the chat shell)
+              └─ talks to loamz-server over HTTP + SSE
                     └─ agent runtime: tools, code interpreter, workspace files, versioning
 ```
 
-The engine ([`agent-substrate`](../agent-substrate)) does the real work; this app
+The engine ([`loamz-server`](../loamz-server)) does the real work; this app
 is the interface. Office editing runs entirely client-side via BetterOffice —
 no separate document server.
 
 ## Quick start
 
-You need Node 22+, pnpm, and a running [`agent-substrate`](../agent-substrate) backend (which needs PostgreSQL and Redis; see its [tech stack](../agent-substrate/README.md#-tech-stack-required-vs-opt-in)). Sign-in is Keycloak (the cell's realm, see [`deploy/keycloak`](../../deploy/keycloak)); this app needs a database only for its connector credentials.
+You need Node 22+, pnpm, and a running [`loamz-server`](../loamz-server) backend (which needs PostgreSQL and Redis; see its [tech stack](../loamz-server/README.md#-tech-stack-required-vs-opt-in)). Sign-in is Keycloak (the cell's realm, see [`deploy/keycloak`](../../deploy/keycloak)); this app needs a database only for its connector credentials.
 
 ```bash
 pnpm install --frozen-lockfile
@@ -76,7 +76,7 @@ pnpm dev                             # http://localhost:3000
 ```
 
 The backend must run separately — see
-[`agent-substrate`](../agent-substrate) (`uv run start`, port 8000).
+[`loamz-server`](../loamz-server) (`uv run start`, port 8000).
 
 <details>
 <summary><b>Scripts</b></summary>
@@ -100,8 +100,8 @@ Copy `.env.local.example` → `.env.local`:
 |---|---|
 | `BACKEND_API_URL` | Engine URL for server-side routes / the `/api/backend/*` proxy (default `http://localhost:8000`). |
 | `NEXT_PUBLIC_API_URL` | Engine URL baked into the browser bundle. Leave empty on Kubernetes so the browser uses ingress-relative paths. |
-| `OIDC_ISSUER` | The realm URL, e.g. `https://id.example.com/realms/substrate`. |
-| `OIDC_CLIENT_ID` / `OIDC_CLIENT_SECRET` | The confidential `substrate-ui` client of the realm (default id `substrate-ui`). |
+| `OIDC_ISSUER` | The realm URL, e.g. `https://id.example.com/realms/loamz`. |
+| `OIDC_CLIENT_ID` / `OIDC_CLIENT_SECRET` | The confidential `agents-console` client of the realm (default id `agents-console`). |
 | `OIDC_ORGANIZATION` | Optional: the organization alias to pin sessions to (scope `organization:<alias>`). `/chat/auth/login?org=<alias>` signs in to another organization (project) and switches the tenant. |
 | `SESSION_SECRET` | 32+ characters; derives the keys that encrypt the session cookie (`openssl rand -hex 32`). |
 | `PUBLIC_URL` | Where users reach this app (origin only, default `http://127.0.0.1:3000`); redirect URIs and cookies agree on it. |
@@ -110,7 +110,7 @@ Copy `.env.local.example` → `.env.local`:
 | `NEXT_PUBLIC_BRAND_LOGO_URL` | Optional: your own logo (an image URL) in place of the default two-square mark. Replace `public/favicon.svg` for the browser tab. |
 
 > **Identity note:** sign-in is the shared backend-for-frontend library
-> ([`@substrate/oidc-bff`](../../sdk/js/oidc-bff)): authorization code + PKCE, tokens in an encrypted httpOnly cookie, never in the browser.
+> ([`@loamz/oidc-bff`](../../sdk/js/oidc-bff)): authorization code + PKCE, tokens in an encrypted httpOnly cookie, never in the browser.
 > `/api/chat` and the `/api/backend/*` proxy call the Agent API (`/api/v1`) with the user's own access token, so agent-written files and
 > browser reads share one identity. The tenant is the Keycloak organization in that token, and administrators are users with the
 > `tenant_admin` realm role. There is no anonymous mode: no session means 401.
@@ -134,7 +134,7 @@ component conventions, the SSE event table, and Tailwind v4 rules.
 ## Docker
 
 ```bash
-docker build -t substrate-ui .
+docker build -t agents-console .
 ```
 
 Uses `node:22-alpine` (pnpm 11 requires Node ≥ 22.13) with pnpm pinned to the

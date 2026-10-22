@@ -16,7 +16,7 @@ import { PptxEditor } from "@betteroffice/pptx-react";
 // layout engine specifically, not this raw-bytes prop shape).
 const PPTX_FONT_FAMILY = "Liberation Sans";
 // Raw fetch() is NOT basePath-aware (this app is mounted at "/chat" behind
-// agent-substrate-platform's proxy — see next.config.ts) — has to be spelled
+// loamz-platform's proxy — see next.config.ts) — has to be spelled
 // out, same as API_BASE in lib/api/_client.ts.
 const PPTX_FONT_URL = "/chat/fonts/LiberationSans-Regular.ttf";
 

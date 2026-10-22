@@ -1,7 +1,7 @@
 /**
  * Browser-only error tracking, pointed at a self-hosted GlitchTip instance
  * (MIT-licensed, Sentry-protocol-compatible — see deployment/docker/
- * docker-compose.yml's glitchtip-* services in agent-substrate).
+ * docker-compose.yml's glitchtip-* services in loamz-server).
  *
  * Same rationale as ravi's src/instrumentation-client.ts: no
  * withSentryConfig wrapper (that pushes source maps to Sentry's own cloud

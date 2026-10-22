@@ -1,4 +1,4 @@
-/** Curated knowledge stored as OKF concepts. See agent-substrate's
+/** Curated knowledge stored as OKF concepts. See loamz-server's
  *  integrations/artifacts/ — this mirrors ArtifactOut in routes/artifacts.py. */
 
 /** `session` is one conversation; `global` spans all of them. */

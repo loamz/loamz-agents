@@ -41,7 +41,7 @@ function systemTheme(): Theme {
 
 function getInitialPreference(): ThemePreference {
   if (typeof window === "undefined") return "system";
-  const saved = localStorage.getItem("substrate-theme");
+  const saved = localStorage.getItem("loamz-theme");
   return saved === "light" || saved === "dark" ? saved : "system";
 }
 
@@ -71,8 +71,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     paint(theme);
-    if (preference === "system") localStorage.removeItem("substrate-theme");
-    else localStorage.setItem("substrate-theme", preference);
+    if (preference === "system") localStorage.removeItem("loamz-theme");
+    else localStorage.setItem("loamz-theme", preference);
   }, [theme, preference]);
 
   const setPreference = useCallback((next: ThemePreference) => setPreferenceState(next), []);

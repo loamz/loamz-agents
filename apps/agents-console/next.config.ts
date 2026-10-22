@@ -10,10 +10,10 @@ const nextConfig: NextConfig = {
   output: 'standalone', // For Docker builds
   // The dev-only Next.js badge defaults to the bottom-left, over the account avatar.
   devIndicators: { position: 'bottom-right' },
-  // Mounted at /chat behind agent-substrate-platform's rewrite proxy, so the
+  // Mounted at /chat behind loamz-platform's rewrite proxy, so the
   // whole product lives under one origin (fixes the shared-Google-OAuth-client
   // port collision between the two apps). basePath makes Next.js rewrite all
-  // of substrate-ui's own routes, _next/static asset URLs, and Link hrefs to
+  // of agents-console's own routes, _next/static asset URLs, and Link hrefs to
   // include the /chat prefix automatically — a plain reverse-proxy rewrite
   // without this would silently break asset loading.
   basePath: '/chat',

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 /** What the user asked to be called, kept in this browser (and synced to the account by `preferences-sync.ts`). Empty means the name on their account. */
 export const DISPLAY_NAME_KEY = "display_name";
-export const DISPLAY_NAME_EVENT = "substrate:display-name";
+export const DISPLAY_NAME_EVENT = "loamz:display-name";
 
 export function getDisplayName(): string {
   try {

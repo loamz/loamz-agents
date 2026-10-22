@@ -477,7 +477,7 @@ export function StorageTab() {
       ]);
       if (usageResult.status === "fulfilled" && usageResult.value) setUsage(usageResult.value);
       if (filesResult.status === "fulfilled") {
-        // .extracted.md sidecars (agent-substrate writes one next to every
+        // .extracted.md sidecars (loamz-server writes one next to every
         // staged PDF/doc, for code_interpreter's benefit — see
         // routes/files.py::_write_extracted_sidecar) are an implementation
         // detail, not a document the user uploaded or generated; listing

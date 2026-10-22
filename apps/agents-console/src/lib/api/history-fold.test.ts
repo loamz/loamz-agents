@@ -167,7 +167,7 @@ describe("foldWireEventsToMessages", () => {
   });
 
   // Citations — the reload-survival guarantee. structured_content is
-  // logged durably (see agent-substrate's runtime/context/tool.py), so a
+  // logged durably (see loamz-server's runtime/context/tool.py), so a
   // page reload replays these same wire events; this fold must reconstruct
   // the same `sources` a live SSE session would have attached.
   describe("citations", () => {

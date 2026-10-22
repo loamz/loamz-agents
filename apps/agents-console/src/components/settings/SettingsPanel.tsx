@@ -271,7 +271,7 @@ export function SettingsPanel({
   }, []);
 
   // Separate from loadAdminData's batch — a distinct backend surface
-  // (agent-substrate's WorkspaceFileStore-only /admin/storage routes, 501
+  // (loamz-server's WorkspaceFileStore-only /admin/storage routes, 501
   // for non-local FILE_STORE_BACKEND) that shouldn't block or be blocked by
   // threads/users/stats.
   useEffect(() => {

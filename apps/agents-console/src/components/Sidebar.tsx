@@ -25,7 +25,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { SubstrateMark } from "@/components/SubstrateMark";
+import { LoamzMark } from "@/components/LoamzMark";
 import type { Agent } from "@/lib/api/agents";
 import type { Group } from "@/lib/api/groups";
 import { Avatar } from "@/components/groups/Avatar";
@@ -247,7 +247,7 @@ export function Sidebar({
       >
         <div className="flex items-center justify-between px-2 py-2">
           <div className="flex items-center gap-3 ml-2">
-            <SubstrateMark className="h-6 w-6 text-foreground" />
+            <LoamzMark className="h-6 w-6 text-foreground" />
           </div>
           {onCollapse && (
             <button
@@ -372,7 +372,7 @@ export function Sidebar({
 
         <div className="mt-auto px-2 pb-3 pt-2" ref={menuRef}>
           {menuOpen && (
-            <div className="substrate-pop-in mb-1.5 overflow-hidden rounded-2xl bg-card" style={{ boxShadow: "var(--shadow-lg)", transformOrigin: "bottom center" }}>
+            <div className="loamz-pop-in mb-1.5 overflow-hidden rounded-2xl bg-card" style={{ boxShadow: "var(--shadow-lg)", transformOrigin: "bottom center" }}>
               {isAuthenticated && user && (
                 <div className="border-b border-border px-2.5 py-3">
                   <div className="truncate text-sm font-medium">{shownName || "User"}</div>

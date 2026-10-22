@@ -63,7 +63,7 @@ export const fileApi = {
   },
 
   // Backend route is POST /files/upload (thread_id rides as a form field,
-  // not a path segment) — see agent-substrate routes/files.py.
+  // not a path segment) — see loamz-server routes/files.py.
   async uploadFile(threadId: string, file: File): Promise<UploadedFile> {
     const form = new FormData();
     form.append("file", file);

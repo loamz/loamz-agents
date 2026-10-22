@@ -35,7 +35,7 @@ export interface AdminStorageUser {
 }
 
 /** One session under a user's workspace (attaches to the code interpreter
- * when live — see agent-substrate's sandbox_runtime.py). */
+ * when live — see loamz-server's sandbox_runtime.py). */
 export interface AdminStorageSession {
   session_id: string;
   size_bytes: number;

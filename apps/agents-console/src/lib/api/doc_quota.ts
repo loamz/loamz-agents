@@ -1,6 +1,6 @@
 import { API_BASE } from "./_client";
 
-// Mirrors rate_limit.ts's shape/pattern — see agent-substrate
+// Mirrors rate_limit.ts's shape/pattern — see loamz-server
 // routes/files.py::get_doc_quota_status. Daily commit quota (documents
 // actually sent in a chat message, not merely uploaded — see
 // useFileAttachments.ts's staging/promote flow).

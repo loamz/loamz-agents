@@ -6,7 +6,7 @@
  *   3. Brand     the few variables an instance overrides to re-brand (accent, accent-2).
  *
  * Components use the Tailwind names this file exposes (bg-card, text-muted, h-control-md), never a hex or a [Npx] value.
- * See DESIGN.md. This folder is copied verbatim into agent-substrate-platform (scripts/sync-design.sh): edit it here only. */
+ * See DESIGN.md. This folder is copied verbatim into loamz-platform (scripts/sync-design.sh): edit it here only. */
 
 /* ── 1. Scales ─────────────────────────────────────────────────────────────────────────────────────────────────────── */
 :root {

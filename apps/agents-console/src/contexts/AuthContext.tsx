@@ -199,7 +199,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.error("Disconnecting connectors failed:", err);
     }
-    // Ends the Keycloak single sign-on session too, so one sign-out covers every Substrate app.
+    // Ends the Keycloak single sign-on session too, so one sign-out covers every Loamz app.
     window.location.assign("/chat/auth/logout");
   };
 

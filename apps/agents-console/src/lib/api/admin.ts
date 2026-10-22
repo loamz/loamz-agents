@@ -34,7 +34,7 @@ export const adminApi = {
   },
 
   // Routed through /api/backend/* (the verified-session proxy) rather than
-  // a bespoke /api/admin/* route handler — agent-substrate's
+  // a bespoke /api/admin/* route handler — loamz-server's
   // /admin/storage* routes require a real Bearer JWT with role=
   // platform_admin (require_admin), and /api/backend/[...path]/route.ts is
   // the proxy that mints one from the caller's DB-backed session.

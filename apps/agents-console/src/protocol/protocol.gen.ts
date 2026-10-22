@@ -1,8 +1,8 @@
 /* eslint-disable */
 /**
  * GENERATED — DO NOT EDIT.
- * Source: agent-substrate/src/substrate/server/protocol/ (Pydantic).
- * Regenerate: cd ../agent-substrate && make protocol-schema && cd ../substrate-ui && pnpm gen:protocol
+ * Source: loamz-server/src/loamz/server/protocol/ (Pydantic).
+ * Regenerate: cd ../loamz-server && make protocol-schema && cd ../agents-console && pnpm gen:protocol
  * Protocol version: 1.0.0
  */
 
@@ -82,7 +82,7 @@ export type Message = string;
 export type Code1 = string | null;
 export type Type15 = "ping";
 
-export interface SubstrateProtocol {
+export interface LoamzProtocol {
   WireEvent?:
     | HelloEvent
     | TextDeltaEvent

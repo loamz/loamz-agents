@@ -1,7 +1,7 @@
 # Design system
 
 One set of tokens and one set of primitives for the chat UI and the platform. **This folder is the source of truth and lives in
-`substrate-ui`.** `agent-substrate-platform/src/design/` is an identical copy made by `scripts/sync-design.sh`; CI in both repos fails
+`agents-console`.** `loamz-platform/src/design/` is an identical copy made by `scripts/sync-design.sh`; CI in both repos fails
 if they differ. Edit here, then sync. Never edit the copy.
 
 ## Rules

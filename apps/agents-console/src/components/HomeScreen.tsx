@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Bot, CalendarClock, FolderOpen, ShieldQuestion, type LucideIcon } from "lucide-react";
 import { Button } from "@/design";
-import { SubstrateMark } from "@/components/SubstrateMark";
+import { LoamzMark } from "@/components/LoamzMark";
 import type { Agent } from "@/lib/api/agents";
 
 function greetingFor(hour: number): string {
@@ -53,8 +53,8 @@ export function HomeScreen({ name, agents, onOpenScheduled, onOpenAgents, onOpen
   return (
     <div className="flex h-full items-center justify-center">
       <div className="w-full max-w-chat space-y-6 px-3 py-10 sm:px-6">
-        <header className="substrate-fade-up flex items-center gap-4">
-          <SubstrateMark className="icon-free size-10 shrink-0 text-foreground" />
+        <header className="loamz-fade-up flex items-center gap-4">
+          <LoamzMark className="icon-free size-10 shrink-0 text-foreground" />
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">{first ? `${greeting}, ${first}` : greeting}</h1>
             <p className="mt-0.5 text-sm text-muted">What would you like to get done?</p>

@@ -2,7 +2,7 @@
  * Catch-all proxy: /api/backend/* -> the Agent API (/api/v1/*)
  *
  * Calls the API with the signed-in user's own Keycloak access token, read from the encrypted session cookie
- * (@substrate/oidc-bff, refreshed here when it is about to expire). The API verifies the token itself and takes the
+ * (@loamz/oidc-bff, refreshed here when it is about to expire). The API verifies the token itself and takes the
  * tenant and roles from it. No session -> 401 problem+json; there is no anonymous or service-account fallback.
  */
 import { NextRequest } from "next/server";
@@ -22,7 +22,7 @@ async function proxyRequest(req: NextRequest, path: string[]): Promise<Response>
 
   const headers = new Headers();
   // Forward safe request headers — deliberately NOT "cookie": this app's
-  // own auth/session/OAuth cookies have no meaning to agent-substrate and
+  // own auth/session/OAuth cookies have no meaning to loamz-server and
   // forwarding them just leaks them into another service's logs/traces.
   for (const [k, v] of req.headers.entries()) {
     const lower = k.toLowerCase();

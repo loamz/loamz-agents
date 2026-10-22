@@ -552,7 +552,7 @@ export function MessageBubble({
   const currentActiveAttachment = activeImageIndex >= 0 && activeImageIndex < activeList.length
     ? activeList[activeImageIndex]
     : null; const imageLightbox = currentActiveAttachment?.url ? (
-      <div className="substrate-fade-in fixed inset-0 z-70 flex flex-col items-center justify-center p-3 select-none bg-black/60 backdrop-blur-sm">
+      <div className="loamz-fade-in fixed inset-0 z-70 flex flex-col items-center justify-center p-3 select-none bg-black/60 backdrop-blur-sm">
         <button
           type="button"
           className="absolute inset-0 bg-transparent cursor-default"
@@ -766,7 +766,7 @@ export function MessageBubble({
   if (isUser) {
     return (
       <>
-        <div className="substrate-fade-up group px-4 sm:px-6">
+        <div className="loamz-fade-up group px-4 sm:px-6">
           <div className="mx-auto max-w-chat flex justify-end">
             <div className="flex max-w-[85%] flex-col items-end gap-2 sm:max-w-[75%]">
               {imageAttachments.length > 0 && (
@@ -885,7 +885,7 @@ export function MessageBubble({
   /* ── Assistant message: left-aligned, clean layout ── */
   return (
     <>
-      <div className="substrate-fade-up group relative px-4 sm:px-6">
+      <div className="loamz-fade-up group relative px-4 sm:px-6">
         <div className="mx-auto max-w-chat">
           {/* Content column */}
           <div className={speaker ? "flex items-end gap-2" : undefined}>

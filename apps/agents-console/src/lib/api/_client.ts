@@ -5,7 +5,7 @@ import { ToolCall, UploadedFile } from "@/types";
 // (/api/backend/* -> backend) to avoid CORS failures.
 //
 // This app is mounted at basePath: "/chat" (see next.config.ts) behind
-// agent-substrate-platform's proxy. Next.js rewrites next/link hrefs and
+// loamz-platform's proxy. Next.js rewrites next/link hrefs and
 // route-handler paths to include that prefix automatically, but a raw
 // fetch("/api/backend/...") is just a literal browser request and is NOT
 // basePath-aware — it has to be spelled out here or every call site would
@@ -19,7 +19,7 @@ export function appApiUrl(path: string): string {
   return `${APP_BASE}/api${path}`;
 }
 
-// Backend route is GET /files/{file_id}/download (agent-substrate
+// Backend route is GET /files/{file_id}/download (loamz-server
 // routes/files.py) — file id alone is enough, no thread scoping needed.
 export function buildFileContentUrl(fileId: string): string {
   return `${API_BASE}/files/${fileId}/download`;
@@ -27,7 +27,7 @@ export function buildFileContentUrl(fileId: string): string {
 
 // Resolves a `sandbox:<path>` markdown ref (a file the code interpreter saved
 // in its working directory) to the workspace file-serve endpoint
-// (agent-substrate routes/workspace.py::serve_file), scoped to the thread's
+// (loamz-server routes/workspace.py::serve_file), scoped to the thread's
 // session dir. Images render inline; other types download.
 export function buildWorkspaceFileUrl(threadId: string, path: string): string {
   const clean = path.replace(/^sandbox:/, "").replace(/^\.?\//, "");
@@ -38,7 +38,7 @@ export function buildWorkspaceFileUrl(threadId: string, path: string): string {
 
 // Resolves an `object:<key>` reference — a tool-result image the backend
 // resolved by reference rather than inlining as a base64 data URI (see
-// agent-substrate agents/runtime/context/tool.py::_attachment_url and its
+// loamz-server agents/runtime/context/tool.py::_attachment_url and its
 // module docstring for why the backend emits a bare scheme instead of a real
 // path). Same shape as buildWorkspaceFileUrl's `sandbox:` resolution — the
 // engine names the resource, this frontend's authenticated proxy serves it.

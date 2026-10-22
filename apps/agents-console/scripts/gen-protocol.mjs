@@ -2,7 +2,7 @@
  * Generate src/protocol/protocol.gen.ts from the engine's exported JSON Schema.
  *
  * Run the engine export first (writes protocol.schema.json):
- *   cd ../agent-substrate && make protocol-schema
+ *   cd ../loamz-server && make protocol-schema
  * Then:
  *   pnpm gen:protocol
  *
@@ -26,7 +26,7 @@ const OUT_PATH = resolve(__dirname, "../src/protocol/protocol.gen.ts");
 if (!existsSync(SCHEMA_PATH)) {
   console.error(
     `\nSchema not found at ${SCHEMA_PATH}\n` +
-      `Run the engine export first:  cd ../agent-substrate && make protocol-schema\n`
+      `Run the engine export first:  cd ../loamz-server && make protocol-schema\n`
   );
   process.exit(1);
 }
@@ -34,12 +34,12 @@ if (!existsSync(SCHEMA_PATH)) {
 const schema = JSON.parse(readFileSync(SCHEMA_PATH, "utf8"));
 const version = schema["x-protocol-version"] ?? "unknown";
 
-const ts = await compile(schema, "SubstrateProtocol", {
+const ts = await compile(schema, "LoamzProtocol", {
   bannerComment:
     `/* eslint-disable */\n` +
     `/**\n * GENERATED — DO NOT EDIT.\n` +
-    ` * Source: agent-substrate/src/substrate/server/protocol/ (Pydantic).\n` +
-    ` * Regenerate: cd ../agent-substrate && make protocol-schema && cd ../substrate-ui && pnpm gen:protocol\n` +
+    ` * Source: loamz-server/src/loamz/server/protocol/ (Pydantic).\n` +
+    ` * Regenerate: cd ../loamz-server && make protocol-schema && cd ../agents-console && pnpm gen:protocol\n` +
     ` * Protocol version: ${version}\n */\n`,
   additionalProperties: false,
   declareExternallyReferenced: true,

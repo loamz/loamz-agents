@@ -16,7 +16,7 @@ import { AgentIntro } from "@/components/chats/AgentIntro";
 import { useDisplayName } from "@/lib/display-name";
 import type { Agent } from "@/lib/api/agents";
 import type { Group } from "@/lib/api/groups";
-import { SubstrateMark } from "@/components/SubstrateMark";
+import { LoamzMark } from "@/components/LoamzMark";
 import { ToolApprovalCard } from "@/components/ToolApprovalCard";
 import { HumanInputCard } from "@/components/HumanInputCard";
 import { MaxIterationsCard } from "@/components/MaxIterationsCard";
@@ -82,11 +82,11 @@ import { useFileDrop } from "@/hooks/useFileDrop";
 import { pullPreferences, watchPreferenceChanges } from "@/lib/preferences-sync";
 import { Send, Plus, StopCircle, Loader2, X, Radio, ChevronDown, Settings2, AudioLines, ArrowUp, SquarePen, Info, Monitor, Eye, type LucideIcon } from "lucide-react";
 
-const LAST_ACTIVE_THREAD_STORAGE_KEY = "substrate:last-active-thread";
+const LAST_ACTIVE_THREAD_STORAGE_KEY = "loamz:last-active-thread";
 
 // Paste-to-document: a paste this long or longer becomes an attached
 // document (chunked+embedded via the same staging pipeline a manual
-// upload uses — see EXTRACTABLE_CONTENT_TYPES in agent-substrate) instead
+// upload uses — see EXTRACTABLE_CONTENT_TYPES in loamz-server) instead
 // of dumping raw text into the composer. Matches ChatGPT/Claude.ai's own
 // paste-to-artifact threshold — roughly one screen of text.
 const PASTE_TO_DOCUMENT_THRESHOLD = 2000;
@@ -529,7 +529,7 @@ function ChatPageContent() {
   );
 
   // Opens a grounded citation's source file at its cited page. sessionPath
-  // falls back to fileName (agent-substrate's build_citations does the same
+  // falls back to fileName (loamz-server's build_citations does the same
   // fallback server-side) so a citation still opens something sensible even
   // when the underlying upload predates session_path being recorded.
   const openSource = useCallback(
@@ -1935,28 +1935,28 @@ function ChatPageContent() {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-background px-4">
         <div className="text-center space-y-6 max-w-sm w-full">
-          <div className="substrate-fade-up w-14 h-14 mx-auto flex items-center justify-center">
-            <SubstrateMark className="icon-free h-14 w-14" />
+          <div className="loamz-fade-up w-14 h-14 mx-auto flex items-center justify-center">
+            <LoamzMark className="icon-free h-14 w-14" />
           </div>
-          <div className="substrate-fade-up" style={{ '--stagger': 1 } as React.CSSProperties}>
+          <div className="loamz-fade-up" style={{ '--stagger': 1 } as React.CSSProperties}>
             <h1 className="text-2xl font-semibold">Welcome</h1>
             <p className="text-sm mt-2 text-muted">
               Sign in to start chatting with your AI assistant
             </p>
           </div>
           {authNotice && (
-            <div className="substrate-fade-up rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-200" style={{ '--stagger': 2 } as React.CSSProperties}>
+            <div className="loamz-fade-up rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-200" style={{ '--stagger': 2 } as React.CSSProperties}>
               {authNotice}
             </div>
           )}
           <button
             onClick={() => login()}
-            className="substrate-fade-up substrate-press flex items-center gap-3 mx-auto px-6 py-3 bg-white text-gray-800 rounded-2xl text-sm font-semibold hover:bg-gray-50 transition-colors cursor-pointer"
+            className="loamz-fade-up loamz-press flex items-center gap-3 mx-auto px-6 py-3 bg-white text-gray-800 rounded-2xl text-sm font-semibold hover:bg-gray-50 transition-colors cursor-pointer"
             style={{ '--stagger': 3, boxShadow: "var(--shadow-md)" } as React.CSSProperties}
           >
             Sign in
           </button>
-          <p className="substrate-fade-up text-xs text-muted" style={{ '--stagger': 4 } as React.CSSProperties}>
+          <p className="loamz-fade-up text-xs text-muted" style={{ '--stagger': 4 } as React.CSSProperties}>
             Your conversations are private and secure
           </p>
         </div>
@@ -2286,7 +2286,7 @@ function ChatPageContent() {
                             <button
                               type="button"
                               onClick={handleStop}
-                              className="btn-icon substrate-press flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-accent-2 text-accent-2-foreground transition-colors"
+                              className="btn-icon loamz-press flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-accent-2 text-accent-2-foreground transition-colors"
                               aria-label="Stop"
                             >
                               <StopCircle className="h-4 w-4" />
@@ -2295,7 +2295,7 @@ function ChatPageContent() {
                             <button
                               type="submit"
                               disabled={!input.trim() || sendQueued}
-                              className={`btn-icon substrate-press flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-accent-2 text-accent-2-foreground transition-all disabled:cursor-not-allowed ${sendQueued ? "disabled:opacity-60" : "disabled:opacity-10"}`}
+                              className={`btn-icon loamz-press flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-accent-2 text-accent-2-foreground transition-all disabled:cursor-not-allowed ${sendQueued ? "disabled:opacity-60" : "disabled:opacity-10"}`}
                               aria-label={sendQueued ? "Waiting for attachments to finish processing" : "Send"}
                             >
                               {sendQueued ? (
@@ -2553,7 +2553,7 @@ function ChatPageContent() {
 
       {/* Mobile Sidebar Drawer */}
       {mobileSidebarOpen && (
-        <div className="substrate-fade-in fixed inset-0 z-40 lg:hidden">
+        <div className="loamz-fade-in fixed inset-0 z-40 lg:hidden">
           {/* Backdrop */}
           <button
             type="button"
@@ -2564,7 +2564,7 @@ function ChatPageContent() {
           />
           {/* Sidebar sheet — slides in from the left */}
           <div
-            className="substrate-slide-in-left relative flex h-full flex-col"
+            className="loamz-slide-in-left relative flex h-full flex-col"
             style={{ width: "min(360px, 88vw)" }}
           >
             <Sidebar

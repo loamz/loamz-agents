@@ -7,7 +7,7 @@ import { api } from "@/lib/api";
 import { toast } from "@/design";
 
 // PDFs and pasted-text documents go through eager staged extraction+
-// embedding today (see EXTRACTABLE_CONTENT_TYPES in agent-substrate's
+// embedding today (see EXTRACTABLE_CONTENT_TYPES in loamz-server's
 // chat_context.py) — other types never get staged_at/staging_error and
 // don't need polling. text/markdown is how a large paste becomes a
 // document (see the composer's paste handler) — it skips OCR entirely
@@ -16,7 +16,7 @@ import { toast } from "@/design";
 const STAGED_MIME_TYPES = new Set(["application/pdf", "text/markdown"]);
 
 // This session's own measured baseline for the "tiny" OCR variant (see
-// agent-substrate's extraction pipeline benchmarking) — used only to
+// loamz-server's extraction pipeline benchmarking) — used only to
 // simulate a progress ring's fill rate, since true per-page progress isn't
 // available (PPStructureV3 batches internally despite predict_iter()
 // looking lazy). Real completion is still gated on staged_at, not this
