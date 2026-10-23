@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from loamz.server import metrics
+from loamz.server import metrics, securitytxt
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features import FEATURES, Feature
 from loamz.server.agents.http import problems
@@ -46,6 +46,7 @@ def create_app(
     app.state.verifier = _verifier(container)
     problems.install(app)
     metrics.install(app, service="agents")
+    securitytxt.install(app)
     if container.settings.http.cors_origins:
         app.add_middleware(
             CORSMiddleware,
