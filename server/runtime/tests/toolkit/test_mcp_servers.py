@@ -174,3 +174,87 @@ def test_names_are_validated_and_exposed_names_are_safe_for_models():
     with pytest.raises(ValueError, match="unique"):
         McpToolServers([McpServerSpec("a", "http://x/sse"), McpServerSpec("a", "http://y/sse")])
     assert exposed("desk", "place.order v2") == "desk__place_order_v2"
+
+
+async def test_a_connection_opened_by_one_task_is_usable_and_closable_from_others(server):
+    """The MCP SDK ties its cancellation scopes to the task that opened a connection. A tool server is opened by a startup
+    task, refreshed by a background task and called from run tasks: none of them may be the one that owns the connection."""
+    servers = McpToolServers([spec(server)])
+    await asyncio.create_task(servers.refresh())  # a task that opens the connection, then ends
+    tool = servers.found["desk__status"]
+    assert (await asyncio.create_task(tool.execute(call_id="1"))).content[0].text == "all good"
+    await asyncio.create_task(servers.refresh())  # another task refreshes
+    assert (await asyncio.create_task(tool.execute(call_id="2"))).content[0].text == "all good"
+    await asyncio.create_task(
+        servers.close()
+    )  # and yet another closes it, without cancelling anything else
+    survivor = asyncio.create_task(asyncio.sleep(0.3, result="alive"))
+    assert await survivor == "alive"
+
+
+async def test_a_dead_server_fails_calls_quickly_and_then_at_once():
+    """A tool server that dies must not park runs for the whole call timeout: that would starve every other conversation."""
+    live = Server(free_port()).start()
+    servers = McpToolServers(
+        [McpServerSpec("desk", live.url, token=TOKEN, timeout=2, call_timeout=60)]
+    )
+    await servers.refresh()
+    tool = servers.found["desk__status"]
+    assert not (await tool.execute(call_id="1")).is_error
+    live.stop()
+    link = tool.link
+    link.last_ok -= (
+        link.IDLE_PING_AFTER + 1
+    )  # the connection has been idle: the next call checks it first
+    started = time.monotonic()
+    failed = await tool.execute(call_id="2")
+    assert failed.is_error and time.monotonic() - started < 20  # not 60 seconds
+    started = time.monotonic()
+    again = await tool.execute(call_id="3")
+    assert (
+        again.is_error
+        and "retried shortly" in again.content[0].text
+        and time.monotonic() - started < 1
+    )
+    await servers.close()
+
+
+async def test_connection_failures_never_cancel_unrelated_tasks():
+    """The live failure this guards against: a tool server dies while runs are calling it, and the worker's own loop and lease
+    renewal stop, so no later conversation runs. A bystander task must keep ticking through every kind of failure."""
+    first = Server(free_port()).start()
+    port = first.port
+    servers = McpToolServers(
+        [McpServerSpec("desk", first.url, token=TOKEN, timeout=2, call_timeout=4)]
+    )
+    await servers.refresh()
+    ticks = []
+
+    async def bystander():
+        while True:
+            ticks.append(time.monotonic())
+            await asyncio.sleep(0.05)
+
+    watcher = asyncio.create_task(bystander())
+    tool = servers.found["desk__status"]
+    link = tool.link
+    try:
+        calls = [asyncio.create_task(tool.execute(call_id=str(n))) for n in range(6)]
+        first.stop()  # dies while calls are in flight
+        results = await asyncio.gather(*calls)
+        assert (
+            len(results) == 6
+        )  # every call came back, as a result or an error: none hung or vanished
+        link.last_ok -= link.IDLE_PING_AFTER + 1
+        link.down_until = 0
+        second = Server(port).start()  # comes back
+        again = await asyncio.create_task(tool.execute(call_id="after"))
+        assert not again.is_error
+        await asyncio.create_task(servers.refresh())
+        await asyncio.create_task(servers.close())
+        second.stop()
+        before = len(ticks)
+        await asyncio.sleep(0.4)
+        assert not watcher.done() and len(ticks) > before + 3  # still alive and ticking
+    finally:
+        watcher.cancel()

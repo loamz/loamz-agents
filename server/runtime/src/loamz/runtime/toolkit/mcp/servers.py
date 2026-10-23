@@ -19,6 +19,7 @@ import asyncio
 import contextlib
 import logging
 import re
+import time
 from collections.abc import Callable, Collection
 from dataclasses import dataclass, field
 from typing import Any
@@ -58,39 +59,113 @@ def exposed(server: str, tool: str) -> str:
 class Link:
     """One server connection that re-makes itself."""
 
+    IDLE_PING_AFTER = (
+        20.0  # seconds without traffic before a call first checks the connection is alive
+    )
+    PING_TIMEOUT = 5.0
+    COOL_DOWN = 15.0  # after a failure, calls fail at once for this long instead of each waiting out a timeout
+
     def __init__(self, spec: McpServerSpec, factory: Callable[[], MCPClient]) -> None:
         self.spec, self.factory = spec, factory
         self.client: MCPClient | None = None
         self.lock = asyncio.Lock()
+        self.last_ok = 0.0
+        self.down_until = 0.0
+        self.owner: asyncio.Task | None = None
+        self.stop: asyncio.Event | None = None
 
     async def connect(self) -> MCPClient:
+        """A connected client. The connection is opened, held and closed by one dedicated task, never by the caller: the MCP
+        SDK ties cancellation scopes to the task that opens a connection, and tearing one down from a different task (a run, a
+        refresh) cancels unrelated tasks, including the worker's own loop."""
         async with self.lock:
-            if self.client is not None and self.client.is_connected:
+            if (
+                self.client is not None
+                and self.client.is_connected
+                and self.owner
+                and not self.owner.done()
+            ):
                 return self.client
-            await self.drop()
-            client = self.factory()
-            headers = {"Authorization": f"Bearer {self.spec.token}"} if self.spec.token else None
+            await self.shutdown()
+            loop = asyncio.get_running_loop()
+            ready: asyncio.Future[None] = loop.create_future()
+            self.stop = asyncio.Event()
+            self.owner = loop.create_task(self.own(ready, self.stop), name=f"mcp-{self.spec.name}")
+            await ready  # raises if the connection could not be made
+            assert self.client is not None
+            self.last_ok = time.monotonic()
+            return self.client
+
+    async def own(self, ready: asyncio.Future[None], stop: asyncio.Event) -> None:
+        client = self.factory()
+        headers = {"Authorization": f"Bearer {self.spec.token}"} if self.spec.token else None
+        try:
             await client.connect_sse(self.spec.url, headers=headers, timeout=self.spec.timeout)
-            self.client = client
-            return client
+        except BaseException as error:  # noqa: BLE001 - reported to the caller waiting in connect()
+            if not ready.done():
+                ready.set_exception(
+                    error if isinstance(error, Exception) else RuntimeError("connection cancelled")
+                )
+            return
+        self.client = client
+        ready.set_result(None)
+        try:
+            await stop.wait()
+        finally:
+            with contextlib.suppress(BaseException):
+                await client.disconnect()  # the same task that connected
+
+    async def shutdown(self) -> None:
+        owner, stop, self.owner, self.client = self.owner, self.stop, None, None
+        if owner is None:
+            return
+        if stop is not None:
+            stop.set()
+        try:
+            await asyncio.wait_for(asyncio.shield(owner), 5)
+        except (TimeoutError, asyncio.CancelledError, Exception):  # noqa: BLE001 - a connection that will not close is abandoned
+            owner.cancel()
+            with contextlib.suppress(BaseException):
+                await owner
 
     async def drop(self) -> None:
-        client, self.client = self.client, None
-        if client is not None:
-            with contextlib.suppress(Exception, asyncio.TimeoutError):
-                await asyncio.wait_for(client.disconnect(), 5)
+        await self.shutdown()
+
+    async def healthy(self) -> MCPClient:
+        """A connected client. A connection idle for a while is pinged first: a peer that died silently would otherwise only be
+        noticed when a call waited out its whole timeout, and a stuck call holds one of the platform's run slots."""
+        client = await self.connect()
+        if time.monotonic() - self.last_ok > self.IDLE_PING_AFTER and client.session is not None:
+            try:
+                await asyncio.wait_for(client.session.send_ping(), self.PING_TIMEOUT)
+            except Exception:  # noqa: BLE001 - dead or unresponsive: make a new connection
+                await self.drop()
+                client = await self.connect()
+        return client
 
     async def call(self, tool: str, arguments: dict[str, object]) -> Any:
-        async def once() -> Any:
-            return await asyncio.wait_for(
-                (await self.connect()).call_tool(tool, arguments), self.spec.call_timeout
+        if time.monotonic() < self.down_until:
+            raise RuntimeError(
+                f"the {self.spec.name} tool server is unavailable; it will be retried shortly"
             )
+
+        async def once() -> Any:
+            client = await self.healthy()
+            result = await asyncio.wait_for(
+                client.call_tool(tool, arguments), self.spec.call_timeout
+            )
+            self.last_ok = time.monotonic()
+            return result
 
         try:
             return await once()
         except Exception:  # noqa: BLE001 - the connection may have dropped (or hung): reconnect once and retry
             await self.drop()
-            return await once()
+            try:
+                return await once()
+            except Exception:
+                self.down_until = time.monotonic() + self.COOL_DOWN
+                raise
 
     async def close(self) -> None:
         async with self.lock:
