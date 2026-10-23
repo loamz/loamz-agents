@@ -97,8 +97,10 @@ class ChatService:
             tools=tools or None,
             system_instructions=(req.system_instructions or "")
             + (instructions_block(profile) if profile else ""),
-            session_id=agent_id,
-            name="agent",
+            # One actor per conversation (the activity tracker looks for `assistant/<thread id>`). Sharing one actor
+            # between conversations would fold a message sent while another run is going into that run.
+            session_id=req.thread_id,
+            name="assistant",
             # A person approves every call to a tool the operator did not mark read-only; the run sleeps until they decide.
             approval_handler=DurableApproval() if tools else None,
             approval_required_risk=ToolRisk.HIGH if tools else None,
