@@ -7,6 +7,8 @@ infrastructure lives here, features stay self-contained, and dependencies only p
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 from collections.abc import Awaitable, Callable
 from functools import cached_property
 from typing import TYPE_CHECKING
@@ -23,6 +25,7 @@ from loamz.server.agents.bootstrap.settings import Settings
 
 if TYPE_CHECKING:
     from loamz.engine.agents.data import DataServiceConnection, DataTokenMinter
+    from loamz.engine.agents.toolkit.mcp.servers import McpToolServers
 
 type Provider[T] = Callable[["Container"], T]
 
@@ -150,6 +153,27 @@ class Container:
             max_concurrency=self.settings.chat.max_concurrent_runs,
         )
 
+    @cached_property
+    def tool_servers(self) -> McpToolServers:
+        """The operator's tool servers (MCP). Empty unless `tools.servers` is configured."""
+        from loamz.engine.agents.toolkit.mcp.servers import McpServerSpec, McpToolServers
+
+        servers = McpToolServers(
+            [
+                McpServerSpec(
+                    s.name,
+                    s.url,
+                    token=s.token,
+                    safe_tools=frozenset(s.safe_tools),
+                    timeout=s.timeout,
+                    call_timeout=s.call_timeout,
+                )
+                for s in self.settings.tools.servers
+            ]
+        )
+        self.on_close(servers.close)
+        return servers
+
     # ── lifecycle ───────────────────────────────────────────────────────────
     WORKER_ROLES = frozenset({"all", "runtime", "jobs"})
 
@@ -163,6 +187,11 @@ class Container:
             await self.runtime.start()
         else:
             await self.runtime.store.start()
+        if self.settings.tools.servers:
+            # Best effort: a tool server that is down must not keep the platform from starting. The background loop retries.
+            with contextlib.suppress(TimeoutError):
+                await asyncio.wait_for(self.tool_servers.refresh(), 15)
+            self.tool_servers.start(self.settings.tools.refresh_seconds)
 
     async def aclose(self) -> None:
         if "runtime" in self.__dict__:

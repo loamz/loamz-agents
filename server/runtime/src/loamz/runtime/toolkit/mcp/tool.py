@@ -55,6 +55,7 @@ class MCPTool:
         *,
         risk: ToolRisk = ToolRisk.HIGH,
         idempotent: bool = False,
+        remote_name: str | None = None,
     ):
         """Initialize MCP tool adapter.
 
@@ -67,9 +68,12 @@ class MCPTool:
                 trusted, so a tool from an external server needs approval unless the
                 operator who connected it says otherwise here.
             idempotent: Whether a call may safely be repeated. Unknown, so ``False``.
+            remote_name: The name the server knows the tool by, when ``name`` (what the model sees) differs,
+                for instance because it is prefixed with the server's name.
         """
         self.tool_type = ToolType.MCP
         self.name = name
+        self.remote_name = remote_name or name
         self.description = description
         self.input_schema = input_schema
         self.risk = risk
@@ -82,72 +86,74 @@ class MCPTool:
 
         call_id = str(kwargs.pop("call_id", ""))
         try:
-            result = await self.client.call_tool(self.name, kwargs)
-
-            # Native MCP SDK response — always a CallToolResult with .content
-            content = []
-            for item in result.content:  # type: ignore[union-attr]
-                if hasattr(item, "type"):
-                    if item.type == "text" and hasattr(item, "text"):
-                        content.append(TextBlock(text=item.text))
-                    elif item.type == "image" and hasattr(item, "data"):
-                        mime = getattr(item, "mimeType", "image/png")
-                        content.append(
-                            MediaBlock.image(data=base64.b64decode(item.data), media_type=mime)
-                        )
-                    elif item.type == "resource" and hasattr(item, "resource"):
-                        r = item.resource
-                        uri = getattr(r, "uri", "")
-                        text = getattr(r, "text", None)
-                        content.append(
-                            MediaBlock.document(url=uri or None)
-                            if not text
-                            else TextBlock(text=f"[{uri}]\n{text}" if uri else text)
-                        )
-                    else:
-                        # Fallback if other types are present
-                        content.append(TextBlock(text=str(item)))
-                elif isinstance(item, dict):
-                    # Decode from dict
-                    item_type = item.get("type", "text")
-                    if item_type == "text":
-                        content.append(TextBlock(text=str(item.get("text", ""))))
-                    elif item_type == "image":
-                        content.append(
-                            MediaBlock.image(
-                                data=base64.b64decode(str(item.get("data", ""))),
-                                media_type=str(
-                                    item.get(
-                                        "mediaType",
-                                        item.get("mimeType", "image/png"),
-                                    )
-                                ),
-                            )
-                        )
-                    elif item_type == "resource":
-                        r = item.get("resource", {})
-                        uri = str(r.get("uri", ""))
-                        text = r.get("text")
-                        content.append(
-                            MediaBlock.document(url=uri or None)
-                            if not text
-                            else TextBlock(text=f"[{uri}]\n{text}" if uri else text)
-                        )
-                    else:
-                        content.append(TextBlock(text=str(item)))
-                else:
-                    # Fallback
-                    content.append(TextBlock(text=str(item)))
-
-            is_error: bool = getattr(result, "isError", False)
-            return ToolExecutionResult(call_id=call_id, content=content, is_error=is_error)
-
+            result = await self.client.call_tool(self.remote_name, kwargs)
+            return self.to_result(call_id, result)
         except Exception as e:
             return ToolExecutionResult(
                 call_id=call_id,
                 content=[TextBlock(text=f"Tool execution failed: {e}")],
                 is_error=True,
             )
+
+    def to_result(self, call_id: str, result: object) -> ToolExecutionResult:
+        """What the model is shown for a server's answer."""
+        # Native MCP SDK response — always a CallToolResult with .content
+        content = []
+        for item in result.content:  # type: ignore[union-attr]
+            if hasattr(item, "type"):
+                if item.type == "text" and hasattr(item, "text"):
+                    content.append(TextBlock(text=item.text))
+                elif item.type == "image" and hasattr(item, "data"):
+                    mime = getattr(item, "mimeType", "image/png")
+                    content.append(
+                        MediaBlock.image(data=base64.b64decode(item.data), media_type=mime)
+                    )
+                elif item.type == "resource" and hasattr(item, "resource"):
+                    r = item.resource
+                    uri = getattr(r, "uri", "")
+                    text = getattr(r, "text", None)
+                    content.append(
+                        MediaBlock.document(url=uri or None)
+                        if not text
+                        else TextBlock(text=f"[{uri}]\n{text}" if uri else text)
+                    )
+                else:
+                    # Fallback if other types are present
+                    content.append(TextBlock(text=str(item)))
+            elif isinstance(item, dict):
+                # Decode from dict
+                item_type = item.get("type", "text")
+                if item_type == "text":
+                    content.append(TextBlock(text=str(item.get("text", ""))))
+                elif item_type == "image":
+                    content.append(
+                        MediaBlock.image(
+                            data=base64.b64decode(str(item.get("data", ""))),
+                            media_type=str(
+                                item.get(
+                                    "mediaType",
+                                    item.get("mimeType", "image/png"),
+                                )
+                            ),
+                        )
+                    )
+                elif item_type == "resource":
+                    r = item.get("resource", {})
+                    uri = str(r.get("uri", ""))
+                    text = r.get("text")
+                    content.append(
+                        MediaBlock.document(url=uri or None)
+                        if not text
+                        else TextBlock(text=f"[{uri}]\n{text}" if uri else text)
+                    )
+                else:
+                    content.append(TextBlock(text=str(item)))
+            else:
+                # Fallback
+                content.append(TextBlock(text=str(item)))
+
+        is_error: bool = getattr(result, "isError", False)
+        return ToolExecutionResult(call_id=call_id, content=content, is_error=is_error)
 
     @classmethod
     async def from_mcp_client(

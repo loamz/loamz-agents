@@ -98,9 +98,22 @@ class DiscoveredTools:
         return self._found
 
 
+class CombinedTools:
+    """The toolkit's tools and the tools of the operator's tool servers, as one catalog."""
+
+    def __init__(self, *catalogs: ToolCatalog) -> None:
+        self._catalogs = catalogs
+
+    def describe(self) -> dict[str, str]:
+        merged: dict[str, str] = {}
+        for catalog in self._catalogs:
+            merged.update(catalog.describe())
+        return merged
+
+
 def tool_catalog(container: Container) -> ToolCatalog:
-    """Provider: which tools an agent can be given. TODO(integration): conversations supplies the live tool registry."""
-    return DiscoveredTools()
+    """Provider: which tools an agent can be given: the toolkit's, and those of the connected tool servers."""
+    return CombinedTools(DiscoveredTools(), container.tool_servers)
 
 
 class AgentHooks:

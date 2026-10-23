@@ -4,7 +4,8 @@ from collections.abc import AsyncIterator
 
 from loamz.engine.agents.kernel.caller import Caller
 from loamz.engine.agents.kernel.runtime import ChatPayload, Message, Runtime
-from loamz.engine.agents.kernel.tools.approval import ApprovalDecision
+from loamz.engine.agents.kernel.tools import ToolRisk
+from loamz.engine.agents.kernel.tools.approval import ApprovalDecision, DurableApproval
 from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
 from loamz.engine.agents.kernel.types.identity import Actor
 from loamz.engine.agents.kernel.types.run_log import RunLogKind
@@ -37,7 +38,24 @@ class ChatService:
         return self._c.agent_store
 
     def tool_catalog(self) -> list[object]:
-        return []
+        return list(self._c.tool_servers.found.values())
+
+    async def _profile(self, caller: Caller, agent_id: str):
+        """The caller's own agent of that id, or None (the default assistant, or an id that is not theirs)."""
+        if agent_id == "default":
+            return None
+        from loamz.server.agents.features.directory.agents.service import agents
+
+        try:
+            return await self._c.get(agents).get_owned(caller, agent_id)
+        except NotFoundError:
+            return None
+
+    def _tool_server_tools(self, profile) -> list[object]:
+        """Tool-server tools an agent has, only those its `allowed_tools` names: never every tool of a server."""
+        if profile is None or not profile.allowed_tools:
+            return []
+        return self._c.tool_servers.tools(profile.allowed_tools)
 
     async def chat(self, caller: Caller, req: ChatRequest) -> AsyncIterator[str]:
         header = await self._threads.require(caller, req.thread_id)
@@ -69,14 +87,21 @@ class ChatService:
         sender_actor = Actor(type="user", key=caller.user_id)
 
         from loamz.engine.agents.kernel.agents.factory import create_assistant_agent
+        from loamz.server.agents.features.directory.agents.service import instructions_block
 
+        profile = await self._profile(caller, agent_id)
+        tools = self._tool_server_tools(profile)
         agent = create_assistant_agent(
-            model_client=self._c.model_client(req.model),
+            model_client=self._c.model_client(req.model or (profile.model if profile else None)),
             history=self._c.agent_store.threads,
-            tools=None,
-            system_instructions=req.system_instructions or "",
+            tools=tools or None,
+            system_instructions=(req.system_instructions or "")
+            + (instructions_block(profile) if profile else ""),
             session_id=agent_id,
             name="agent",
+            # A person approves every call to a tool the operator did not mark read-only; the run sleeps until they decide.
+            approval_handler=DurableApproval() if tools else None,
+            approval_required_risk=ToolRisk.HIGH if tools else None,
         )
         await self._rt.register(agent, pinned=False)
 

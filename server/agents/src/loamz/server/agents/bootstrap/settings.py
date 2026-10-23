@@ -265,6 +265,30 @@ class DataSettings(BaseModel):
     audience: str = "loamz-data"
 
 
+class ToolServerSettings(BaseModel):
+    name: str = Field(
+        description="Lower-case letters, digits and underscores. Prefixes every tool: `<name>__<tool>`."
+    )
+    url: str = Field(description="The MCP server's SSE endpoint, e.g. http://solutions:8765/sse.")
+    token: str = Field(default="", description="Sent as a bearer token.")
+    safe_tools: list[str] = Field(
+        default_factory=list,
+        description="Server-side names of tools that only read: they run without approval. Every other tool needs a person's approval.",
+    )
+    timeout: float = Field(default=30.0, gt=0, description="Seconds to connect.")
+    call_timeout: float = Field(default=120.0, gt=0, description="Seconds for one tool call.")
+
+
+class ToolsSettings(BaseModel):
+    """Tool servers the operator connects to this deployment (MCP over SSE). Agents get a server's tools only when their
+    `allowed_tools` names them, and anything not listed in `safe_tools` waits for a person's approval."""
+
+    servers: list[ToolServerSettings] = Field(default_factory=list)
+    refresh_seconds: float = Field(
+        default=60.0, gt=0, description="How often to re-discover tools and reconnect."
+    )
+
+
 class SandboxSettings(BaseModel):
     runtime: str = Field(default="nsjail", description="nsjail | k8s | inprocess (tests only)")
     network_policy: str = "deny"
@@ -307,6 +331,7 @@ class Settings(BaseSettings):
     safety: SafetySettings = Field(default_factory=SafetySettings)
     sandbox: SandboxSettings = Field(default_factory=SandboxSettings)
     data: DataSettings = Field(default_factory=DataSettings)
+    tools: ToolsSettings = Field(default_factory=ToolsSettings)
     telemetry: TelemetrySettings = Field(default_factory=TelemetrySettings)
     roles: list[str] = Field(
         default_factory=lambda: ["all"],
