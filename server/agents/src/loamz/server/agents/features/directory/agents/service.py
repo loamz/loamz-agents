@@ -111,9 +111,21 @@ class CombinedTools:
         return merged
 
 
+class NamedTools:
+    """Tools already built, listed by name."""
+
+    def __init__(self, tools: dict[str, object]) -> None:
+        self._tools = tools
+
+    def describe(self) -> dict[str, str]:
+        return {name: str(getattr(tool, "description", "")) for name, tool in self._tools.items()}
+
+
 def tool_catalog(container: Container) -> ToolCatalog:
-    """Provider: which tools an agent can be given: the toolkit's, and those of the connected tool servers."""
-    return CombinedTools(DiscoveredTools(), container.tool_servers)
+    """Provider: which tools an agent can be given: the toolkit's, the data tools, and those of the connected tool servers."""
+    return CombinedTools(
+        DiscoveredTools(), NamedTools(container.data_tool_set), container.tool_servers
+    )
 
 
 class AgentHooks:

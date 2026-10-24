@@ -262,6 +262,10 @@ class DataSettings(BaseModel):
         default="loamz-agents-files",
         description="Issuer name the data service trusts to change files; its JWKS is served at /.well-known/data-token-jwks.json.",
     )
+    read_issuer: str = Field(
+        default="loamz-agents",
+        description="Issuer name the data service trusts for read-only access on behalf of a signed-in person (data tools and sandboxes).",
+    )
     audience: str = "loamz-data"
 
 

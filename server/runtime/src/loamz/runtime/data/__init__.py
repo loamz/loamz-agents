@@ -8,6 +8,7 @@ from loamz.engine.agents.data.library import DataLibrary
 from loamz.engine.agents.data.memory import DataMemoryStore
 from loamz.engine.agents.data.relay import DataGateway
 from loamz.engine.agents.data.tokens import DataTokenMinter
+from loamz.engine.agents.data.tools import data_tools
 
 __all__ = [
     "DataFileStore",
@@ -17,4 +18,5 @@ __all__ = [
     "DataServiceConnection",
     "DataTokenMinter",
     "TokenProvider",
+    "data_tools",
 ]

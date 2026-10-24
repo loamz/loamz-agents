@@ -75,6 +75,30 @@ class Container:
         )
 
     @cached_property
+    def data_read_tokens(self) -> DataTokenMinter | None:
+        """Signs the read-only tokens a person's agent presents to Loamz Data to query as them (same key, its own issuer)."""
+        data = self.settings.data
+        if not data.url:
+            return None
+        from pathlib import Path
+
+        from loamz.engine.agents.data import DataTokenMinter
+
+        return DataTokenMinter(
+            Path(data.token_key_file), issuer=data.read_issuer, audience=data.audience
+        )
+
+    @cached_property
+    def data_tool_set(self) -> dict[str, object]:
+        """The data tools (search, describe, SQL) by name; empty without a data service."""
+        minter, connection = self.data_read_tokens, self.data_connection
+        if minter is None or connection is None:
+            return {}
+        from loamz.engine.agents.data import data_tools
+
+        return {tool.name: tool for tool in data_tools(connection, minter)}
+
+    @cached_property
     def data_connection(self) -> DataServiceConnection | None:
         """The pooled connection to Loamz Data; None when files are kept locally."""
         data = self.settings.data

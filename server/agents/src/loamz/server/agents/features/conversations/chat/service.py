@@ -55,7 +55,10 @@ class ChatService:
         """Tool-server tools an agent has, only those its `allowed_tools` names: never every tool of a server."""
         if profile is None or not profile.allowed_tools:
             return []
-        return self._c.tool_servers.tools(profile.allowed_tools)
+        data = [
+            self._c.data_tool_set[n] for n in profile.allowed_tools if n in self._c.data_tool_set
+        ]
+        return [*self._c.tool_servers.tools(profile.allowed_tools), *data]
 
     async def chat(self, caller: Caller, req: ChatRequest) -> AsyncIterator[str]:
         header = await self._threads.require(caller, req.thread_id)
