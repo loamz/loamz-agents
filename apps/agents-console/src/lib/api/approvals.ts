@@ -1,4 +1,4 @@
-import { requestJson } from "./_client";
+import { requestJson, requestList } from "./_client";
 
 /** Something the assistant is waiting on the user for, in one of their conversations. */
 export interface PendingApproval {
@@ -14,7 +14,7 @@ export const approvalsApi = {
   /** Empty on any failure: the badge is a convenience and must never break the page. */
   async getApprovals(): Promise<PendingApproval[]> {
     try {
-      return await requestJson<PendingApproval[]>("/approvals");
+      return await requestList<PendingApproval>("/approvals");
     } catch {
       return [];
     }

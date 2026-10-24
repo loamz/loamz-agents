@@ -1,9 +1,9 @@
 import { Memory } from "@/types";
-import { requestJson, requestVoid } from "./_client";
+import { requestJson, requestVoid, requestList } from "./_client";
 
 export const memoryApi = {
   async getMemories(): Promise<Memory[]> {
-    return requestJson<Memory[]>("/me/memories");
+    return requestList<Memory>("/me/memories");
   },
 
   async addMemory(content: string): Promise<Memory> {

@@ -1,4 +1,4 @@
-import { API_BASE, getErrorMessage, requestJson } from "./_client";
+import { API_BASE, getErrorMessage, requestJson, requestList } from "./_client";
 import type { Branch, HistoryCheckpoint } from "@/types";
 
 export interface BranchForkPayload {
@@ -24,7 +24,7 @@ export interface ResolvedBranchMessage {
 
 export const branchApi = {
   async getBranches(threadId: string): Promise<Branch[]> {
-    return requestJson<Branch[]>(`/threads/${threadId}/branches`);
+    return requestList<Branch>(`/threads/${threadId}/branches`);
   },
 
   async forkBranch(threadId: string, payload: BranchForkPayload): Promise<Branch> {
@@ -56,11 +56,11 @@ export const branchApi = {
   },
 
   async getBranchMessages(threadId: string, branchId: string): Promise<ResolvedBranchMessage[]> {
-    return requestJson<ResolvedBranchMessage[]>(`/threads/${threadId}/branches/${branchId}/messages`);
+    return requestList<ResolvedBranchMessage>(`/threads/${threadId}/branches/${branchId}/messages`);
   },
 
   async getCheckpoints(threadId: string, branchId: string): Promise<HistoryCheckpoint[]> {
-    return requestJson<HistoryCheckpoint[]>(`/threads/${threadId}/branches/${branchId}/checkpoints`);
+    return requestList<HistoryCheckpoint>(`/threads/${threadId}/branches/${branchId}/checkpoints`);
   },
 
   async createCheckpoint(

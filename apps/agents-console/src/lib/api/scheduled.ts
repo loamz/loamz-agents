@@ -1,4 +1,4 @@
-import { requestJson, requestVoid } from "./_client";
+import { requestJson, requestVoid, requestList } from "./_client";
 import {
   ScheduledTask,
   ScheduledTaskRun,
@@ -10,7 +10,7 @@ import {
 export const scheduledApi = {
   async getScheduledTasks(status?: string): Promise<ScheduledTask[]> {
     const path = status ? `/scheduled?status=${encodeURIComponent(status)}` : "/scheduled";
-    return requestJson<ScheduledTask[]>(path);
+    return requestList<ScheduledTask>(path);
   },
 
   async getScheduledTask(id: string): Promise<ScheduledTask> {
@@ -26,7 +26,7 @@ export const scheduledApi = {
     if (params?.offset !== undefined) query.set("offset", String(params.offset));
     if (params?.include_silent !== undefined) query.set("include_silent", String(params.include_silent));
     const path = `/scheduled/${id}/runs?${query.toString()}`;
-    return requestJson<ScheduledTaskRun[]>(path);
+    return requestList<ScheduledTaskRun>(path);
   },
 
   async createScheduledTask(body: CreateScheduledTaskBody): Promise<ScheduledTask> {

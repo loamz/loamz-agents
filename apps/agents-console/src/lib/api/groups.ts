@@ -1,4 +1,4 @@
-import { API_BASE, requestJson, requestVoid } from "./_client";
+import { API_BASE, requestJson, requestVoid, requestList } from "./_client";
 
 /** How closely a member follows the group: every message, only what is addressed to it, or only what names it. */
 export type MemberMode = "all" | "mentions" | "muted";
@@ -108,7 +108,7 @@ export interface Contact {
 
 export const groupsApi = {
   async getGroups(): Promise<Group[]> {
-    return requestJson<Group[]>("/groups");
+    return requestList<Group>("/groups");
   },
 
   async createGroup(name: string, members: { agent_id: string; mode: MemberMode }[]): Promise<Group> {
@@ -152,7 +152,7 @@ export const groupsApi = {
   },
 
   async getGroupFiles(id: string): Promise<GroupFile[]> {
-    return requestJson<GroupFile[]>(`/groups/${id}/files`);
+    return requestList<GroupFile>(`/groups/${id}/files`);
   },
 
   async setGroupAvatar(id: string, file: File): Promise<Group> {
@@ -211,10 +211,10 @@ export const groupsApi = {
   },
 
   async getContacts(agentId: string): Promise<Contact[]> {
-    return requestJson<Contact[]>(`/agents/${agentId}/contacts`);
+    return requestList<Contact>(`/agents/${agentId}/contacts`);
   },
 
   async setContacts(agentId: string, contacts: { agent_id: string; note: string }[]): Promise<Contact[]> {
-    return requestJson<Contact[]>(`/agents/${agentId}/contacts`, { method: "PUT", body: JSON.stringify({ contacts }) });
+    return requestList<Contact>(`/agents/${agentId}/contacts`, { method: "PUT", body: JSON.stringify({ contacts }) });
   },
 };

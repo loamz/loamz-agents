@@ -1,4 +1,4 @@
-import { requestJson, requestVoid } from "./_client";
+import { requestJson, requestVoid, requestList } from "./_client";
 import type { Artifact, ArtifactScope } from "@/types";
 
 /**
@@ -25,7 +25,7 @@ export const artifactsApi = {
     // Repeated `tag` params — the backend treats them conjunctively.
     for (const tag of opts?.tags ?? []) params.append("tag", tag);
     if (opts?.includeDeprecated) params.set("include_deprecated", "true");
-    return requestJson<Artifact[]>(`/artifacts?${params.toString()}`);
+    return requestList<Artifact>(`/artifacts?${params.toString()}`);
   },
 
   async createArtifact(

@@ -1,4 +1,4 @@
-import { requestJson, requestVoid } from "./_client";
+import { requestJson, requestVoid, requestList } from "./_client";
 
 export interface Agent {
   id: string;
@@ -42,11 +42,11 @@ export interface ToolInfo {
 
 export const agentsApi = {
   async getAgents(): Promise<Agent[]> {
-    return requestJson<Agent[]>("/agents");
+    return requestList<Agent>("/agents");
   },
 
   async getAgentTools(): Promise<ToolInfo[]> {
-    return requestJson<ToolInfo[]>("/agents/tools");
+    return requestList<ToolInfo>("/agents/tools");
   },
 
   async createAgent(body: AgentInput): Promise<Agent> {

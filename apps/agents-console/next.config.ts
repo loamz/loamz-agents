@@ -36,10 +36,19 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_WS_URL: WS_BACKEND_URL,
   },
-  // The app lives under /chat, so its own routes answer nowhere else. Send the bare addresses there (`/` and the views) instead of a 404.
+  // The app lives under /chat, so its own routes answer nowhere else. Send the bare view addresses there instead of a 404.
   async redirects() {
     return [
-      { source: "/", destination: "/chat", basePath: false, permanent: false },
+      // Sign-in cookies belong to one host and the identity provider returns to `localhost`, so 127.0.0.1 would fail at the end of sign-in.
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "127.0.0.1" }],
+        destination: "http://localhost:3000/:path*",
+        basePath: false,
+        permanent: false,
+      },
+      // The bare address is the front door: a public landing, and the product chooser once signed in.
+      { source: "/", destination: "/chat/welcome", basePath: false, permanent: false },
       { source: "/:view(scheduled|notifications|agents|groups)/:rest*", destination: "/chat/:view/:rest*", basePath: false, permanent: false },
     ];
   },

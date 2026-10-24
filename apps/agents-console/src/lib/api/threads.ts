@@ -1,5 +1,5 @@
 import { Thread, ThreadSearchHit } from "@/types";
-import { API_BASE, ApiError, getErrorMessage, requestJson, requestVoid } from "./_client";
+import { API_BASE, ApiError, getErrorMessage, requestJson, requestVoid, requestList } from "./_client";
 
 export const THREAD_PAGE_SIZE = 30;
 
@@ -10,7 +10,7 @@ export const threadApi = {
   async getThreads(opts: { offset?: number; archived?: boolean } = {}): Promise<Thread[]> {
     const params = new URLSearchParams({ limit: String(THREAD_PAGE_SIZE), offset: String(opts.offset ?? 0) });
     if (opts.archived) params.set("archived", "true");
-    return requestJson<Thread[]>(`/threads?${params}`);
+    return requestList<Thread>(`/threads?${params}`);
   },
 
   /** One conversation, by id (an agent's conversation is not in the list, so a page opened on it checks it directly). */
@@ -41,7 +41,7 @@ export const threadApi = {
 
   /** Messages containing `q` across the caller's conversations (the sidebar matches titles itself). */
   async searchThreads(q: string): Promise<ThreadSearchHit[]> {
-    return requestJson<ThreadSearchHit[]>(`/threads/search?q=${encodeURIComponent(q)}`);
+    return requestList<ThreadSearchHit>(`/threads/search?q=${encodeURIComponent(q)}`);
   },
 
   /** Download a conversation as Markdown or JSON. */

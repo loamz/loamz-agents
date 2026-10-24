@@ -200,6 +200,12 @@ export async function requestJson<T>(path: string, init?: RequestInit): Promise<
   return res.json() as Promise<T>;
 }
 
+/** A list endpoint: the server answers a bare array or a page `{ items }`; callers always get the array. */
+export async function requestList<T>(path: string, init?: RequestInit): Promise<T[]> {
+  const body = await requestJson<T[] | { items?: T[] }>(path, init);
+  return Array.isArray(body) ? body : (body.items ?? []);
+}
+
 export async function requestVoid(path: string, init?: RequestInit): Promise<void> {
   const isFormData = init?.body instanceof FormData;
   const headers = isFormData

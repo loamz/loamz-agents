@@ -1,4 +1,4 @@
-import { requestJson, requestVoid } from "./_client";
+import { requestJson, requestVoid, requestList } from "./_client";
 
 export interface ToolStep {
   call_id: string;
@@ -33,11 +33,11 @@ export interface Rating {
 export const runsApi = {
   /** What each run of the conversation did, oldest first. */
   async getRuns(threadId: string): Promise<RunDetail[]> {
-    return requestJson<RunDetail[]>(`/threads/${threadId}/runs`);
+    return requestList<RunDetail>(`/threads/${threadId}/runs`);
   },
 
   async getRatings(threadId: string): Promise<Rating[]> {
-    return requestJson<Rating[]>(`/threads/${threadId}/feedback`);
+    return requestList<Rating>(`/threads/${threadId}/feedback`);
   },
 
   /** Rate an answer (a run) up or down; `0` takes the rating back. */
