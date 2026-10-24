@@ -1,8 +1,14 @@
-"""`DataGateway`: a hardened, allow-listed HTTP forwarder on a Unix domain socket.
+"""`DataGateway`: the sandbox's only way out, one Unix socket per run.
 
-The sandbox has no network interface. It is mounted a single Unix domain socket connected to
-this gateway, which validates TLS and forwards only allow-listed query and catalog calls into the
-data service.
+The sandbox has no network interface and no credential. Each run is given a socket whose far end is a `Channel` in this
+process. The channel holds the run's token, adds it to every request it forwards, and drops any `Authorization` header the
+sandbox sent, so code that prints "the secret" finds nothing. It also forwards only an allow-list of read requests and keeps
+a budget of bytes returned per run, so one run cannot pull the warehouse through the socket.
+
+    gateway = DataGateway("https://data.example.com")
+    channel = await gateway.open(Path("/run/x/run-1"), lambda: minter.mint(tenant, user, run_id="run-1"))
+    ...                                  # show channel.directory to the sandbox, read-only
+    await gateway.close(channel)         # the socket is gone; nothing can use the run's identity any more
 """
 
 from __future__ import annotations
@@ -15,6 +21,8 @@ import re
 import socket
 import ssl
 import stat
+from collections.abc import Callable
+from dataclasses import dataclass, field
 from http.cookiejar import DefaultCookiePolicy
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -27,6 +35,8 @@ logger = logging.getLogger(__name__)
 UNIX_PATH_LIMIT = 100
 LOOPBACK = {"localhost", "127.0.0.1", "::1"}
 MAX_REQUEST_BYTES = 1 << 20  # 1 MiB max
+DEFAULT_BUDGET_BYTES = 512 << 20  # what one run may receive in total
+DEFAULT_BUDGET_REQUESTS = 500
 
 _SEGMENT = r"[A-Za-z0-9_.$-]{1,128}"
 ALLOWED = (
@@ -42,7 +52,6 @@ ALLOWED = (
 )
 
 FORWARDED_REQUEST_HEADERS = {
-    "authorization",
     "content-type",
     "accept",
     "traceparent",
@@ -55,6 +64,7 @@ FORWARDED_RESPONSE_HEADERS = {
     "retry-after",
     "etag",
     "location",
+    "x-result-cache",
 }
 
 
@@ -68,12 +78,38 @@ def _problem(status: int, kind: str, detail: str) -> tuple[int, bytes]:
     return status, json.dumps(body).encode()
 
 
+@dataclass(eq=False)
+class Channel:
+    """One run's socket, identity and budget."""
+
+    directory: Path
+    token: Callable[[], str] = field(repr=False)
+    budget_bytes: int = DEFAULT_BUDGET_BYTES
+    budget_requests: int = DEFAULT_BUDGET_REQUESTS
+    bytes_out: int = 0
+    requests: int = 0
+    refused: int = 0
+    server: uvicorn.Server | None = field(default=None, repr=False)
+    task: asyncio.Task[None] | None = field(default=None, repr=False)
+
+    @property
+    def socket_path(self) -> Path:
+        return self.directory / "api.sock"
+
+    def stats(self) -> dict[str, int]:
+        return {
+            "bytes_out": self.bytes_out,
+            "requests": self.requests,
+            "refused": self.refused,
+            "budget_bytes": self.budget_bytes,
+        }
+
+
 class DataGateway:
-    """The sandbox's egress relay on a Unix domain socket."""
+    """Opens a `Channel` per run; all channels share one pooled, verified connection to the data service."""
 
     def __init__(
         self,
-        directory: Path,
         upstream_url: str,
         *,
         ca_file: str | None = None,
@@ -81,6 +117,7 @@ class DataGateway:
         connect_seconds: float = 10,
         read_seconds: float = 600,
         insecure_hosts: tuple[str, ...] = (),
+        transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
         parts = urlsplit(upstream_url)
         if parts.scheme not in {"http", "https"} or not parts.hostname:
@@ -89,11 +126,6 @@ class DataGateway:
             raise ValueError("Plain http is only allowed to localhost and insecure_hosts")
 
         self.upstream = upstream_url.rstrip("/")
-        self.directory = directory
-        self.socket_path = directory / "api.sock"
-        if len(str(self.socket_path)) > UNIX_PATH_LIMIT:
-            raise ValueError(f"Gateway path is too long for a Unix socket: {self.socket_path}")
-
         context: ssl.SSLContext | bool = False
         if parts.scheme == "https":
             context = ssl.create_default_context(cafile=ca_file or None)
@@ -105,52 +137,61 @@ class DataGateway:
             limits=httpx.Limits(max_connections=max_connections, max_keepalive_connections=16),
             follow_redirects=False,
             trust_env=False,
+            transport=transport,
         )
         self.client.cookies.jar.set_policy(DefaultCookiePolicy(allowed_domains=[]))
         self.slots = asyncio.Semaphore(max_connections)
-        self.server: uvicorn.Server | None = None
-        self.task: asyncio.Task[None] | None = None
-        self.start_lock = asyncio.Lock()
+        self.channels: set[Channel] = set()
 
-    async def ensure_started(self) -> None:
-        async with self.start_lock:
-            if self.server is not None:
-                return
-            self.directory.mkdir(parents=True, exist_ok=True)
-            self.directory.chmod(0o700)
-            self.socket_path.unlink(missing_ok=True)
-            listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            listener.bind(str(self.socket_path))
-            self.socket_path.chmod(stat.S_IRUSR | stat.S_IWUSR)
-            listener.listen(128)
+    async def open(
+        self,
+        directory: Path,
+        token: Callable[[], str],
+        *,
+        budget_bytes: int = DEFAULT_BUDGET_BYTES,
+        budget_requests: int = DEFAULT_BUDGET_REQUESTS,
+    ) -> Channel:
+        """A new socket in `directory` (created private to this process) that speaks for the identity `token()` returns."""
+        channel = Channel(directory, token, budget_bytes, budget_requests)
+        if len(str(channel.socket_path)) > UNIX_PATH_LIMIT:
+            raise ValueError(f"Gateway path is too long for a Unix socket: {channel.socket_path}")
+        directory.mkdir(parents=True, exist_ok=True)
+        directory.chmod(0o700)
+        channel.socket_path.unlink(missing_ok=True)
+        listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        listener.bind(str(channel.socket_path))
+        channel.socket_path.chmod(stat.S_IRUSR | stat.S_IWUSR)
+        listener.listen(32)
 
-            async def app(scope, receive, send):  # type: ignore[no-untyped-def]
-                await self.forward(scope, receive, send)
+        async def app(scope, receive, send):  # type: ignore[no-untyped-def]
+            await self.forward(channel, scope, receive, send)
 
-            config = uvicorn.Config(
-                app,
-                lifespan="off",
-                log_level="warning",
-                access_log=False,
-                server_header=False,
-            )
-            self.server = uvicorn.Server(config)
-            self.task = asyncio.create_task(self.server.serve(sockets=[listener]))
-            while not self.server.started and not self.task.done():
-                await asyncio.sleep(0.01)
+        config = uvicorn.Config(
+            app, lifespan="off", log_level="warning", access_log=False, server_header=False
+        )
+        channel.server = uvicorn.Server(config)
+        channel.task = asyncio.create_task(channel.server.serve(sockets=[listener]))
+        while not channel.server.started and not channel.task.done():
+            await asyncio.sleep(0.005)
+        self.channels.add(channel)
+        return channel
+
+    async def close(self, channel: Channel) -> None:
+        self.channels.discard(channel)
+        if channel.server is not None:
+            channel.server.should_exit = True
+            if channel.task is not None:
+                with contextlib.suppress(asyncio.CancelledError, Exception):
+                    await asyncio.wait_for(channel.task, 5)
+            channel.server, channel.task = None, None
+        channel.socket_path.unlink(missing_ok=True)
 
     async def stop(self) -> None:
-        async with self.start_lock:
-            if self.server is not None:
-                self.server.should_exit = True
-                if self.task is not None:
-                    with contextlib.suppress(asyncio.CancelledError, Exception):
-                        await asyncio.wait_for(self.task, 5)
-                self.server, self.task = None, None
-            self.socket_path.unlink(missing_ok=True)
+        for channel in list(self.channels):
+            await self.close(channel)
         await self.client.aclose()
 
-    async def forward(self, scope, receive, send) -> None:  # type: ignore[no-untyped-def]
+    async def forward(self, channel: Channel, scope, receive, send) -> None:  # type: ignore[no-untyped-def]
         if scope["type"] != "http":
             return
         method, path = scope["method"], scope["path"]
@@ -163,6 +204,21 @@ class DataGateway:
                 ),
             )
             return
+
+        if channel.bytes_out >= channel.budget_bytes or channel.requests >= channel.budget_requests:
+            channel.refused += 1
+            await self._reply(
+                send,
+                *_problem(
+                    429,
+                    "run-data-budget-exceeded",
+                    f"This run has received {channel.bytes_out >> 20} MiB of its "
+                    f"{channel.budget_bytes >> 20} MiB data budget. Do the work in SQL "
+                    "(GROUP BY, WHERE, LIMIT) and bring back only the answer.",
+                ),
+            )
+            return
+        channel.requests += 1
 
         query = scope.get("query_string", b"")
         if len(query) > 2048:
@@ -189,6 +245,14 @@ class DataGateway:
             if k.decode("latin-1").lower() in FORWARDED_REQUEST_HEADERS
         }
         headers["accept-encoding"] = "identity"
+        try:
+            headers["authorization"] = f"Bearer {channel.token()}"
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("data channel could not mint a token: %s", exc)
+            await self._reply(
+                send, *_problem(503, "identity-unavailable", "No data identity for this run")
+            )
+            return
 
         async with self.slots:
             url = self.upstream + path + ("?" + query.decode("latin-1") if query else "")
@@ -221,8 +285,15 @@ class DataGateway:
                     "headers": res_headers,
                 }
             )
-            async for chunk in response.aiter_raw():
-                await send({"type": "http.response.body", "body": chunk, "more_body": True})
+            try:
+                async for chunk in response.aiter_bytes():
+                    channel.bytes_out += len(chunk)
+                    if channel.bytes_out > channel.budget_bytes:
+                        # Headers are gone, so the stream just ends; the run's next request gets the explanation.
+                        break
+                    await send({"type": "http.response.body", "body": chunk, "more_body": True})
+            finally:
+                await response.aclose()
             await send({"type": "http.response.body", "body": b"", "more_body": False})
 
     async def _reply(self, send, status: int, body: bytes) -> None:  # type: ignore[no-untyped-def]

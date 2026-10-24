@@ -87,6 +87,7 @@ class DataTokenMinter:
         run_id: str | None = None,
         thread_id: str | None = None,
         scopes: set[str] | frozenset[str] | None = None,
+        groups: set[str] | frozenset[str] | tuple[str, ...] = (),
         ttl_seconds: int = DEFAULT_TOKEN_SECONDS,
     ) -> str:
         """Mint a short-lived token."""
@@ -104,6 +105,8 @@ class DataTokenMinter:
             "exp": now + ttl,
             "jti": uuid.uuid4().hex,
         }
+        if groups:
+            payload["groups"] = sorted(groups)
         if user_id:
             payload["user_id"] = user_id
         if agent_id:

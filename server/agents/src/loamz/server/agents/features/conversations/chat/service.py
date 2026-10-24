@@ -114,7 +114,14 @@ class ChatService:
                 message=ChatMessage(role=Role.USER, content=[TextBlock(text=prompt)])
             ),
             correlation_id=req.thread_id,
-            metadata={"display_text": raw_prompt},
+            # Who this run speaks for: from the verified sign-in, never from the request body or the model.
+            metadata={
+                "display_text": raw_prompt,
+                "tenant_id": caller.tenant_id,
+                "user_id": caller.user_id,
+                "groups": sorted(caller.groups),
+                "thread_id": req.thread_id,
+            },
         )
         run_id = await self._rt.submit(
             agent.id,

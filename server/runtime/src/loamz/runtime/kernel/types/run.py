@@ -99,6 +99,8 @@ class RunScope:
     agent_id: str = ""
     agent_label: str = ""
     parent_agent_id: str | None = None
+    # The teams the person belongs to, from their verified sign-in. Data grants are made to teams, so a run reads what its person's teams may.
+    groups: tuple[str, ...] = ()
 
     @classmethod
     def from_metadata(
@@ -130,6 +132,12 @@ class RunScope:
             if isinstance(raw_mounts, Mapping)
             else ()
         )
+        raw_groups = metadata.get("groups")
+        groups = (
+            tuple(sorted({str(g) for g in raw_groups if g}))
+            if isinstance(raw_groups, (list, tuple, set, frozenset))
+            else ()
+        )
         return cls(
             tenant_id=_str("tenant_id"),
             user_id=_str("user_id"),
@@ -140,6 +148,7 @@ class RunScope:
             agent_id=agent_id,
             agent_label=agent_label,
             parent_agent_id=_str("parent_agent_id"),
+            groups=groups,
         )
 
     @property
@@ -158,6 +167,7 @@ class RunScope:
             "workspace_id": self.workspace_id,
             "workspace_mounts": dict(self.mounts),
             "parent_agent_id": self.agent_id or None,
+            "groups": list(self.groups),
         }
         return {k: v for k, v in inherited.items() if v}
 

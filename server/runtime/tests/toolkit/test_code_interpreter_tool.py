@@ -179,13 +179,16 @@ class _Data:
     """A DataAccess that records what it was asked and hands out a fixed mount."""
 
     def __init__(self, mount=None, fail: bool = False) -> None:
-        self.mount, self.fail, self.asked, self.stopped = mount, fail, [], False
+        self.mount, self.fail, self.asked, self.stopped, self.released = mount, fail, [], False, []
 
     async def grant(self, scope, *, timeout_s):
         self.asked.append((scope, timeout_s))
         if self.fail:
             raise RuntimeError("relay down")
         return self.mount
+
+    async def release(self, mount) -> None:
+        self.released.append(mount)
 
     async def stop(self) -> None:
         self.stopped = True
@@ -198,7 +201,7 @@ class _DataRuntime(_FakeRuntime):
 def _mount():
     from loamz.engine.agents.toolkit.code.runtimes.base import DataMount
 
-    return DataMount(socket_dir="/var/tmp/relay", token="tok")
+    return DataMount(socket_dir="/var/tmp/relay")
 
 
 async def test_a_run_gets_data_access_for_its_own_scope_and_the_model_is_told_how_to_use_it():
@@ -210,6 +213,7 @@ async def test_a_run_gets_data_access_for_its_own_scope_and_the_model_is_told_ho
     await tool.execute(ctx=_FakeCtx(), code="print(1)", timeout=90)
 
     assert runtime.last_spec.data == _mount()
+    assert data.released == [_mount()]  # the run's access ends with the run
     scope, timeout_s = data.asked[0]
     assert (scope.user_id, scope.tenant_id, timeout_s) == ("user-a", "tenant-a", 90)
 

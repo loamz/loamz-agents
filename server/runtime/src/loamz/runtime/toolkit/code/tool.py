@@ -216,6 +216,9 @@ class CodeInterpreterTool:
         except Exception as exc:  # noqa: BLE001 - report any backend failure
             logger.error("code_interpreter[%s] runtime error: %s", session_id, exc)
             return sandbox_error_result(f"Sandbox error: {exc}")
+        finally:
+            if data is not None and self._data is not None:
+                await self._data.release(data)  # the run's identity ends with the run
 
         if result.workspace_snapshot_id is not None and ctx is not None:
             record = getattr(ctx, "record_workspace_snapshot", None)

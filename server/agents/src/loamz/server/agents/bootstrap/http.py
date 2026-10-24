@@ -45,6 +45,7 @@ async def _verified(request: Request) -> Caller:
         user_id=who.subject,
         kind=who.kind,
         roles=who.roles,
+        groups=who.groups,
         scopes=who.scopes,
         email=who.email,
         name=who.name,

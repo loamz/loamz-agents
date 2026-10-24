@@ -387,7 +387,7 @@ async def test_a_runtime_that_cannot_mount_says_so_rather_than_running_without(
         await InProcessRuntime(workspace).execute(spec(mounts=(_mount(),), code="print(1)"))
 
 
-# ── governed data: a socket and a token file, no network ─────────────────────
+# ── governed data: a socket and no credential, no network ────────────────────
 
 
 def test_a_data_mount_must_be_an_absolute_path_that_cannot_add_a_mount_option(
@@ -395,34 +395,31 @@ def test_a_data_mount_must_be_an_absolute_path_that_cannot_add_a_mount_option(
 ) -> None:
     from loamz.engine.agents.toolkit.code.runtimes.base import DataMount
 
-    DataMount(socket_dir=str(tmp_path), token="t")
+    DataMount(socket_dir=str(tmp_path))
     for bad in ("relative/dir", f"{tmp_path}:/etc", ""):
         with pytest.raises(ValueError):
-            DataMount(socket_dir=bad, token="t")
-    with pytest.raises(ValueError):
-        DataMount(socket_dir=str(tmp_path), token="")
-    assert "secret-token" not in repr(DataMount(socket_dir=str(tmp_path), token="secret-token"))
+            DataMount(socket_dir=bad)
+    assert not hasattr(
+        DataMount(socket_dir=str(tmp_path)), "token"
+    )  # the sandbox is never given one
 
 
-def test_nsjail_shows_data_access_read_only_and_never_puts_the_token_in_argv(
+def test_nsjail_shows_only_the_runs_socket_read_only_and_no_token_file(
     workspace: Path, tmp_path: Path
 ) -> None:
     from loamz.engine.agents.toolkit.code.runtimes.base import DataMount
 
     runtime = NsjailRuntime(workspace)
-    token_file = tmp_path / "token"
     base = runtime._nsjail_argv(spec(code="1"), tmp_path)
     assert "/run/loamz-data" not in " ".join(base)  # nothing unless asked
 
     mounted = runtime._nsjail_argv(
-        spec(code="1", data=DataMount(socket_dir=str(tmp_path), token="super-secret")),
+        spec(code="1", data=DataMount(socket_dir=str(tmp_path))),
         tmp_path,
-        token_file,
     )
     joined = " ".join(mounted)
     assert f"-R {tmp_path}:/run/loamz-data" in joined
-    assert f"-R {token_file}:/run/loamz-data/token" in joined
-    assert "super-secret" not in joined
+    assert "/run/loamz-data/token" not in joined
     assert "--disable_clone_newnet" not in mounted  # the network namespace stays closed
     assert runtime.supports_data is True
     assert getattr(InProcessRuntime(workspace), "supports_data", False) is False
@@ -431,7 +428,7 @@ def test_nsjail_shows_data_access_read_only_and_never_puts_the_token_in_argv(
 async def test_a_run_reaches_data_only_through_the_mounted_socket(
     workspace: Path,
 ) -> None:
-    """Real nsjail: a unix socket and a token file cross the closed network namespace; nothing else does."""
+    """Real nsjail: a unix socket crosses the closed network namespace; nothing else does, and there is no token to read."""
     import asyncio
     import tempfile
 
@@ -450,10 +447,10 @@ async def test_a_run_reaches_data_only_through_the_mounted_socket(
     try:
         result = await runtime.execute(
             spec(
-                data=DataMount(socket_dir=str(socket_dir), token="run-token"),
+                data=DataMount(socket_dir=str(socket_dir)),
                 code=(
                     "import socket, pathlib\n"
-                    "print('token:', pathlib.Path('/run/loamz-data/token').read_text())\n"
+                    "print('token file:', pathlib.Path('/run/loamz-data/token').exists())\n"
                     "s = socket.socket(socket.AF_UNIX); s.connect('/run/loamz-data/api.sock')\n"
                     "s.sendall(b'ping'); print('reply:', s.recv(16).decode())\n"
                     "try:\n"
@@ -461,17 +458,17 @@ async def test_a_run_reaches_data_only_through_the_mounted_socket(
                     "except OSError:\n"
                     "    print('internet: closed')\n"
                     "try:\n"
-                    "    open('/run/loamz-data/token', 'w').write('x'); print('token: WRITABLE')\n"
+                    "    open('/run/loamz-data/api.sock.bak', 'w').write('x'); print('mount: WRITABLE')\n"
                     "except OSError:\n"
-                    "    print('token: read-only')\n"
+                    "    print('mount: read-only')\n"
                 ),
             )
         )
         assert result.ok, result.stderr
-        assert "token: run-token" in result.stdout
+        assert "token file: False" in result.stdout
         assert "reply: pong" in result.stdout
         assert "internet: closed" in result.stdout
-        assert "token: read-only" in result.stdout
+        assert "mount: read-only" in result.stdout
     finally:
         server.close()
         await server.wait_closed()

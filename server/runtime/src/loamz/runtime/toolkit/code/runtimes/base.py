@@ -74,22 +74,20 @@ class Mount:
 
 @dataclass(frozen=True, slots=True)
 class DataMount:
-    """Governed-data access for one run, with no network.
+    """Governed-data access for one run, with no network and no credential.
 
-    ``socket_dir`` is a host directory holding the platform's gateway socket (``api.sock``); it is
-    shown read-only at ``/run/loamz-data``. ``token`` is this run's short-lived credential, shown
-    as the read-only file ``/run/loamz-data/token`` and never placed in the environment or argv.
-    The socket exists on this host only; the platform's gateway behind it makes the one outbound connection to the
-    (remote) data service and forwards a short allow-list of read requests. The token decides what the code may read.
+    ``socket_dir`` is a host directory holding this run's gateway socket (``api.sock``); it is shown read-only at
+    ``/run/loamz-data``. The sandbox holds no token: the gateway behind the socket owns the run's identity, adds it to
+    each request and forwards a short allow-list of read requests to the (remote) data service. What the code may read
+    is decided there from that identity, never by anything the code or the model sends.
     """
 
     socket_dir: str
-    token: str = field(repr=False)
 
     def __post_init__(self) -> None:
         # ``:`` separates the two halves of a bind mount, so a path holding one could name a destination of its own.
-        if not self.socket_dir.startswith("/") or ":" in self.socket_dir or not self.token:
-            raise ValueError("DataMount needs an absolute socket_dir without ':' and a token")
+        if not self.socket_dir.startswith("/") or ":" in self.socket_dir:
+            raise ValueError("DataMount needs an absolute socket_dir without ':'")
 
 
 @dataclass(slots=True)

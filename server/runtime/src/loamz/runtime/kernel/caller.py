@@ -20,6 +20,9 @@ class Caller:
     user_id: str
     kind: Literal["user", "service"] = "user"
     roles: frozenset[str] = field(default_factory=frozenset)
+    groups: frozenset[str] = field(
+        default_factory=frozenset
+    )  # the teams the person belongs to; data grants are made to them
     scopes: frozenset[str] | None = None
     email: str | None = None
     name: str | None = None

@@ -107,7 +107,7 @@ from pathlib import Path
 from ._files import collect_changed, snapshot
 from .base import ExecResult, NetworkPolicy, SandboxSpec, SandboxUnavailableError
 
-# Where a run finds governed data: a gateway socket and this run's token (see ``DataMount``).
+# Where a run finds governed data: its gateway socket, and nothing else (see ``DataMount``).
 DATA_MOUNT_POINT = "/run/loamz-data"
 
 # Read-only host libraries and font configuration needed by runtime interpreters
@@ -261,7 +261,7 @@ class NsjailRuntime:
     """Execute code in an nsjail namespace scoped to one session directory."""
 
     name = "nsjail"
-    # A run can be given a data-service socket and token through ``SandboxSpec.data``.
+    # A run can be given a data-service socket through ``SandboxSpec.data``.
     supports_data = True
 
     def __init__(
@@ -368,17 +368,7 @@ class NsjailRuntime:
         # next run (anyone's) the name of a drive that is not theirs.
         _CHROOT_BASE.mkdir(parents=True, exist_ok=True)
         chroot = Path(tempfile.mkdtemp(prefix="run-", dir=_CHROOT_BASE))
-        # The run's data token lives in a file of its own, outside the jail's root, shown read-only at
-        # one path. It is never in argv or the environment, and the directory goes with the run.
-        token_dir: Path | None = None
-        token_file: Path | None = None
-        if spec.data is not None:
-            token_dir = Path(tempfile.mkdtemp(prefix="data-", dir=_CHROOT_BASE))
-            token_dir.chmod(0o700)
-            token_file = token_dir / "token"
-            token_file.write_text(spec.data.token)
-            token_file.chmod(0o400)
-        cmd = self._nsjail_argv(spec, chroot, token_file) + argv
+        cmd = self._nsjail_argv(spec, chroot) + argv
 
         try:
             try:
@@ -407,8 +397,6 @@ class NsjailRuntime:
                 )
         finally:
             shutil.rmtree(chroot, ignore_errors=True)
-            if token_dir is not None:
-                shutil.rmtree(token_dir, ignore_errors=True)
 
         stdout = raw_out.decode("utf-8", errors="replace")
         stderr = raw_err.decode("utf-8", errors="replace")
@@ -443,9 +431,7 @@ class NsjailRuntime:
             raise ValueError(f"session_dir escapes workspace root: {session_dir!r}") from None
         return candidate
 
-    def _nsjail_argv(
-        self, spec: SandboxSpec, chroot: Path, token_file: Path | None = None
-    ) -> list[str]:
+    def _nsjail_argv(self, spec: SandboxSpec, chroot: Path) -> list[str]:
         session_path = self._resolve_session(spec.session_dir)
         argv = [
             self._nsjail_bin,
@@ -495,11 +481,10 @@ class NsjailRuntime:
             private_path.mkdir(parents=True, exist_ok=True)
             argv += ["-B", f"{private_path}:/workspace/private"]
 
-        if spec.data is not None and token_file is not None:
-            # The network namespace stays closed: the only way out is this one socket, whose far end
-            # is the platform's gateway on this host, which alone talks to the data service. Read-only, so the code cannot replace either file.
+        if spec.data is not None:
+            # The network namespace stays closed: the only way out is this one socket, whose far end is the platform's
+            # gateway on this host, which alone holds the run's identity and talks to the data service. Read-only.
             argv += ["-R", f"{spec.data.socket_dir}:{DATA_MOUNT_POINT}"]
-            argv += ["-R", f"{token_file}:{DATA_MOUNT_POINT}/token"]
 
         argv += ["-T", "/tmp", "-E", "HOME=/tmp"]
         for key, value in _sandbox_env().items():

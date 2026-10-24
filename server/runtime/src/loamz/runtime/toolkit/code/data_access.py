@@ -1,8 +1,9 @@
 """How a code-interpreter run gets governed warehouse data, with no network.
 
 The platform supplies a :class:`DataAccess`; the tool asks it for a :class:`DataMount` for each run
-and the runtime shows it to the code as a socket and a token file. What the code may read is decided
-by the data service from the token, never by anything the model says.
+and the runtime shows it to the code as a socket. The code holds no credential: the platform's gateway behind the
+socket owns the run's identity, and what the code may read is decided by the data service from that identity, never
+by anything the model says.
 """
 
 from __future__ import annotations
@@ -30,6 +31,10 @@ class DataAccess(Protocol):
 
     async def grant(self, scope: RunScope, *, timeout_s: int) -> DataMount | None:
         """A mount valid for about ``timeout_s`` seconds for this run's user, or None if unavailable."""
+        ...
+
+    async def release(self, mount: DataMount) -> None:
+        """End the run's access: its socket goes away and its identity can no longer be used."""
         ...
 
     async def stop(self) -> None: ...
