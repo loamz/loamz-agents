@@ -322,3 +322,49 @@ select {
 }
 /* A conversation with one agent fills the pane like a group chat, instead of keeping the reading column. */
 .chat-wide { --chat-width: none; }
+
+/* ─── Signed-out landing ────────────────────────────────────────────────────
+   A marketing surface, not app chrome: a larger title than the type scale offers, and gradients built from the brand tokens so it
+   re-brands with the rest of the instance. */
+.signed-out-backdrop {
+  background:
+    radial-gradient(60rem 28rem at 50% -8rem, color-mix(in srgb, var(--accent) 26%, transparent), transparent 70%),
+    radial-gradient(34rem 22rem at 92% 6%, color-mix(in srgb, var(--accent-2) 14%, transparent), transparent 70%);
+}
+.signed-out-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--foreground) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--foreground) 6%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 70% 55% at 50% 0%, #000 10%, transparent 72%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 55% at 50% 0%, #000 10%, transparent 72%);
+}
+.signed-out-title {
+  font-size: clamp(2.25rem, 5.4vw, 4rem);
+  line-height: 1.04;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.signed-out-gradient {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.signed-out-cta {
+  height: 3rem;
+  padding-inline: 1.5rem;
+  font-size: 1rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.signed-out-preview {
+  box-shadow: var(--shadow-lg), 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.signed-out-bar {
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 55%, var(--accent-2)));
+}

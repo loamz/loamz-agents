@@ -16,7 +16,6 @@ import { AgentIntro } from "@/components/chats/AgentIntro";
 import { useDisplayName } from "@/lib/display-name";
 import type { Agent } from "@/lib/api/agents";
 import type { Group } from "@/lib/api/groups";
-import { LoamzMark } from "@/components/LoamzMark";
 import { ToolApprovalCard } from "@/components/ToolApprovalCard";
 import { HumanInputCard } from "@/components/HumanInputCard";
 import { MaxIterationsCard } from "@/components/MaxIterationsCard";
@@ -64,6 +63,7 @@ import { shouldAutoTitle } from "@/lib/thread-title";
 import { importLocalPins } from "@/lib/pins";
 import { FileTypeIcon } from "@/components/FileTypeIcon";
 import { useAuth } from "@/contexts/AuthContext";
+import { SignedOut } from "@/components/SignedOut";
 import { useThreads } from "@/hooks/useThreads";
 import { useThreadRecord } from "@/hooks/useThreadRecord";
 import type { WireEvent } from "@/protocol";
@@ -1932,36 +1932,7 @@ function ChatPageContent() {
   }
 
   if (!isAuthenticated) {
-    return (
-      <div className="flex min-h-dvh items-center justify-center bg-background px-4">
-        <div className="text-center space-y-6 max-w-sm w-full">
-          <div className="loamz-fade-up w-14 h-14 mx-auto flex items-center justify-center">
-            <LoamzMark className="icon-free h-14 w-14" />
-          </div>
-          <div className="loamz-fade-up" style={{ '--stagger': 1 } as React.CSSProperties}>
-            <h1 className="text-2xl font-semibold">Welcome</h1>
-            <p className="text-sm mt-2 text-muted">
-              Sign in to start chatting with your AI assistant
-            </p>
-          </div>
-          {authNotice && (
-            <div className="loamz-fade-up rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-200" style={{ '--stagger': 2 } as React.CSSProperties}>
-              {authNotice}
-            </div>
-          )}
-          <button
-            onClick={() => login()}
-            className="loamz-fade-up loamz-press flex items-center gap-3 mx-auto px-6 py-3 bg-white text-gray-800 rounded-2xl text-sm font-semibold hover:bg-gray-50 transition-colors cursor-pointer"
-            style={{ '--stagger': 3, boxShadow: "var(--shadow-md)" } as React.CSSProperties}
-          >
-            Sign in
-          </button>
-          <p className="loamz-fade-up text-xs text-muted" style={{ '--stagger': 4 } as React.CSSProperties}>
-            Your conversations are private and secure
-          </p>
-        </div>
-      </div>
-    );
+    return <SignedOut onSignIn={() => login()} notice={authNotice} />;
   }
 
   const agentWorking = loading || !!threadAgent?.working;
