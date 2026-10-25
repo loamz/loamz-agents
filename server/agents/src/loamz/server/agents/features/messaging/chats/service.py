@@ -144,7 +144,20 @@ class ChatsService:
             updated_at=datetime.fromtimestamp(row.updated_at, UTC),
             members=members,
             last_message=head.latest.text if head and head.latest else None,
-            last_sender=head.latest.sender.key if head and head.latest else None,
+            last_sender=(
+                None
+                if not head or not head.latest
+                else "You"
+                if head.latest.sender == Actor("user", caller.user_id)
+                else next(
+                    (
+                        m.name
+                        for m in roster
+                        if member_actor(m.member, row.id) == head.latest.sender
+                    ),
+                    head.latest.sender.key,
+                )
+            ),
             unread=head.unread if head else 0,
             paused=bool(state and state["paused"]),
             working=await self._working(row.id, roster),

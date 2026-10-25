@@ -49,4 +49,4 @@ class WorkspaceOAuthService:
 
 def workspace_oauth(container: Container) -> WorkspaceOAuthService:
     """Provider: how the container builds this feature's service."""
-    return WorkspaceOAuthService(WorkspaceTokenStore(container.database))
+    return WorkspaceOAuthService(WorkspaceTokenStore(container.database, container.sealer))

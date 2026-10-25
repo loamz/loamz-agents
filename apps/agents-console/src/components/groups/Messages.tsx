@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Bot, Ban, Check, CheckCheck, ChevronDown, PauseCircle } from "lucide-react";
 import { Button, Textarea, cn, confirmAction } from "@/design";
-import type { GroupEntry } from "@/lib/api/groups";
+import type { GroupEntry, GroupMember } from "@/lib/api/groups";
 import { shortTime } from "@/lib/short-time";
 import { DayDivider } from "@/components/chats/DayDivider";
 import { Attachments } from "./Attachments";
 import { Avatar } from "./Avatar";
 import { GroupCard } from "./GroupCard";
+import { receiptFor, receiptLine, tickFor } from "./receipts";
 import { Markdown } from "./Markdown";
 import { MessageActions } from "./MessageActions";
 import { Reactions } from "./Reactions";
@@ -23,6 +24,10 @@ type Props = {
   typing: string[];
   /** The latest entry every agent has read; your messages up to it show as seen. */
   readByAll: number;
+  /** Who is in the chat, and how far each person has got: for the ticks of your own messages. */
+  members?: GroupMember[];
+  readBy?: Record<string, number>;
+  deliveredBy?: Record<string, number>;
   onReply: (entry: GroupEntry) => void;
   onReact: (entry: GroupEntry, emoji: string) => void;
   /** Change the text of your own message. */
@@ -36,7 +41,7 @@ type Props = {
 };
 
 /** What was said in the group, oldest first, in runs by the same person under day headings, kept at the end while you are at the end. */
-export function Messages({ entries, names, avatars, typing, readByAll, onReply, onReact, onEdit, onDelete, onCardAction, readOnly = false }: Props) {
+export function Messages({ entries, names, avatars, typing, readByAll, members = [], readBy = {}, deliveredBy = {}, onReply, onReact, onEdit, onDelete, onCardAction, readOnly = false }: Props) {
   const scroller = useRef<HTMLDivElement>(null);
   const end = useRef<HTMLDivElement>(null);
   const [atEnd, setAtEnd] = useState(true);
@@ -120,7 +125,9 @@ export function Messages({ entries, names, avatars, typing, readByAll, onReply, 
             }
             const startsRun = newDay || previous.kind === "system" || previous.sender_id !== entry.sender_id;
             const quoted = entry.reply_to === null ? undefined : bySeq.get(entry.reply_to);
-            const seenByAll = entry.seq <= readByAll;
+            const receipt = receiptFor(entry.seq, members, entry.from_user, readBy, deliveredBy, entry.sender_id);
+            const tick = tickFor(receipt, entry.seq <= readByAll);
+            const tickWords = receiptLine(receipt) || (tick === "seen" ? "Seen by everyone" : "Sent");
             const deleted = entry.deleted_at != null;
             const own = entry.from_user && !deleted && !readOnly;
             const isEditing = editing?.seq === entry.seq;
@@ -206,7 +213,7 @@ export function Messages({ entries, names, avatars, typing, readByAll, onReply, 
                     <p className="mt-0.5 flex items-center justify-end gap-1 text-2xs text-muted">
                       {entry.edited_at && !deleted && <span>edited</span>}
                       {shortTime(entry.at)}
-                      {entry.from_user && !readOnly && (seenByAll ? <CheckCheck className="size-3.5 text-accent" aria-label="Seen by everyone" /> : <Check className="size-3.5" aria-label="Sent" />)}
+                      {entry.from_user && !readOnly && (tick === "sent" ? <Check className="size-3.5" aria-label={tickWords} /> : <CheckCheck className={cn("size-3.5", tick === "seen" && "text-accent")} aria-label={tickWords} />)}
                     </p>
                   </div>
                   {!deleted && !isEditing && !readOnly && (

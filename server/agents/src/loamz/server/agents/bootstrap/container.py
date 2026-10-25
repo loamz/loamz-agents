@@ -18,6 +18,7 @@ from loamz.engine.agents.kernel.models import ChatModel
 from loamz.engine.agents.kernel.ports.counters import Counters
 from loamz.engine.agents.kernel.ports.files import FileStore
 from loamz.engine.agents.kernel.runtime import Runtime
+from loamz.engine.agents.kernel.runtime.sealing import Sealer
 from loamz.engine.agents.kernel.telemetry import set_capture_content
 from loamz.engine.agents.stores import AgentStore
 from loamz.engine.sql import Database, postgres, sqlite
@@ -257,7 +258,15 @@ class Container:
         return Runtime(
             self.agent_store,
             max_concurrency=self.settings.chat.max_concurrent_runs,
+            sealer=self.sealer,
         )
+
+    @cached_property
+    def sealer(self) -> Sealer:
+        """Seals chat content and stored tokens (see bootstrap/sealing.py); readable plain text when no keys are configured."""
+        from loamz.server.agents.bootstrap.sealing import sealer_from
+
+        return sealer_from(self.settings.sealing.keys, self.settings.sealing.primary)
 
     @cached_property
     def tool_servers(self) -> McpToolServers:

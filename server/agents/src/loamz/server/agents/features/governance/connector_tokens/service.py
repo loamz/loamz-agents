@@ -47,4 +47,4 @@ class ConnectorTokenService:
 
 def connector_tokens(container: Container) -> ConnectorTokenService:
     """Provider: how the container builds this feature's service."""
-    return ConnectorTokenService(ConnectorTokenStore(container.database))
+    return ConnectorTokenService(ConnectorTokenStore(container.database, container.sealer))

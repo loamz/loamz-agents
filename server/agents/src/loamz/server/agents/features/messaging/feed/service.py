@@ -6,6 +6,7 @@ import asyncio
 import contextlib
 import json
 import logging
+import time
 from collections.abc import AsyncIterator
 
 from loamz.engine.agents.kernel.caller import Caller
@@ -17,6 +18,10 @@ from loamz.server.agents.features.messaging.feed.model import FeedIn
 
 log = logging.getLogger(__name__)
 TOPIC = "loamz:messaging:changes"
+POLL_SECONDS = 1
+"""How long a feed waits for a wake-up before it looks again anyway (also how often it sends a keepalive)."""
+TYPING_SECONDS = 5
+"""A typing signal is a hint that expires on its own; it is never stored in the chat or the database."""
 
 
 def event(value: dict) -> bytes:
@@ -30,6 +35,53 @@ class FeedService:
         self._redis = None
         self._task: asyncio.Task | None = None
         self._unsubscribe = None
+        self._typing: dict[tuple[str, str], tuple[str, float]] = {}
+
+    async def typing(self, caller: Caller, chat: str) -> None:
+        """Say the caller is typing in a chat they belong to. Redis carries it between processes; without Redis it lives here."""
+        service = self._c.get(chats)
+        await service.require(caller, chat)
+        roster = await service._store.members(chat)
+        name = next(
+            (
+                m.name
+                for m in roster
+                if m.member == f"user:{caller.user_id}" and m.tenant == caller.tenant_id
+            ),
+            caller.name or caller.user_id,
+        )
+        key = f"typing:{caller.tenant_id}:{chat}:{caller.user_id}"
+        if self._redis is not None:
+            try:
+                await asyncio.wait_for(self._redis.set(key, name, ex=TYPING_SECONDS), 1)
+            except Exception:  # noqa: BLE001 - a lost typing hint costs nothing
+                log.debug("Typing hint not shared")
+        self._typing[(chat, caller.user_id)] = (name, time.monotonic() + TYPING_SECONDS)
+        self._notify()
+        if self._redis is not None:
+            with contextlib.suppress(Exception):
+                await asyncio.wait_for(self._redis.publish(TOPIC, "{}"), 1)
+
+    async def _typing_names(self, caller: Caller, chat: str) -> list[str]:
+        """Who else is typing in a chat right now: other people, never the caller."""
+        now = time.monotonic()
+        names: dict[str, str] = {}
+        for (room, user), (name, until) in list(self._typing.items()):
+            if until <= now:
+                del self._typing[(room, user)]
+            elif room == chat and user != caller.user_id:
+                names[user] = name
+        if self._redis is not None:
+            try:
+                prefix = f"typing:{caller.tenant_id}:{chat}:"
+                async for key in self._redis.scan_iter(match=f"{prefix}*", count=100):
+                    user = key.decode().removeprefix(prefix)
+                    value = await self._redis.get(key)
+                    if user != caller.user_id and value is not None:
+                        names[user] = value.decode()
+            except Exception:  # noqa: BLE001 - the local hints still answer
+                log.debug("Typing hints from other processes unavailable")
+        return sorted(names.values())
 
     def _notify(self) -> None:
         for waiter in self._waiters:
@@ -88,6 +140,7 @@ class FeedService:
         self._waiters.add(waiter)
         known: list[str] | None = None
         state: dict[str, tuple] = {}
+        typed: dict[str, list[str]] = {}
         try:
             while True:
                 waiter.clear()
@@ -137,8 +190,12 @@ class FeedService:
                             }
                         )
                     state[chat] = current
+                    typing = await self._typing_names(caller, chat)
+                    if typing != typed.get(chat, []):
+                        typed[chat] = typing
+                        yield event({"type": "typing", "chat": chat, "names": typing})
                 try:
-                    await asyncio.wait_for(waiter.wait(), 1)
+                    await asyncio.wait_for(waiter.wait(), POLL_SECONDS)
                 except TimeoutError:
                     yield b": keepalive\n\n"
         finally:

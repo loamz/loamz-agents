@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 
+from loamz.engine.agents.kernel.runtime.sealing import PlainSealer, Sealer
 from loamz.engine.sql import Database, migrate
 
 COMPONENT = "governance.workspace_oauth"
@@ -21,8 +22,9 @@ SCRIPTS = [
 class WorkspaceTokenStore:
     """One cached access token per (tenant, user)."""
 
-    def __init__(self, database: Database) -> None:
+    def __init__(self, database: Database, sealer: Sealer | None = None) -> None:
         self._db = database
+        self._sealer = sealer or PlainSealer()
         self._ready = False
 
     async def _ensure(self) -> None:
@@ -42,7 +44,7 @@ class WorkspaceTokenStore:
                 "access_token = excluded.access_token, expires_at = excluded.expires_at",
                 tenant_id,
                 user_id,
-                token,
+                self._sealer.seal(f"token:{tenant_id}:{user_id}", "workspace", token),
                 time.time() + ttl,
             )
 
@@ -56,7 +58,11 @@ class WorkspaceTokenStore:
                 user_id,
                 time.time(),
             )
-        return None if row is None else row["access_token"]
+        return (
+            None
+            if row is None
+            else self._sealer.open(f"token:{tenant_id}:{user_id}", "workspace", row["access_token"])
+        )
 
     async def erase(self, tenant_id: str, user_id: str | None = None) -> int:
         await self._ensure()

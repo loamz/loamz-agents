@@ -238,6 +238,11 @@ export const groupsApi = {
     return requestJson<Group>(`/groups/${id}/members/${encodeURIComponent(member)}`, { method: "PATCH", body: JSON.stringify({ role }) });
   },
 
+  /** Tell the others you are typing; the server shows it for a few seconds and forgets it. */
+  async sendTyping(id: string): Promise<void> {
+    await requestVoid(`/groups/${id}/typing`, { method: "POST" });
+  },
+
   async markGroupDelivered(id: string, upto: number): Promise<void> {
     await requestVoid(`/groups/${id}/delivered`, { method: "POST", body: JSON.stringify({ upto }) });
   },

@@ -40,6 +40,9 @@ export function GroupChat({ group, agents, onBack, onToggleList, isListOpen, onC
   const [replyTo, setReplyTo] = useState<GroupEntry | null>(null);
   const [infoOpen, setInfoOpen] = useState(false);
   const [readByAll, setReadByAll] = useState(-1);
+  const [peopleTyping, setPeopleTyping] = useState<string[]>([]);
+  const [readBy, setReadBy] = useState<Record<string, number>>({});
+  const [deliveredBy, setDeliveredBy] = useState<Record<string, number>>({});
   const [dragging, setDragging] = useState(false);
   const composer = useRef<ComposerHandle>(null);
   const dragDepth = useRef(0);
@@ -62,7 +65,12 @@ export function GroupChat({ group, agents, onBack, onToggleList, isListOpen, onC
         setEntries((all) => foldEntries(all, [event.entry]));
         if (event.entry.kind === "message" && !event.entry.from_user) markRead();
       } else if (event.type === "working") setTyping(event.names);
-      else if (event.type === "read") setReadByAll(event.by_all);
+      else if (event.type === "typing") setPeopleTyping(event.names);
+      else if (event.type === "read") {
+        setReadByAll(event.by_all);
+        setReadBy(event.by ?? {});
+        setDeliveredBy(event.delivered ?? {});
+      }
     });
     // Subscribed first, so nothing said while the history loads is missed; entries that turn up twice are folded into one.
     void (async () => {
@@ -72,6 +80,8 @@ export function GroupChat({ group, agents, onBack, onToggleList, isListOpen, onC
         if (!alive || page === null) return;
         setTyping(page.working);
         setReadByAll(page.read_by_all);
+        setReadBy(page.read_by ?? {});
+        setDeliveredBy(page.delivered_by ?? {});
         if (page.entries.length === 0) break;
         setEntries((all) => foldEntries(all, page.entries));
         groupFeed.note(group.id, page.latest);
@@ -170,8 +180,8 @@ export function GroupChat({ group, agents, onBack, onToggleList, isListOpen, onC
           onToggleList={onToggleList}
           isListOpen={isListOpen}
           title={group.name}
-          subtitle={typing.length > 0 ? typingLine(typing) : names.join(", ")}
-          live={typing.length > 0}
+          subtitle={typing.length + peopleTyping.length > 0 ? typingLine([...typing, ...peopleTyping]) : names.join(", ")}
+          live={typing.length + peopleTyping.length > 0}
           avatar={
             group.avatar ? (
               <Avatar name={group.name} src={group.avatar} className="size-10" />
@@ -190,7 +200,7 @@ export function GroupChat({ group, agents, onBack, onToggleList, isListOpen, onC
           </Button>
         </ChatHeader>
         {group.members.some((m) => m.kind === "agent") && <p role="note" className="flex items-center gap-2 border-b border-border bg-surface px-4 py-2 text-xs text-muted">AI agents {group.members.filter((m) => m.kind === "agent").map((m) => m.name).join(", ")} and their AI providers can read this chat.</p>}
-        <Messages entries={entries} names={names} avatars={avatars} typing={typing} readByAll={readByAll} onReply={setReplyTo} onReact={react} onEdit={edit} onDelete={remove} onCardAction={cardAction} />
+        <Messages entries={entries} names={names} avatars={avatars} typing={[...typing, ...peopleTyping]} readByAll={readByAll} members={group.members} readBy={readBy} deliveredBy={deliveredBy} onReply={setReplyTo} onReact={react} onEdit={edit} onDelete={remove} onCardAction={cardAction} />
         <Composer ref={composer} groupId={group.id} names={names} avatars={avatars} replyTo={replyTo} onClearReply={() => setReplyTo(null)} onSend={send} />
       </section>
       {infoOpen && (

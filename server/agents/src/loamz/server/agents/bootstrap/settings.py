@@ -321,6 +321,13 @@ class PushSettings(BaseModel):
     contact: str = "mailto:admin@example.invalid"
 
 
+class SealingSettings(BaseModel):
+    """Keys that seal chat content and stored tokens in the database. Empty keeps them readable there (development only)."""
+
+    keys: dict[str, str] = Field(default_factory=dict)
+    primary: str = ""
+
+
 class DirectorySettings(BaseModel):
     url: str = ""
     realm: str = "loamz"
@@ -337,6 +344,7 @@ class Settings(BaseSettings):
     oidc: OidcSettings = Field(default_factory=OidcSettings)
     directory: DirectorySettings = Field(default_factory=DirectorySettings)
     push: PushSettings = Field(default_factory=PushSettings)
+    sealing: SealingSettings = Field(default_factory=SealingSettings)
     http: HttpSettings = Field(default_factory=HttpSettings)
     llm: LlmSettings = Field(default_factory=LlmSettings)
     redis: RedisSettings = Field(default_factory=RedisSettings)

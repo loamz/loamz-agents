@@ -58,6 +58,15 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ gr
   );
   useImperativeHandle(ref, () => ({ addFiles }), [addFiles]);
 
+  // Others see "typing…" while you write: one hint every three seconds at most, nothing while the box is empty.
+  const lastHint = useRef(0);
+  const hintTyping = (value: string) => {
+    const now = Date.now();
+    if (!value.trim() || now - lastHint.current < 3000) return;
+    lastHint.current = now;
+    api.sendTyping(groupId).catch(() => undefined);
+  };
+
   const removePending = (p: Pending) => {
     if (p.preview) URL.revokeObjectURL(p.preview);
     setPending((all) => all.filter((x) => x.id !== p.id));
@@ -160,6 +169,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer({ gr
             onChange={(e) => {
               setText(e.target.value);
               setCaret(e.target.selectionStart);
+              hintTyping(e.target.value);
             }}
             onSelect={(e) => setCaret(e.currentTarget.selectionStart)}
             onPaste={(e) => {

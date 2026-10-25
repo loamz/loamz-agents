@@ -25,6 +25,7 @@ from loamz.engine.agents.kernel.runtime.channel import (
 )
 from loamz.engine.agents.kernel.runtime.message import DataPayload, Message
 from loamz.engine.agents.kernel.runtime.persistence.accounts import exhausted
+from loamz.engine.agents.kernel.runtime.sealing import PlainSealer, Sealer
 from loamz.engine.agents.kernel.runtime.store import Delivery
 from loamz.engine.agents.kernel.types.content import JsonObject
 from loamz.engine.agents.kernel.types.identity import Actor
@@ -150,20 +151,25 @@ def _when(value: float | None) -> datetime | None:
     return None if value is None else datetime.fromtimestamp(value, tz=UTC)
 
 
-def _entry(row: Row) -> ChannelEntry:
+def _entry(row: Row, sealer: Sealer | None = None) -> ChannelEntry:
+    sealer = sealer or PlainSealer()
+    where = f"{row['seq']}"
+    data = (
+        sealer.open(row["channel"], f"{where}:data", row["data_json"]) if row["data_json"] else ""
+    )
     return ChannelEntry(
         channel=row["channel"],
         seq=row["seq"],
         id=row["id"],
         sender=Actor.from_str(row["sender"]),
         kind=EntryKind(row["kind"]),
-        text=row["text"],
+        text=sealer.open(row["channel"], f"{where}:text", row["text"]) if row["text"] else "",
         mentions=tuple(json.loads(row["mentions_json"])),
         reply_to=row["reply_to"],
         caused_by=row["caused_by"],
         cause_seq=row["cause_seq"],
         depth=row["depth"],
-        data=json.loads(row["data_json"]) if row["data_json"] else {},
+        data=json.loads(data) if data else {},
         at=datetime.fromtimestamp(row["at"], tz=UTC),
         edited_at=_when(row["edited_at"]),
         deleted_at=_when(row["deleted_at"]),
@@ -315,7 +321,7 @@ class Channels:
                 after,
                 limit,
             )
-            return [_entry(r) for r in rows]
+            return [_entry(r, self._sealer) for r in rows]
 
         return await self._tx(do)
 
@@ -326,7 +332,7 @@ class Channels:
                 channel,
                 limit,
             )
-            return [_entry(r) for r in reversed(rows)]
+            return [_entry(r, self._sealer) for r in reversed(rows)]
 
         return await self._tx(do)
 
@@ -340,7 +346,7 @@ class Channels:
                 before,
                 limit,
             )
-            return [_entry(r) for r in reversed(rows)]
+            return [_entry(r, self._sealer) for r in reversed(rows)]
 
         return await self._tx(do)
 
@@ -392,7 +398,7 @@ class Channels:
                 )
             }
             latest = {
-                r["channel"]: _entry(r)
+                r["channel"]: _entry(r, self._sealer)
                 for r in await tx.fetchall(
                     f"SELECT e.* FROM rt_channel_entries e WHERE e.channel IN ({marks}) AND e.kind IN ('message', 'system') "
                     "AND e.seq = (SELECT MAX(x.seq) FROM rt_channel_entries x WHERE x.channel = e.channel "
@@ -750,7 +756,7 @@ class Channels:
             ch, row = found
             await tx.execute(
                 "UPDATE rt_channel_entries SET text = ?, edited_at = ? WHERE channel = ? AND seq = ?",
-                text,
+                self._sealer.seal(channel, f"{seq}:text", text) if text else text,
                 self._clock().timestamp(),
                 channel,
                 seq,
@@ -763,7 +769,11 @@ class Channels:
                 EntryKind.EDIT,
                 text,
                 seq,
-                data={"previous": row["text"]},
+                data={
+                    "previous": self._sealer.open(channel, f"{seq}:text", row["text"])
+                    if row["text"]
+                    else ""
+                },
             )
             return marker.seq, [marker]
 
@@ -894,7 +904,7 @@ class Channels:
             entry_id,
             str(sender),
             kind.value,
-            text,
+            self._sealer.seal(channel, f"{seq}:text", text) if text else text,
             json.dumps(list(mentions)),
             reply_to,
             caused_by,
@@ -902,7 +912,7 @@ class Channels:
             depth,
             self._clock().timestamp(),
             dedup_key,
-            json.dumps(data) if data else None,
+            self._sealer.seal(channel, f"{seq}:data", json.dumps(data)) if data else None,
         )
 
 

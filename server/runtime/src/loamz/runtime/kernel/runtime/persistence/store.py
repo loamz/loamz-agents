@@ -29,6 +29,7 @@ from loamz.engine.agents.kernel.runtime.persistence.channels import (
     _schema_entry_data,
 )
 from loamz.engine.agents.kernel.runtime.scheduler import RunRetryPolicy
+from loamz.engine.agents.kernel.runtime.sealing import PlainSealer, Sealer
 from loamz.engine.agents.kernel.runtime.store import (
     Cancel,
     Commit,
@@ -206,7 +207,9 @@ class RuntimeStore(Channels, Accounts):
         *,
         clock: Callable[[], datetime] = _utcnow,
         max_delivery_attempts: int = 3,
+        sealer: Sealer | None = None,
     ) -> None:
+        self._sealer: Sealer = sealer or PlainSealer()
         self._db = database
         self._clock = clock
         self._max_attempts = max_delivery_attempts

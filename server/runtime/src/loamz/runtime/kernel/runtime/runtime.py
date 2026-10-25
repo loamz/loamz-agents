@@ -31,6 +31,7 @@ from loamz.engine.agents.kernel.ports.threads import ThreadStore
 from loamz.engine.agents.kernel.runtime.message import ChatPayload, Message
 from loamz.engine.agents.kernel.runtime.resolver import ActorFactory, ActorResolver
 from loamz.engine.agents.kernel.runtime.scheduler import RunRetryPolicy
+from loamz.engine.agents.kernel.runtime.sealing import Sealer
 from loamz.engine.agents.kernel.runtime.store import Delivery, RunRecord, RunSpec, RuntimeStore
 from loamz.engine.agents.kernel.runtime.tail import tail
 from loamz.engine.agents.kernel.runtime.worker import Worker
@@ -110,6 +111,7 @@ class Runtime:
         max_concurrency: int = 10,
         lease_s: float = 30.0,
         poll_interval_s: float = 0.05,
+        sealer: Sealer | None = None,
     ) -> None:
         self._source = store if isinstance(store, AgentState) else None
         self._owns_source = owns_store and self._source is not None
@@ -120,7 +122,7 @@ class Runtime:
             )
 
             self._threads = store.threads
-            store = PersistedRuntimeStore(store.database)
+            store = PersistedRuntimeStore(store.database, sealer=sealer)
         self._store = store
         self._resolver = resolver or ActorResolver()
         self._resolver.add_preparer(self._bind_history)

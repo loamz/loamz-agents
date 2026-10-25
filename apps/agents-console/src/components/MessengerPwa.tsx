@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
+import { serviceWorkerUrl } from "@/lib/trusted";
 
 export function MessengerPwa() {
   useEffect(() => {
-    if ("serviceWorker" in navigator) void navigator.serviceWorker.register("/chat/sw.js", { scope: "/chat" }).catch(() => undefined);
+    if ("serviceWorker" in navigator) void navigator.serviceWorker.register(serviceWorkerUrl(), { scope: "/chat" }).catch(() => undefined);
   }, []);
   return null;
 }

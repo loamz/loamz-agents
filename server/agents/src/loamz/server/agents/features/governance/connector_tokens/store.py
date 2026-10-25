@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 
+from loamz.engine.agents.kernel.runtime.sealing import PlainSealer, Sealer
 from loamz.engine.sql import Database, migrate
 from loamz.server.agents.features.governance.connector_tokens.model import TokenPush
 
@@ -26,9 +27,28 @@ SCRIPTS = [
 class ConnectorTokenStore:
     """A short-lived cache keyed by tenant, connector and project; a row past `expires_at` is gone as far as readers go."""
 
-    def __init__(self, database: Database) -> None:
+    def __init__(self, database: Database, sealer: Sealer | None = None) -> None:
         self._db = database
+        self._sealer = sealer or PlainSealer()
         self._ready = False
+
+    def _seal(
+        self, tenant: str, connector: str, project: str, which: str, value: str | None
+    ) -> str | None:
+        return (
+            None
+            if value is None
+            else self._sealer.seal(f"token:{tenant}:{connector}:{project}", which, value)
+        )
+
+    def _open(
+        self, tenant: str, connector: str, project: str, which: str, value: str | None
+    ) -> str | None:
+        return (
+            None
+            if value is None
+            else self._sealer.open(f"token:{tenant}:{connector}:{project}", which, value)
+        )
 
     async def _ensure(self) -> None:
         if not self._ready:
@@ -54,8 +74,12 @@ class ConnectorTokenStore:
                 connector_type,
                 token.project_id,
                 pushed_by,
-                token.access_token,
-                token.refresh_token,
+                self._seal(
+                    tenant_id, connector_type, token.project_id, "access", token.access_token
+                ),
+                self._seal(
+                    tenant_id, connector_type, token.project_id, "refresh", token.refresh_token
+                ),
                 token.expires_at,
                 time.time() + ttl,
             )
@@ -75,8 +99,12 @@ class ConnectorTokenStore:
             return None
         return TokenPush(
             project_id=project_id,
-            access_token=row["access_token"],
-            refresh_token=row["refresh_token"],
+            access_token=self._open(
+                tenant_id, connector_type, project_id, "access", row["access_token"]
+            ),
+            refresh_token=self._open(
+                tenant_id, connector_type, project_id, "refresh", row["refresh_token"]
+            ),
             expires_at=row["token_expires_at"],
         )
 

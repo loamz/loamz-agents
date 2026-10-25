@@ -332,3 +332,86 @@ async def test_push_is_a_content_free_wake_and_rejects_private_endpoints(messeng
     assert len(received) == 1 and "Private message" not in json.dumps(received)
     # The endpoint is a capability; knowing it must not let another account take it over.
     assert (await client.put("/api/v1/push/subscriptions", json=body)).status_code == 400
+
+
+async def test_typing_is_a_hint_that_others_see_and_expires(messenger):
+    container, app, client = messenger
+    group = await create(client)
+    chat = group["id"]
+    service = container.get(feed)
+    stream = service.stream(BOB, FeedIn())
+    try:
+        assert (await next_event(stream, "ready"))["chats"] == [chat]
+        assert (await client.post(f"/api/v1/groups/{chat}/typing")).status_code == 204
+        assert (await next_event(stream, "typing"))["names"] == ["Alice"]
+        service._typing[(chat, "alice")] = ("Alice", 0.0)  # its few seconds are up
+        assert (await next_event(stream, "typing"))["names"] == []
+    finally:
+        await stream.aclose()
+    as_user(app, MALLORY)
+    assert (await client.post(f"/api/v1/groups/{chat}/typing")).status_code == 404
+    as_user(app, ALICE)
+    own = service.stream(ALICE, FeedIn())
+    try:
+        await next_event(own, "ready")
+        await client.post(f"/api/v1/groups/{chat}/typing")
+        with pytest.raises(TimeoutError):
+            await next_event(
+                own, "typing"
+            )  # nothing arrives: your own typing is never shown back to you
+    finally:
+        await own.aclose()
+
+
+async def test_the_chat_list_names_who_spoke_last(messenger):
+    _, app, client = messenger
+    group = await create(client)
+    path = f"/api/v1/groups/{group['id']}"
+    await client.post(path + "/messages", json={"text": "hello"})
+    assert (await client.get(path)).json()["last_sender"] == "You"
+    as_user(app, BOB)
+    assert (await client.get(path)).json()["last_sender"] == "Alice"
+
+
+@pytest.mark.skipif(
+    not __import__("os").environ.get("TEST_REDIS_URL"),
+    reason="set TEST_REDIS_URL to run against a real Redis",
+)
+async def test_a_message_posted_in_one_process_reaches_a_feed_in_another_through_redis(
+    tmp_path, monkeypatch
+):
+    import os
+    import time
+
+    from loamz.server.agents.features.messaging.feed import service as feed_service
+
+    # Polling is made so slow that only the Redis wake-up can deliver in time.
+    monkeypatch.setattr(feed_service, "POLL_SECONDS", 30)
+    url = os.environ["TEST_REDIS_URL"]
+
+    def process() -> Container:
+        c = Container(Settings(database={"path": str(tmp_path / "shared.db")}, redis={"url": url}))
+        c.__dict__["directory"] = Directory()
+        return c
+
+    one, two = process(), process()
+    app_one, app_two = create_app(one, roles={"all"}), create_app(two, roles={"all"})
+    app_one.dependency_overrides[caller_dependency] = lambda: ALICE
+    async with app_one.router.lifespan_context(app_one):
+        async with app_two.router.lifespan_context(app_two):
+            async with httpx.AsyncClient(
+                transport=httpx.ASGITransport(app=app_one), base_url="http://one"
+            ) as client:
+                group = await create(client)
+                stream = two.get(feed).stream(BOB, FeedIn())
+                try:
+                    assert (await next_event(stream, "ready"))["chats"] == [group["id"]]
+                    started = time.monotonic()
+                    await client.post(
+                        f"/api/v1/groups/{group['id']}/messages", json={"text": "across processes"}
+                    )
+                    event = await next_event(stream, "entry")
+                    assert event["entry"]["text"] == "across processes"
+                    assert time.monotonic() - started < 2.5  # Redis, not the 30 s poll
+                finally:
+                    await stream.aclose()

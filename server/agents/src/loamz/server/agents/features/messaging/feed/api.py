@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from fastapi.responses import StreamingResponse
 
 from loamz.server.agents.bootstrap.http import CallerDep, use
@@ -21,3 +21,10 @@ async def open_feed(body: FeedIn, caller: CallerDep, service: Service) -> Stream
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"},
     )
+
+
+@router.post("/api/v1/groups/{chat}/typing", status_code=204)
+async def typing(chat: str, caller: CallerDep, service: Service) -> Response:
+    """The caller is typing in this chat. A hint that expires in a few seconds; nothing is stored."""
+    await service.typing(caller, chat)
+    return Response(status_code=204)
