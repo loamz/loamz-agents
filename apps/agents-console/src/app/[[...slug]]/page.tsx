@@ -118,13 +118,16 @@ function writeLastActiveThreadId(threadId: string | null): void {
   window.sessionStorage.removeItem(LAST_ACTIVE_THREAD_STORAGE_KEY);
 }
 
-// The first non-image `sandbox:` file ref in an assistant message — the "main
-// artifact" to auto-open in the side panel (Claude-style). Images use the
-// `![](sandbox:)` form and render inline, so the leading-`!` case is excluded.
-const ARTIFACT_LINK_RE = /(^|[^!])\[[^\]]*\]\(sandbox:([^)\s]+)\)/;
+// The first non-image `sandbox:` file in an assistant message: the "main artifact" opened in the side panel (Claude-style).
+// Images are never opened there: they already show in the message, whether written `![](sandbox:)` or as a plain link.
+const ARTIFACT_LINK_RE = /(^|[^!])\[[^\]]*\]\(sandbox:([^)\s]+)\)/g;
+const IMAGE_FILE = /\.(png|jpe?g|gif|webp|svg|avif)$/i;
 function firstArtifactRef(content: string): string | null {
-  const m = content.match(ARTIFACT_LINK_RE);
-  return m ? m[2].replace(/^\.?\//, "") : null;
+  for (const m of content.matchAll(ARTIFACT_LINK_RE)) {
+    const path = m[2].replace(/^\.?\//, "");
+    if (!IMAGE_FILE.test(path.split(/[?#]/)[0])) return path;
+  }
+  return null;
 }
 
 function ChatPageContent() {
