@@ -376,11 +376,20 @@ select {
 .chat-bubble-out {
   max-width: min(85%, 40rem);
 }
+.chat-bubble {
+  --bubble-image: 26rem;
+}
 .chat-bubble img {
   /* A set width, not just a cap: the bubble sizes to its content, and a chart's natural pixel width would stretch it. */
-  width: 26rem;
+  width: var(--bubble-image);
   max-width: 100%;
   height: auto;
   max-height: 22rem;
   object-fit: contain;
+}
+
+/* A bubble with an image is as wide as the image, and its text wraps to it, unless it also holds something that needs room
+   (a table, code, a formula or a diagram): then it grows to fit, up to the reading width. */
+.chat-bubble:has(img):not(:has(table, pre, .katex-display, svg[aria-roledescription])) {
+  width: calc(var(--bubble-image) + 1.5rem); /* the image plus the bubble's padding */
 }

@@ -161,7 +161,7 @@ export function CollapsedRail({
 
   return (
     <TooltipProvider>
-      <div className="hidden w-18 shrink-0 flex-col items-center gap-1 border-r border-border bg-card px-1 py-3 lg:flex">
+      <div className="hidden w-14 shrink-0 flex-col items-center gap-1 border-r border-border bg-card px-1.5 py-3 lg:flex">
         <Tooltip label="Open sidebar" side="right">
           <Button
             variant="ghost"
