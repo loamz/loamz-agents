@@ -2201,10 +2201,12 @@ function ChatPageContent() {
                   )}
                   <form
                     onSubmit={sendMessage}
-                    className="flex flex-col overflow-hidden rounded-xl bg-card px-3 py-2 shadow-md"
+                    // A messenger's composer is one row (attach, the message, then the microphone and send on the right); the
+                    // assistant's keeps the message on top with its model controls below.
+                    className={`overflow-hidden rounded-xl bg-card py-2 shadow-md ${isAgentChat ? "flex flex-row flex-wrap items-end gap-1.5 px-2" : "flex flex-col px-3"}`}
                   >
                     {attachedFiles.length > 0 && (
-                      <div className="flex flex-wrap gap-2 pb-3 pt-1">
+                      <div className="flex basis-full flex-wrap gap-2 pb-3 pt-1">
                         {attachedFiles.map((file) => renderComposerAttachment(file))}
                       </div>
                     )}
@@ -2241,27 +2243,27 @@ function ChatPageContent() {
                         }
                       }}
                       rows={1}
-                      className="max-h-48 w-full resize-none overflow-y-auto bg-transparent px-2 py-2.5 text-[15px] outline-none placeholder:text-muted"
+                      className={`max-h-48 resize-none overflow-y-auto bg-transparent px-2 text-[15px] outline-none placeholder:text-muted ${isAgentChat ? "order-2 min-w-0 flex-1 py-2" : "w-full py-2.5"}`}
                       placeholder={lockedReason ? "This conversation is locked" : threadAgent ? `Message ${threadAgent.name}` : "Ask anything"}
                       disabled={!!lockedReason}
                     />
 
                     {/* ── Bottom bar: [+] left · [model][mic][audio/send] right ── */}
-                    <div className="flex items-center gap-1.5 px-1 pb-0.5 pt-0.5">
+                    <div className={isAgentChat ? "contents" : "flex items-center gap-1.5 px-1 pb-0.5 pt-0.5"}>
                       {/* Attach — left */}
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={uploadingFile}
-                        className="btn-icon flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                        className="btn-icon order-1 flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted transition-colors disabled:cursor-not-allowed disabled:opacity-40"
                         style={{ background: "var(--card-hover)" }}
                         aria-label="Attach file"
                       >
                         {uploadingFile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-5 w-5" />}
                       </button>
-                      {/* In a messenger the microphone sits beside the paperclip, as in a group's composer. */}
+                      {/* In a messenger the microphone sits on the right, beside send. */}
                       {isAgentChat && (
-                        <div className="rounded-full" style={{ background: "var(--card-hover)" }}>
+                        <div className="order-3 rounded-full" style={{ background: "var(--card-hover)" }}>
                           <VoiceRecorder
                             onTranscript={(text) => setInput((prev) => (prev ? prev + " " + text : text))}
                             disabled={loading}
@@ -2271,7 +2273,7 @@ function ChatPageContent() {
                       )}
 
                       {/* Right group */}
-                      <div className="ml-auto flex items-center gap-1.5">
+                      <div className="order-4 ml-auto flex items-center gap-1.5">
                         <ComposerLimit refreshOn={messages.length} />
                         {/* An agent thinks with its own model (set in its profile), so there is nothing to pick here. */}
                         {!isAgentChat && (
