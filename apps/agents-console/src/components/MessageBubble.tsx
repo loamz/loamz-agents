@@ -95,6 +95,9 @@ export function linkifyCitations(content: string, validIndices: Set<number>): st
  * failed load (e.g. the model referenced a file it didn't actually save)
  * collapses to a small caption instead of the browser's broken-image icon.
  */
+/** The images one turn's tools captured: by file name, and (from older runs) unnamed, in the order they were made. */
+export type CapturedImages = { byName: Map<string, string>; unnamed: string[] };
+
 const IMAGE_EXTENSIONS = /\.(png|jpe?g|gif|webp|svg|avif)$/i;
 
 /** Whether a markdown link target names an image file (query strings ignored). */
@@ -371,8 +374,8 @@ type Props = {
   onInspect?: () => void;
   /** Who is answering, shown above a reply in a conversation with one agent: its picture and name. */
   speaker?: { name: string; avatar?: string | null };
-  /** Images this message's turn captured, by file name: a `sandbox:` name shows that copy, as it was then. */
-  capturedImages?: Map<string, string>;
+  /** Images this message's turn captured: a `sandbox:` name shows that copy, as it was then. */
+  capturedImages?: CapturedImages;
 };
 
 export function MessageBubble({
@@ -466,14 +469,21 @@ export function MessageBubble({
   // The copy of each image this message's own run captured, by file name. A message that names `sandbox:chart.png` shows
   // that copy, as it was when the message was written, not whatever the workspace file holds now (the agent may have
   // redrawn it since).
-  const capturedByName = new Map<string, string>(capturedImages ?? []);
+  const capturedByName = new Map<string, string>(capturedImages?.byName ?? []);
   for (const attachment of toolImageAttachments) {
     if (attachment.url) capturedByName.set(attachment.name.split("/").pop() || attachment.name, attachment.url);
+  }
+  // Names no capture matches take the turn's unnamed captures in order (runs from before captures kept their file names).
+  const fallbackByRef = new Map<string, string>();
+  const unnamed = [...(capturedImages?.unnamed ?? [])];
+  for (const raw of inlineImageRefs) {
+    const name = raw.replace(/^sandbox:/, "").split("/").pop() || "";
+    if (raw.startsWith("sandbox:") && !capturedByName.has(name) && unnamed.length) fallbackByRef.set(raw, unnamed.shift()!);
   }
   const resolveImageRef = (raw: string): string => {
     if (!raw.startsWith("sandbox:")) return raw;
     const name = raw.replace(/^sandbox:/, "").split("/").pop() || "";
-    return capturedByName.get(name) ?? (threadId ? buildWorkspaceFileUrl(threadId, raw) : "");
+    return capturedByName.get(name) ?? fallbackByRef.get(raw) ?? (threadId ? buildWorkspaceFileUrl(threadId, raw) : "");
   };
   const inlineImageAttachments = inlineImageRefs.map((raw) => ({
     id: `inline:${raw}`,

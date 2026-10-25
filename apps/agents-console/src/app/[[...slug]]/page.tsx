@@ -64,6 +64,7 @@ import { importLocalPins } from "@/lib/pins";
 import { FileTypeIcon } from "@/components/FileTypeIcon";
 import { useAuth } from "@/contexts/AuthContext";
 import { SignedOut } from "@/components/SignedOut";
+import type { CapturedImages } from "@/components/MessageBubble";
 import { useThreads } from "@/hooks/useThreads";
 import { useThreadRecord } from "@/hooks/useThreadRecord";
 import type { WireEvent } from "@/protocol";
@@ -1931,12 +1932,16 @@ function ChatPageContent() {
   // The images each turn's tools captured, by file name, for every message of that turn: the agent's closing text (which names
   // `sandbox:chart.png`) is a different message from the tool result that captured the image.
   const capturedByMessage = useMemo(() => {
-    const out = new Map<string, Map<string, string>>();
-    let turn = new Map<string, string>();
+    const out = new Map<string, CapturedImages>();
+    let turn: CapturedImages = { byName: new Map(), unnamed: [] };
     for (const m of messages) {
-      if (m.role === "user") turn = new Map();
+      if (m.role === "user") turn = { byName: new Map(), unnamed: [] };
       for (const a of m.attachments ?? []) {
-        if (a.origin === "tool" && a.url && a.name) turn.set(a.name.split("/").pop() || a.name, a.url);
+        if (a.origin !== "tool" || !a.url || !a.name) continue;
+        // Older runs captured images under a made-up name (`code_interpreter-0.png`): kept in order, for the file names
+        // the text mentions that no capture is named after.
+        if (/^[a-z_]+-\d+\.[a-z]+$/i.test(a.name)) turn.unnamed.push(a.url);
+        else turn.byName.set(a.name.split("/").pop() || a.name, a.url);
       }
       out.set(m.id, turn);
     }
