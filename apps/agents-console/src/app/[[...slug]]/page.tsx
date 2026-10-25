@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useState, useRef, useEffect, useCallback, useMemo } from "react";
+import React, { Suspense, useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
 import { nanoid } from "nanoid";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -803,6 +803,12 @@ function ChatPageContent() {
     }
   }, [canLoadData, clearAttachedFiles, currentThreadId, setPanelItems, setActivePanelId]);
 
+  // Before the browser paints: a conversation that has just loaded is never shown at its top for one frame on the way to its bottom.
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (el && isNearBottomRef.current) el.scrollTop = el.scrollHeight;
+  }, [messages, loading]);
+
   useEffect(() => {
     // Follow the newest text, but only while the reader is already at the bottom (isNearBottomRef follows their own scrolling: scroll
     // up to read and it stops, scroll back down and it resumes). The jump is instant and once per frame: a delayed, smooth scroll
@@ -814,6 +820,22 @@ function ChatPageContent() {
     });
     return () => cancelAnimationFrame(frame);
   }, [messages, loading]);
+
+  // Cards, pictures and diagrams finish loading after the messages are in place and make the page taller. A reader who is at the bottom
+  // stays there while they do (otherwise the view lands at the bottom and then drifts up as things above fill in); one who has
+  // scrolled up to read is left alone.
+  const hasMessages = messages.length > 0;
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || !hasMessages) return;
+    let height = el.scrollHeight;
+    const watcher = new ResizeObserver(() => {
+      if (el.scrollHeight > height && isNearBottomRef.current) el.scrollTop = el.scrollHeight;
+      height = el.scrollHeight;
+    });
+    for (const child of Array.from(el.children)) watcher.observe(child);
+    return () => watcher.disconnect();
+  }, [currentThreadId, hasMessages]);
 
   // Auto-resize textarea
   useEffect(() => {

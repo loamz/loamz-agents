@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ComponentPropsWithoutRef } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ComponentPropsWithoutRef } from "react";
 import ReactMarkdown, { defaultUrlTransform } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -239,6 +239,26 @@ function CopyableMarkdownTable({ children, className, ...props }: ComponentProps
       </div>
     </div>
   );
+}
+
+/** What a card drawn from a fenced block in the text needs from the message around it. */
+const FenceEnv = createContext<{ onSend?: (text: string) => void; threadId?: string | null; streaming: boolean }>({ streaming: false });
+
+/**
+ * The renderer for fenced blocks in a message's text. It is a stable component (not a function written inside the render) on purpose:
+ * markdown would treat a new function each render as a new component and rebuild everything under it, so a card or a picture drawn
+ * from a fence would be torn down and redrawn on every update of the message.
+ */
+function MarkdownPre({ children, className }: ComponentPropsWithoutRef<"pre">) {
+  const env = useContext(FenceEnv);
+  // ReactMarkdown wraps fenced code in <pre><code>. For mermaid we must render OUTSIDE the <pre> — otherwise the .prose-chat pre card
+  // styling (bg/border/padding) boxes the diagram. Detect a mermaid child and render the diagram unwrapped; likewise a drawn UI.
+  const child = Array.isArray(children) ? children[0] : children;
+  const childClass = (child as { props?: { className?: string } } | undefined)?.props?.className || "";
+  const raw = String((child as { props?: { children?: unknown } } | undefined)?.props?.children ?? "").replace(/\n$/, "");
+  if (/language-mermaid/.test(childClass)) return <Mermaid chart={raw} />;
+  if (/language-a2ui\b/.test(childClass)) return <A2uiFence source={raw} streaming={env.streaming} onSend={env.onSend} threadId={env.threadId} />;
+  return <CopyablePre className={className}>{children}</CopyablePre>;
 }
 
 function CopyablePre({ children, className, ...props }: ComponentPropsWithoutRef<"pre">) {
@@ -1088,157 +1108,140 @@ export function MessageBubble({
             {/* Main markdown content */}
             {safeContent && (
               <div className="prose-chat">
-                <ReactMarkdown
-                  // singleDollarTextMath: false — a bare `$...$` is currency,
-                  // not math, essentially always in this app (financial RAG
-                  // answers are full of dollar amounts). Left on, remark-math
-                  // greedily pairs the first `$` it sees with the NEXT `$`
-                  // anywhere later in the message as one inline-math span —
-                  // observed pairing across several sentences of a 10-Q
-                  // summary, which KaTeX then rendered as one formula
-                  // (math mode collapses inter-word spacing, and any content
-                  // it couldn't parse — like a citation's `(citation:1)` —
-                  // leaked out as raw unrendered text). `$$...$$` block math
-                  // and `\(...\)`/`\[...\]` (preprocessMarkdown below) still
-                  // work for a model that intentionally wants real math.
-                  remarkPlugins={[remarkGfm, [remarkMath, { singleDollarTextMath: false }]]}
-                  rehypePlugins={[rehypeKatex]}
-                  urlTransform={sandboxUrlTransform}
-                  components={{
-                    table({ children, ...props }) {
-                      return <CopyableMarkdownTable {...props}>{children}</CopyableMarkdownTable>;
-                    },
-                    pre({ children, className }) {
-                      // ReactMarkdown wraps fenced code in <pre><code>. For mermaid we
-                      // must render OUTSIDE the <pre> — otherwise the .prose-chat pre
-                      // card styling (bg/border/padding) boxes the diagram. Detect a
-                      // mermaid child and render the diagram unwrapped.
-                      const child = Array.isArray(children) ? children[0] : children;
-                      const childClass =
-                        (child as { props?: { className?: string } } | undefined)?.props
-                          ?.className || "";
-                      if (/language-mermaid/.test(childClass)) {
-                        const raw = (child as { props?: { children?: unknown } }).props
-                          ?.children;
-                        return <Mermaid chart={String(raw).replace(/\n$/, "")} />;
-                      }
-                      if (/language-a2ui\b/.test(childClass)) {
-                        const raw = (child as { props?: { children?: unknown } }).props?.children;
-                        return <A2uiFence source={String(raw).replace(/\n$/, "")} streaming={Boolean(isStreaming)} onSend={onSendMessage} threadId={threadId} />;
-                      }
-                      return <CopyablePre className={className}>{children}</CopyablePre>;
-                    },
-                    code({ className, children }) {
-                      return <code className={className}>{children}</code>;
-                    },
-                    img({ src, alt }) {
-                      // Model-curated chart: ![alt](sandbox:name.png) → served
-                      // full-size inline from the thread's workspace. Opens
-                      // the "inline" lightbox — navigable across every image
-                      // in THIS message, in the order they appear — not the
-                      // "tool" gallery: that gallery's `name` is a synthetic
-                      // sequential name the backend assigns when
-                      // auto-capturing tool output, decoupled from whatever
-                      // real filename the model references here.
-                      const raw = typeof src === "string" ? src.trim() : "";
-                      const galleryIndex = inlineImageRefs.indexOf(raw);
-                      return (
-                        <MarkdownImage
-                          src={raw ? resolveImageRef(raw) : undefined}
-                          alt={alt}
-                          threadId={threadId}
-                          onOpen={() => openInlineLightbox(Math.max(galleryIndex, 0))}
-                        />
-                      );
-                    },
-                    a({ href, children }) {
-                      const raw = typeof href === "string" ? href.trim() : "";
-                      // Inline citation marker, rewritten by linkifyCitations
-                      // below from a model's [n] into [n](citation:n) — only
-                      // ever emitted for an index present in sourceByIndex, so
-                      // this never needs its own "not found" UI. Degrading to
-                      // plain children (not null) means even a hypothetical
-                      // future bug here fails safe as literal-looking text
-                      // rather than silently swallowing the marker.
-                      if (raw.startsWith("citation:")) {
-                        const source = sourceByIndex.get(Number(raw.slice(9)));
-                        if (!source) return <>{children}</>;
-                        return <CitationChip source={source} onOpen={onOpenSource} />;
-                      }
-                      // Model-referenced file: [label](sandbox:report.xlsx) →
-                      // a card that opens the file in the side-panel artifact
-                      // viewer (Claude-style) with a download fallback.
-                      // A link to an image the code made is shown as the image, like a ![…](…) embed: the person came to
-                      // see the chart, not a file card.
-                      if (raw.startsWith("sandbox:") && threadId && isImageRef(raw)) {
+                <FenceEnv.Provider value={{ onSend: onSendMessage, threadId, streaming: Boolean(isStreaming) }}>
+                  <ReactMarkdown
+                    // singleDollarTextMath: false — a bare `$...$` is currency,
+                    // not math, essentially always in this app (financial RAG
+                    // answers are full of dollar amounts). Left on, remark-math
+                    // greedily pairs the first `$` it sees with the NEXT `$`
+                    // anywhere later in the message as one inline-math span —
+                    // observed pairing across several sentences of a 10-Q
+                    // summary, which KaTeX then rendered as one formula
+                    // (math mode collapses inter-word spacing, and any content
+                    // it couldn't parse — like a citation's `(citation:1)` —
+                    // leaked out as raw unrendered text). `$$...$$` block math
+                    // and `\(...\)`/`\[...\]` (preprocessMarkdown below) still
+                    // work for a model that intentionally wants real math.
+                    remarkPlugins={[remarkGfm, [remarkMath, { singleDollarTextMath: false }]]}
+                    rehypePlugins={[rehypeKatex]}
+                    urlTransform={sandboxUrlTransform}
+                    components={{
+                      table({ children, ...props }) {
+                        return <CopyableMarkdownTable {...props}>{children}</CopyableMarkdownTable>;
+                      },
+                      pre: MarkdownPre,
+                      code({ className, children }) {
+                        return <code className={className}>{children}</code>;
+                      },
+                      img({ src, alt }) {
+                        // Model-curated chart: ![alt](sandbox:name.png) → served
+                        // full-size inline from the thread's workspace. Opens
+                        // the "inline" lightbox — navigable across every image
+                        // in THIS message, in the order they appear — not the
+                        // "tool" gallery: that gallery's `name` is a synthetic
+                        // sequential name the backend assigns when
+                        // auto-capturing tool output, decoupled from whatever
+                        // real filename the model references here.
+                        const raw = typeof src === "string" ? src.trim() : "";
                         const galleryIndex = inlineImageRefs.indexOf(raw);
                         return (
                           <MarkdownImage
-                            src={resolveImageRef(raw)}
-                            alt={typeof children === "string" ? children : undefined}
+                            src={raw ? resolveImageRef(raw) : undefined}
+                            alt={alt}
                             threadId={threadId}
                             onOpen={() => openInlineLightbox(Math.max(galleryIndex, 0))}
                           />
                         );
-                      }
-                      if (raw.startsWith("sandbox:") && threadId) {
-                        const path = raw.replace(/^sandbox:/, "").replace(/^\.?\//, "");
-                        const name = path.split("/").pop() || path;
-                        const url = buildWorkspaceFileUrl(threadId, raw);
-                        const { label } = getFileGlyph(name);
-                        const ext = name.split(".").pop()?.toUpperCase() || "FILE";
-                        return (
-                          <span
-                            role={onOpenArtifact ? "button" : undefined}
-                            tabIndex={onOpenArtifact ? 0 : undefined}
-                            onClick={() => onOpenArtifact?.(path, name)}
-                            onKeyDown={(e) => {
-                              if (onOpenArtifact && (e.key === "Enter" || e.key === " ")) {
-                                e.preventDefault();
-                                onOpenArtifact(path, name);
-                              }
-                            }}
-                            className={`my-1 flex w-full max-w-sm items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-xs hover:shadow-sm hover:bg-card-hover hover:border-border-hover transition-all duration-200 ${onOpenArtifact ? "cursor-pointer" : ""}`}
-                          >
-                            <FileTypeIcon name={name} size="lg" as="span" />
-                            <span className="min-w-0 flex-1">
-                              <span className="block truncate text-sm font-semibold text-foreground">
-                                {name}
-                              </span>
-                              <span className="block text-xs text-muted">
-                                {label} · {ext}
-                              </span>
-                            </span>
-                            <a
-                              href={url}
-                              download={name}
-                              onClick={(e) => e.stopPropagation()}
-                              className="btn-icon shrink-0 flex h-8 w-8 items-center justify-center rounded-lg hover:scale-[1.03] active:scale-[0.97] transition-all"
-                              style={{
-                                background: "var(--accent)",
-                                color: "var(--accent-foreground)",
-                                minWidth: "unset",
-                                minHeight: "unset",
-                                textDecoration: "none",
+                      },
+                      a({ href, children }) {
+                        const raw = typeof href === "string" ? href.trim() : "";
+                        // Inline citation marker, rewritten by linkifyCitations
+                        // below from a model's [n] into [n](citation:n) — only
+                        // ever emitted for an index present in sourceByIndex, so
+                        // this never needs its own "not found" UI. Degrading to
+                        // plain children (not null) means even a hypothetical
+                        // future bug here fails safe as literal-looking text
+                        // rather than silently swallowing the marker.
+                        if (raw.startsWith("citation:")) {
+                          const source = sourceByIndex.get(Number(raw.slice(9)));
+                          if (!source) return <>{children}</>;
+                          return <CitationChip source={source} onOpen={onOpenSource} />;
+                        }
+                        // Model-referenced file: [label](sandbox:report.xlsx) →
+                        // a card that opens the file in the side-panel artifact
+                        // viewer (Claude-style) with a download fallback.
+                        // A link to an image the code made is shown as the image, like a ![…](…) embed: the person came to
+                        // see the chart, not a file card.
+                        if (raw.startsWith("sandbox:") && threadId && isImageRef(raw)) {
+                          const galleryIndex = inlineImageRefs.indexOf(raw);
+                          return (
+                            <MarkdownImage
+                              src={resolveImageRef(raw)}
+                              alt={typeof children === "string" ? children : undefined}
+                              threadId={threadId}
+                              onOpen={() => openInlineLightbox(Math.max(galleryIndex, 0))}
+                            />
+                          );
+                        }
+                        if (raw.startsWith("sandbox:") && threadId) {
+                          const path = raw.replace(/^sandbox:/, "").replace(/^\.?\//, "");
+                          const name = path.split("/").pop() || path;
+                          const url = buildWorkspaceFileUrl(threadId, raw);
+                          const { label } = getFileGlyph(name);
+                          const ext = name.split(".").pop()?.toUpperCase() || "FILE";
+                          return (
+                            <span
+                              role={onOpenArtifact ? "button" : undefined}
+                              tabIndex={onOpenArtifact ? 0 : undefined}
+                              onClick={() => onOpenArtifact?.(path, name)}
+                              onKeyDown={(e) => {
+                                if (onOpenArtifact && (e.key === "Enter" || e.key === " ")) {
+                                  e.preventDefault();
+                                  onOpenArtifact(path, name);
+                                }
                               }}
-                              title="Download"
-                              aria-label="Download"
+                              className={`my-1 flex w-full max-w-sm items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-xs hover:shadow-sm hover:bg-card-hover hover:border-border-hover transition-all duration-200 ${onOpenArtifact ? "cursor-pointer" : ""}`}
                             >
-                              <Download className="h-3.5 w-3.5" />
-                            </a>
-                          </span>
+                              <FileTypeIcon name={name} size="lg" as="span" />
+                              <span className="min-w-0 flex-1">
+                                <span className="block truncate text-sm font-semibold text-foreground">
+                                  {name}
+                                </span>
+                                <span className="block text-xs text-muted">
+                                  {label} · {ext}
+                                </span>
+                              </span>
+                              <a
+                                href={url}
+                                download={name}
+                                onClick={(e) => e.stopPropagation()}
+                                className="btn-icon shrink-0 flex h-8 w-8 items-center justify-center rounded-lg hover:scale-[1.03] active:scale-[0.97] transition-all"
+                                style={{
+                                  background: "var(--accent)",
+                                  color: "var(--accent-foreground)",
+                                  minWidth: "unset",
+                                  minHeight: "unset",
+                                  textDecoration: "none",
+                                }}
+                                title="Download"
+                                aria-label="Download"
+                              >
+                                <Download className="h-3.5 w-3.5" />
+                              </a>
+                            </span>
+                          );
+                        }
+                        return (
+                          <a href={raw} target="_blank" rel="noreferrer">
+                            {children}
+                          </a>
                         );
-                      }
-                      return (
-                        <a href={raw} target="_blank" rel="noreferrer">
-                          {children}
-                        </a>
-                      );
-                    },
-                  }}
-                >
-                  {linkifyCitations(preprocessMarkdown(separateFence(safeContent)), validCitationIndices)}
-                </ReactMarkdown>
+                      },
+                    }}
+                  >
+                    {linkifyCitations(preprocessMarkdown(separateFence(safeContent)), validCitationIndices)}
+                  </ReactMarkdown>
+                </FenceEnv.Provider>
                 {role === "assistant" && (
                   <SourcesStrip sources={sources} onOpenSource={onOpenSource} />
                 )}
