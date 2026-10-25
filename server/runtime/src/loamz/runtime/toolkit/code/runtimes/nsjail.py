@@ -95,6 +95,7 @@ with the specific remediation for whichever is missing.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import os
 import shutil
@@ -106,6 +107,9 @@ from pathlib import Path
 
 from ._files import collect_changed, snapshot
 from .base import ExecResult, NetworkPolicy, SandboxSpec, SandboxUnavailableError
+
+# The id code runs as outside the jail when this process is root: "nobody".
+JAIL_UID = 65534
 
 # Where a run finds governed data: its gateway socket, and nothing else (see ``DataMount``).
 DATA_MOUNT_POINT = "/run/loamz-data"
@@ -285,6 +289,9 @@ class NsjailRuntime:
         self._seccomp_policy_path = seccomp_policy_path
         self._python_prefixes = _interpreter_prefixes(self._python_bin)
         self._cgroupv2_mount = _cgroupv2_mount_for_this_process()
+        # Code never runs as root: when this process is root (in a container that grants nsjail its capabilities), the jail
+        # switches to an unprivileged id before the code starts, and the folders it writes are handed to that id.
+        self.jail_uid: int | None = JAIL_UID if os.geteuid() == 0 else None
 
     # ── preflight ────────────────────────────────────────────────────────────
     def preflight(self) -> None:
@@ -348,6 +355,8 @@ class NsjailRuntime:
         mounted = [(m.label, self._resolve_session(m.session_dir)) for m in spec.mounts]
         for _label, path in mounted:
             path.mkdir(parents=True, exist_ok=True)
+        for path in (session_path, *(p for _label, p in mounted)):
+            self._hand_over(path)
 
         if spec.code is not None:
             argv = [self._python_bin, "-c", f"{_PY_PREAMBLE}\n{spec.code}"]
@@ -368,6 +377,7 @@ class NsjailRuntime:
         # next run (anyone's) the name of a drive that is not theirs.
         _CHROOT_BASE.mkdir(parents=True, exist_ok=True)
         chroot = Path(tempfile.mkdtemp(prefix="run-", dir=_CHROOT_BASE))
+        chroot.chmod(0o755)  # the jail's / must be traversable by the unprivileged id it runs as
         cmd = self._nsjail_argv(spec, chroot) + argv
 
         try:
@@ -431,6 +441,17 @@ class NsjailRuntime:
             raise ValueError(f"session_dir escapes workspace root: {session_dir!r}") from None
         return candidate
 
+    def _hand_over(self, path: Path) -> None:
+        """Give a folder the jail writes to (and what is in it) to the id the jail runs as."""
+        if self.jail_uid is None:
+            return
+        uid = self.jail_uid
+        os.chown(path, uid, uid)
+        for parent, dirs, files in os.walk(path):
+            for name in (*dirs, *files):
+                with contextlib.suppress(OSError):
+                    os.lchown(os.path.join(parent, name), uid, uid)
+
     def _nsjail_argv(self, spec: SandboxSpec, chroot: Path) -> list[str]:
         session_path = self._resolve_session(spec.session_dir)
         argv = [
@@ -448,6 +469,18 @@ class NsjailRuntime:
             "--cwd",
             "/workspace",
         ]
+        if self.jail_uid is not None:
+            # Built as root (mounts, cgroups), then the code runs as a real unprivileged id with no capabilities.
+            argv += [
+                "--disable_clone_newuser",
+                "--user",
+                str(self.jail_uid),
+                "--group",
+                str(self.jail_uid),
+            ]
+            # Without a user namespace, raising the jail's loopback needs CAP_NET_ADMIN, which is not granted: the jail has no
+            # network at all, and data arrives through a Unix socket.
+            argv += ["--iface_no_lo"]
         if spec.memory_bytes:
             argv += [
                 f"--cgroup_mem_max={spec.memory_bytes}",
@@ -479,6 +512,7 @@ class NsjailRuntime:
         if private_dir:
             private_path = self._resolve_session(str(private_dir))
             private_path.mkdir(parents=True, exist_ok=True)
+            self._hand_over(private_path)
             argv += ["-B", f"{private_path}:/workspace/private"]
 
         if spec.data is not None:

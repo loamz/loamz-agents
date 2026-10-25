@@ -35,8 +35,12 @@ class GatewayDataAccess:
         *,
         scopes: frozenset[str] = SANDBOX_SCOPES,
         budget_bytes: int = DEFAULT_BUDGET_BYTES,
+        socket_owner: int | None = None,
     ) -> None:
         self.gateway, self.minter, self.root = gateway, minter, root
+        self.socket_owner = (
+            socket_owner  # the id the sandbox runs as; None when it runs as this process's own
+        )
         self.scopes, self.budget_bytes = scopes, budget_bytes
         self.runs: dict[str, tuple[str, Channel]] = {}
 
@@ -59,7 +63,9 @@ class GatewayDataAccess:
                 ttl_seconds=ttl,
             )
 
-        channel = await self.gateway.open(self.root / run_id, token, budget_bytes=self.budget_bytes)
+        channel = await self.gateway.open(
+            self.root / run_id, token, budget_bytes=self.budget_bytes, owner=self.socket_owner
+        )
         directory = str(channel.directory)
         self.runs[directory] = (run_id, channel)
         return DataMount(directory)

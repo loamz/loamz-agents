@@ -17,6 +17,7 @@ import asyncio
 import contextlib
 import json
 import logging
+import os
 import re
 import socket
 import ssl
@@ -150,6 +151,7 @@ class DataGateway:
         *,
         budget_bytes: int = DEFAULT_BUDGET_BYTES,
         budget_requests: int = DEFAULT_BUDGET_REQUESTS,
+        owner: int | None = None,
     ) -> Channel:
         """A new socket in `directory` (created private to this process) that speaks for the identity `token()` returns."""
         channel = Channel(directory, token, budget_bytes, budget_requests)
@@ -161,6 +163,9 @@ class DataGateway:
         listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         listener.bind(str(channel.socket_path))
         channel.socket_path.chmod(stat.S_IRUSR | stat.S_IWUSR)
+        if owner is not None:  # the sandbox runs as this id, and only it may use the run's socket
+            os.chown(directory, owner, owner)
+            os.chown(channel.socket_path, owner, owner)
         listener.listen(32)
 
         async def app(scope, receive, send):  # type: ignore[no-untyped-def]

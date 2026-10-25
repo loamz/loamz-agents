@@ -136,6 +136,7 @@ class Container:
                 gateway,
                 minter,
                 Path(sandbox.scratch_root or "/data/sandbox").parent / "sandbox-data",
+                socket_owner=getattr(runtime, "jail_uid", None),
             )
         tool = CodeInterpreterTool(
             runtime,
