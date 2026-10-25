@@ -115,7 +115,6 @@ export function ChatsPanel({ agents, groups, selection, onSelect, onViewAs, onCh
             onSelect={(i) => onSelect(i.kind, i.id)}
             onTogglePin={(i) => void pin(i.kind, i.id, !i.pinned, i.name)}
             onNew={(kind) => onSelect(kind, NEW)}
-            onCollapse={detailOpen ? toggleList : undefined}
           />
         </div>
         <div className={cn("min-h-0 flex-1 min-w-0 flex flex-col", !detailOpen && "hidden @4xl:flex")}>

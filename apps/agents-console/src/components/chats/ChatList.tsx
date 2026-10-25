@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Pin, Plus, Search } from "lucide-react";
 import { Button, Input, Menu, MenuContent, MenuItem, MenuTrigger, cn } from "@/design";
-import { SidebarToggleIcon } from "@/components/SidebarToggleIcon";
 import { Avatar } from "@/components/groups/Avatar";
 import { typingLine } from "@/components/groups/text";
 import { shortTime } from "@/lib/short-time";
@@ -36,13 +35,12 @@ type Props = {
   /** Without these the list is read only: no pinning and no new chat. */
   onTogglePin?: (item: ChatItem) => void;
   onNew?: (kind: "agent" | "group") => void;
-  onCollapse?: () => void;
   title?: string;
   server?: ServerList;
 };
 
 /** Your agents and groups as a chat list: search, filters, the pinned ones on top, and per row who said what last, who is typing and what you have not read. */
-export function ChatList({ items, selectedKey, onSelect, onTogglePin, onNew, onCollapse, title = "Chats", server }: Props) {
+export function ChatList({ items, selectedKey, onSelect, onTogglePin, onNew, title = "Chats", server }: Props) {
   const [ownQuery, setOwnQuery] = useState("");
   const [ownFilter, setOwnFilter] = useState<ChatFilter>("all");
   const query = server ? server.query : ownQuery;
@@ -70,18 +68,6 @@ export function ChatList({ items, selectedKey, onSelect, onTogglePin, onNew, onC
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
             <h1 className="truncate text-xl font-bold tracking-tight text-foreground">{title}</h1>
-            {onCollapse && (
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Collapse chats list"
-                title="Collapse chats list"
-                onClick={onCollapse}
-                className="hidden @4xl:inline-flex size-7 h-7! w-7! text-muted hover:text-foreground"
-              >
-                <SidebarToggleIcon direction="close" className="h-3.5 w-3.5" />
-              </Button>
-            )}
           </div>
           {onNew && (
             <Menu>
