@@ -16,7 +16,6 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "check:design": "node scripts/check-design.mjs",
-    "a2ui:prompt": "A2UI_PROMPT_WRITE=1 vitest run src/lib/a2ui/prompt",
     "openui:prompt": "OPENUI_PROMPT_WRITE=1 vitest run src/lib/openui/prompt"
   },
   "dependencies": {

@@ -154,18 +154,6 @@ def narrow_tools[T](tools: list[T], profile: AgentProfile, name_of: Callable[[T]
     return [t for t in tools if name_of(t) in allowed]
 
 
-GENERATIVE_UI = (
-    "generative_ui"  # not a tool: listing it teaches the agent to draw UI (see a2ui_prompt.md)
-)
-
-
-@cache
-def generative_ui_prompt() -> str:
-    """How to draw UI in a reply (A2UI v0.9 and the console's catalog). Generated from the console's catalog
-    by `pnpm a2ui:prompt` in apps/agents-console; a test there fails when the two differ."""
-    return (resources.files(__package__) / "a2ui_prompt.md").read_text(encoding="utf-8")
-
-
 RICH_UI = "rich_ui"  # not a tool either: listing it teaches the agent to write rich pages in OpenUI Lang (see openui_prompt.md)
 
 
@@ -184,8 +172,6 @@ def instructions_block(profile: AgentProfile, drives: Sequence[Drive] = ()) -> s
     if profile.instructions.strip():
         lines.append(f"Standing instructions:\n{profile.instructions.strip()}")
     lines.append(files_instructions(tuple(drives)))
-    if GENERATIVE_UI in (profile.allowed_tools or ()):
-        lines.append(f"\n{generative_ui_prompt()}")
     if RICH_UI in (profile.allowed_tools or ()):
         lines.append(f"\n{rich_ui_prompt()}")
     return "\n".join(lines) + "\n"
@@ -230,7 +216,6 @@ class AgentsService:
         return {
             **self._catalog.describe(),
             TOOL_NAME: "Ask one of your other agents to do a piece of work and get its answer.",
-            GENERATIVE_UI: "Draw cards, tables, dashboards and pictures in replies, in the A2UI standard. Costs about 5,000 tokens of instructions.",
             RICH_UI: "Answer with rich visual pages: headers with pictures, stat tiles, charts, tables, carousels (OpenUI). Costs about 14,000 tokens of instructions.",
         }
 

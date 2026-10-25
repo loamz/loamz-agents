@@ -50,15 +50,3 @@ export const AvatarApi = {
     .strict()
     .describe("The initials of a name in a small square (a ticker, a person). Loads no picture."),
 };
-
-// The catalog without any React: what the prompt generator and the checks read, so they run on a server or in a script.
-import { Catalog } from "@a2ui/web_core/v0_9";
-import { basicCatalog } from "@a2ui/web_core/v0_9/basic_catalog";
-import { CATALOG_ID } from "./check";
-
-export const apiCatalog = new Catalog(
-  CATALOG_ID,
-  "v0.9",
-  [...[...basicCatalog.components.values()].map((c) => ({ name: c.name, schema: c.schema })), MetricApi, BadgeApi, ProgressApi, CalloutApi, AvatarApi],
-  [...basicCatalog.functions.values()].filter((f) => f.name !== "openUrl"),
-);

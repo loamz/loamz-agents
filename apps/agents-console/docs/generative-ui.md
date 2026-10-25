@@ -1,4 +1,4 @@
-# UI in a message (A2UI and OpenUI)
+# UI in a message (A2UI for tools, OpenUI for the model)
 
 An agent's answer can be more than text: a plan to approve, an account, a comparison, a picture. It is drawn from **A2UI**
 ([a2ui.org](https://a2ui.org), v0.9): a small set of JSON messages (`createSurface`, `updateComponents`, `updateDataModel`) that
@@ -7,10 +7,11 @@ the console checks and draws with its own components. Nothing is executed: a car
 | Who | How | When |
 |---|---|---|
 | **A tool** | Returns `structuredContent: {"a2ui": [messages]}` beside its text. | Anything the tool already knows exactly (a plan, an account). The numbers come from code, never from the model. |
-| **The model, a card** | Writes an `a2ui` fence in its reply: a sentence, then one message per line. | A small layout it composes from what it learnt in the conversation. |
-| **The model, a rich page** | Writes an `openui` fence: OpenUI Lang ([openui.com](https://www.openui.com)). | A briefing or overview: header picture, stat tiles, charts, tables, carousels (see below). |
+| **The model** | Writes an `openui` fence: OpenUI Lang ([openui.com](https://www.openui.com)). | A briefing or overview: header picture, stat tiles, charts, tables, carousels (see below). |
 
-Both are drawn the same way, live, while a reply streams, and when a conversation is reloaded.
+The rule: **tools draw exact cards in A2UI, the model draws pages in OpenUI.** A2UI is not offered to models: its catalog has no charts or carousels, and two ways to draw made the model pick the weaker one.
+
+Both are drawn live, while a reply streams, and when a conversation is reloaded.
 
 ## Why A2UI
 
@@ -52,19 +53,9 @@ A turn's tool cards are drawn once, in the turn's closing bubble, after its text
 ## Groups
 
 A member's post carries what its tool showed in `data.ui` (the channel entry's data; the latest surface of the turn). The group view
-draws it folded to its title under the message, and draws a model's `a2ui` fence in the text the same way. Note: the open server's
+draws it folded to its title under the message, and draws a model's `openui` fence in the text as in a one-to-one chat. Note: the open server's
 group endpoints are a thin skeleton (edit, delete and reactions are not implemented, and the response shape is not the one the
 console's group client reads); making groups work end to end is separate work.
-
-## Teaching an agent to draw
-
-Add `generative_ui` to the agent's tools. Its instructions then include `a2ui_prompt.md`, generated from the catalog:
-
-```bash
-pnpm --filter agents-console a2ui:prompt    # after changing the catalog or the rules in src/lib/a2ui/prompt.ts
-```
-
-A test fails when the committed prompt and the catalog differ. It costs about 5,000 tokens, so it is opt-in.
 
 ## Returning a card from a tool (Python)
 
@@ -91,8 +82,7 @@ TagBlock, OverviewCardBlock, seven kinds of chart, Table, Carousel, ImageBlock, 
 The model writes OpenUI Lang inside an `openui` fence, after a sentence of text, and it is drawn as it streams.
 
 - **Agent setting:** add `rich_ui` to the agent's tools. Its instructions then include `openui_prompt.md` (about 14,000 tokens),
-  generated from the library by `pnpm --filter agents-console openui:prompt`; a test fails when they differ. Give an agent
-  `rich_ui` or `generative_ui`, not both: with both the model may pick the smaller A2UI catalog, which has no charts.
+  generated from the library by `pnpm --filter agents-console openui:prompt`; a test fails when they differ.
 - **Our changes to their prompt:** it is framed for a chat reply (text, then a fence), and their rule "generate realistic/plausible
   data" is replaced by ours: nothing in a UI may be made up.
 - **Pictures** go through the same rules as A2UI (`src/lib/openui/library.tsx`): every picture address is resolved to a workspace

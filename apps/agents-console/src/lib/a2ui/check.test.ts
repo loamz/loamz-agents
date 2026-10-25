@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { actionToMessage, BASIC_CATALOG_ID, CATALOG_ID, checkMessages, messagesFromFence, messagesFromStructured, separateFence } from "./check";
+import { actionToMessage, BASIC_CATALOG_ID, CATALOG_ID, checkMessages, messagesFromStructured, separateFence } from "./check";
 
 const create = { version: "v0.9", createSurface: { surfaceId: "plan", catalogId: CATALOG_ID } };
 const components = (n = 2) => ({
@@ -49,31 +49,9 @@ describe("checkMessages", () => {
 });
 
 describe("fences", () => {
-  const lines = [create, components()].map((m) => JSON.stringify(m));
-
-  it("reads JSONL, and one JSON array", () => {
-    expect(messagesFromFence(lines.join("\n"))).toHaveLength(2);
-    expect(messagesFromFence(`[${lines.join(",")}]`)).toHaveLength(2);
-  });
-
-  it("draws what has arrived while the last line is still being written", () => {
-    expect(messagesFromFence(lines[0] + "\n" + lines[1].slice(0, 40))).toBeNull(); // no components yet
-    const two = [create, components(1), components(2)].map((m) => JSON.stringify(m));
-    expect(messagesFromFence(two[0] + "\n" + two[1] + "\n" + two[2].slice(0, 30))).toHaveLength(2);
-  });
-
-  it("returns null for nothing or for prose", () => {
-    expect(messagesFromFence("")).toBeNull();
-    expect(messagesFromFence("just some words")).toBeNull();
-  });
-
-  it("treats an openui fence the same way", () => {
+  it("puts a glued openui fence on its own line, and leaves a proper one alone", () => {
     expect(separateFence("here.```openui\nroot = Card([])\n```")).toBe("here.\n\n```openui\nroot = Card([])\n```");
-  });
-
-  it("puts a glued fence on its own line, and leaves a proper one alone", () => {
-    expect(separateFence("a takeaway.```a2ui\n{}\n```")).toBe("a takeaway.\n\n```a2ui\n{}\n```");
-    expect(separateFence("words\n\n```a2ui\n{}\n```")).toBe("words\n\n```a2ui\n{}\n```");
+    expect(separateFence("words\n\n```openui\nroot = Card([])\n```")).toBe("words\n\n```openui\nroot = Card([])\n```");
   });
 });
 

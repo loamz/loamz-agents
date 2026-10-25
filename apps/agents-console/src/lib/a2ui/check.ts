@@ -68,36 +68,9 @@ export function messagesFromStructured(structured: unknown): A2uiMessage[] | nul
   return isObject(structured) ? checkMessages(structured.a2ui) : null;
 }
 
-/**
- * The messages in an ```a2ui fence a model wrote: one message per line (JSONL, as A2UI streams them), or one JSON array.
- * Called on every chunk while the reply streams, so a half-written last line is ignored and the surface grows as lines arrive.
- */
-export function messagesFromFence(source: string): A2uiMessage[] | null {
-  const text = source.trim();
-  if (!text) return null;
-  if (text.startsWith("[")) {
-    try {
-      return checkMessages(JSON.parse(text));
-    } catch {
-      return null;
-    }
-  }
-  const lines: unknown[] = [];
-  for (const line of text.split("\n")) {
-    try {
-      const value = JSON.parse(line);
-      if (Array.isArray(value)) lines.push(...value);
-      else lines.push(value);
-    } catch {
-      // a line still being written
-    }
-  }
-  return checkMessages(lines);
-}
-
-/** A model sometimes glues the fence to its sentence ("...takeaway.```a2ui"): Markdown only opens a fence at the start of a line. */
+/** A model sometimes glues the fence to its sentence ("...takeaway.```openui"): Markdown only opens a fence at the start of a line. */
 export function separateFence(markdown: string): string {
-  return markdown.replace(/([^\n])(```(?:a2ui|openui)\b)/g, "$1\n\n$2");
+  return markdown.replace(/([^\n])(```openui\b)/g, "$1\n\n$2");
 }
 
 /** What a card's button says to the agent, as a message from the person. `send` carries the words; any other action is named. */
