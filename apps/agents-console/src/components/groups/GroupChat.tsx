@@ -91,6 +91,19 @@ export function GroupChat({ group, agents, onBack, onToggleList, isListOpen, onC
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one subscription per group; onChanged and markRead are only called, never read
   }, [group.id]);
 
+  // A button on a member's card speaks to that member, in the open: it is a message in the group like any other, so everyone can see what was asked.
+  const cardAction = useCallback(
+    async (entry: GroupEntry, text: string) => {
+      try {
+        const sent = await api.sendGroupMessage(group.id, text, entry.seq, []);
+        setEntries((all) => foldEntries(all, [sent]));
+      } catch (err) {
+        reportError("Couldn't send that", err);
+      }
+    },
+    [group.id],
+  );
+
   const send = useCallback(
     async (text: string, attachments: GroupFile[]) => {
       try {
@@ -172,7 +185,7 @@ export function GroupChat({ group, agents, onBack, onToggleList, isListOpen, onC
             <Info />
           </Button>
         </ChatHeader>
-        <Messages entries={entries} names={names} avatars={avatars} typing={typing} readByAll={readByAll} onReply={setReplyTo} onReact={react} onEdit={edit} onDelete={remove} />
+        <Messages entries={entries} names={names} avatars={avatars} typing={typing} readByAll={readByAll} onReply={setReplyTo} onReact={react} onEdit={edit} onDelete={remove} onCardAction={cardAction} />
         <Composer ref={composer} groupId={group.id} names={names} avatars={avatars} replyTo={replyTo} onClearReply={() => setReplyTo(null)} onSend={send} />
       </section>
       {infoOpen && (

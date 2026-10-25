@@ -34,7 +34,7 @@ import { getAttachmentKind, getFileGlyph, formatFileSize } from "@/lib/file-util
 import { FileTypeIcon } from "@/components/FileTypeIcon";
 import { AdSlot } from "@/components/AdSlot";
 import { A2ui, A2uiFence } from "@/components/A2ui";
-import { separateFence } from "@/lib/a2ui/check";
+import { separateFence, type A2uiMessage } from "@/lib/a2ui/check";
 
 function isPersistentToolCall(toolCall: ToolCall): boolean {
   return Boolean(toolCall._meta?.ui?.httpUrl);
@@ -378,6 +378,8 @@ type Props = {
   speaker?: { name: string; avatar?: string | null };
   /** Images this message's turn captured: a `sandbox:` name shows that copy, as it was then. */
   capturedImages?: CapturedImages;
+  /** The UI this turn's tools returned for the person to see (a plan, an account), drawn after the text. */
+  cards?: { id: string; messages: A2uiMessage[] }[];
   /** What a card's button sends to the agent, as if the person had typed it. */
   onSendMessage?: (text: string) => void;
 };
@@ -404,6 +406,7 @@ export function MessageBubble({
   onInspect,
   speaker,
   capturedImages,
+  cards,
   onSendMessage,
 }: Props) {
   const isUser = role === "user";
@@ -809,7 +812,7 @@ export function MessageBubble({
 
   /* ── User message: right-aligned speech bubble ── */
   // A step that said nothing (it only called tools whose results are not worth keeping) is not a message to show in a conversation.
-  const hasUi = toolCalls?.some((tool) => tool.a2ui) ?? false;
+  const hasUi = (cards?.length ?? 0) > 0;
   if (speaker && !isUser && !isStreaming && !safeContent && !safeReasoning && !hasUi && visibleToolCalls.length === 0 && imageAttachments.length === 0 && documentAttachments.length === 0) return null;
 
   if (isUser) {
@@ -1061,11 +1064,6 @@ export function MessageBubble({
               </div>
             )}
 
-            {/* UI the tools returned for the person to see (a plan, an account): drawn here, not described */}
-            {toolCalls?.map((tool) =>
-              tool.a2ui ? <A2ui key={`ui-${tool.id}`} messages={tool.a2ui} onSend={onSendMessage} threadId={threadId} /> : null,
-            )}
-
             {/* Reasoning — expandable thinking card */}
             {safeReasoning && (
               <details className="group/think">
@@ -1246,6 +1244,11 @@ export function MessageBubble({
                 )}
               </div>
             )}
+
+            {/* UI the tools returned for the person to see (a plan, an account): drawn after the text, not described */}
+            {cards?.map((card) => (
+              <A2ui key={`ui-${card.id}`} messages={card.messages} onSend={onSendMessage} threadId={threadId} />
+            ))}
 
             {/* Generated/Attached Images (left-aligned for assistant) */}
             {imageAttachments.length > 0 && (

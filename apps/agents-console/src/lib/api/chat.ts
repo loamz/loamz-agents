@@ -9,6 +9,11 @@ export interface PendingHitlRequest {
   context?: string;
   options?: Array<{ key: string; label: string; description?: string }>;
   allow_freeform?: boolean;
+  /** Set when what is pending is a tool waiting for approval, not a question: the tool, what it was called with, how risky, in words. */
+  tool_name?: string;
+  tool_args?: Record<string, unknown>;
+  risk?: string;
+  summary?: string;
 }
 
 export class ChatConflictError extends Error {

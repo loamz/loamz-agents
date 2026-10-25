@@ -29,6 +29,17 @@ def test_an_agent_that_does_not_list_it_is_not_told_how_to_draw_ui():
 
 def test_the_prompt_names_the_catalog_the_console_draws():
     prompt = generative_ui_prompt()
-    for part in ("Card", "Column", "Row", "List", "Image", "Tabs", "Badge", "Progress", "Metric", "Button"):
+    for part in (
+        "Card",
+        "Column",
+        "Row",
+        "List",
+        "Image",
+        "Tabs",
+        "Badge",
+        "Progress",
+        "Metric",
+        "Button",
+    ):
         assert part in prompt
     assert "createSurface" in prompt and "updateComponents" in prompt and "openUrl" not in prompt

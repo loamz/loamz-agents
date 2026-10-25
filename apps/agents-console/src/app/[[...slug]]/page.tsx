@@ -46,7 +46,7 @@ import type { ResolvedBranchMessage } from "@/lib/api/branches";
 import { ChatConflictError, ChatLockedError } from "@/lib/api/chat";
 import { ApiError, getMessageAttachments, buildWorkspaceFileUrl, buildFileContentUrl } from "@/lib/api/_client";
 import { mergeSources, parseCitations } from "@/lib/citations";
-import { messagesFromStructured } from "@/lib/a2ui/check";
+import { messagesFromStructured, type A2uiMessage } from "@/lib/a2ui/check";
 import {
   getPreferredChatModel,
   CHAT_MODEL_OPTIONS,
@@ -880,6 +880,26 @@ function ChatPageContent() {
         setMessages((current) => {
           if (current.some((m) => m.metadata?.requestId === request.request_id)) {
             return current;
+          }
+          // A tool waiting for approval is drawn as the approval card it was when it arrived live, not as a question without words.
+          if (request.tool_name) {
+            return [
+              ...current,
+              {
+                id: nanoid(),
+                role: "tool_approval" as const,
+                content: "",
+                timestamp: new Date(),
+                metadata: {
+                  requestId: request.request_id,
+                  toolName: request.tool_name,
+                  arguments: request.tool_args ?? {},
+                  context: request.context,
+                  risk: request.risk,
+                  summary: request.summary,
+                },
+              },
+            ];
           }
           return [
             ...current,
@@ -1952,6 +1972,26 @@ function ChatPageContent() {
     return out;
   }, [messages]);
 
+  // The UI a turn's tools returned (a plan, an account), shown once, in the turn's closing bubble: after its text, not in a bubble of
+  // its own. A turn is everything between two of the person's messages.
+  const cardsByMessage = useMemo(() => {
+    const out = new Map<string, { id: string; messages: A2uiMessage[] }[]>();
+    let turn: Message[] = [];
+    const close = () => {
+      const cards = turn.flatMap((m) => (m.toolCalls ?? []).flatMap((t) => (t.a2ui ? [{ id: t.id, messages: t.a2ui }] : [])));
+      const assistants = turn.filter((m) => m.role === "assistant");
+      const target = [...assistants].reverse().find((m) => m.content.trim()) ?? assistants[assistants.length - 1];
+      if (cards.length && target) out.set(target.id, cards);
+      turn = [];
+    };
+    for (const m of messages) {
+      if (m.role === "user") close();
+      else turn.push(m);
+    }
+    close();
+    return out;
+  }, [messages]);
+
   // ── Auth guards ───────────────────────────────────────────────────────
   if (authLoading) {
     return (
@@ -2111,6 +2151,7 @@ function ChatPageContent() {
                               content={m.content}
                               attachments={m.attachments}
                               capturedImages={capturedByMessage.get(m.id)}
+                              cards={cardsByMessage.get(m.id)}
                               reasoning={m.reasoning}
                               timestamp={m.timestamp}
                               toolCalls={m.toolCalls}

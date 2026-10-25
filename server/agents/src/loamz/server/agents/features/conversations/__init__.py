@@ -10,6 +10,7 @@ FEATURES: tuple[Feature, ...] = (
     feature("conversations.chat", "gateway"),
     feature("conversations.feedback", "gateway"),
     feature("conversations.mcp_apps", "gateway"),
+    feature("conversations.pictures", "gateway"),
     feature("conversations.shares", "gateway"),
     feature("conversations.tasks", "gateway"),
     feature("conversations.threads", "gateway"),

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -64,6 +65,8 @@ class MessageOut(BaseModel):
     text: str
     created_at: datetime
     reactions: dict[str, list[str]] = Field(default_factory=dict)
+    ui: list[dict[str, Any]] | None = None
+    """A2UI messages the sender's tool showed (a plan, an account): the console draws them under the text."""
 
 
 class MessageList(BaseModel):

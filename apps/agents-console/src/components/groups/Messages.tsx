@@ -8,6 +8,7 @@ import { shortTime } from "@/lib/short-time";
 import { DayDivider } from "@/components/chats/DayDivider";
 import { Attachments } from "./Attachments";
 import { Avatar } from "./Avatar";
+import { GroupCard } from "./GroupCard";
 import { Markdown } from "./Markdown";
 import { MessageActions } from "./MessageActions";
 import { Reactions } from "./Reactions";
@@ -28,12 +29,14 @@ type Props = {
   onEdit: (entry: GroupEntry, text: string) => Promise<void>;
   /** Take back your own message. */
   onDelete: (entry: GroupEntry) => Promise<void>;
+  /** A button on a member's card: what it says, to be sent to that member in the group. */
+  onCardAction?: (entry: GroupEntry, text: string) => void;
   /** A conversation you may read but not take part in: no actions, no ticks. */
   readOnly?: boolean;
 };
 
 /** What was said in the group, oldest first, in runs by the same person under day headings, kept at the end while you are at the end. */
-export function Messages({ entries, names, avatars, typing, readByAll, onReply, onReact, onEdit, onDelete, readOnly = false }: Props) {
+export function Messages({ entries, names, avatars, typing, readByAll, onReply, onReact, onEdit, onDelete, onCardAction, readOnly = false }: Props) {
   const scroller = useRef<HTMLDivElement>(null);
   const end = useRef<HTMLDivElement>(null);
   const [atEnd, setAtEnd] = useState(true);
@@ -196,6 +199,9 @@ export function Messages({ entries, names, avatars, typing, readByAll, onReply, 
                       ) : (
                         <Markdown>{entry.text}</Markdown>
                       ))}
+                    {!entry.from_user && !deleted && entry.ui && (
+                      <GroupCard ui={entry.ui} author={entry.sender} onSend={(text) => (readOnly ? undefined : onCardAction?.(entry, text))} />
+                    )}
                     <Reactions reactions={entry.reactions ?? []} onReact={(emoji) => onReact(entry, emoji)} />
                     <p className="mt-0.5 flex items-center justify-end gap-1 text-2xs text-muted">
                       {entry.edited_at && !deleted && <span>edited</span>}

@@ -205,6 +205,9 @@ class ReActAgent(BaseAgent):
             return False
         return all(is_concurrency_safe(self.tools.get(tc.tool_name)) for tc in tool_calls)
 
+    def _observe(self, ctx: RunContext, tool_name: str, result: InvocationResult) -> None:
+        """A tool has answered. For agents that care about more than its text (`result.structured`: what it shows the person)."""
+
     async def _execute_tool_calls(
         self, ctx: RunContext, tool_calls: list[ToolUseBlock]
     ) -> tuple[list[ToolResultBlock], list[ToolCallRecord]]:
@@ -227,6 +230,10 @@ class ReActAgent(BaseAgent):
                 t0 = time.monotonic()
                 r = await ctx.tool(tc.tool_name, tc.arguments)
                 outcomes[tc.call_id] = (r, (time.monotonic() - t0) * 1000)
+
+        for tc in runnable:
+            if tc.call_id in outcomes:
+                self._observe(ctx, tc.tool_name, outcomes[tc.call_id][0])
 
         results: list[ToolResultBlock] = []
         records: list[ToolCallRecord] = []

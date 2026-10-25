@@ -43,7 +43,7 @@ export const RULES = [
   "Draw a UI only when it helps: a plan to approve, a comparison, a dashboard, a set of numbers, a picture. A greeting, a short answer or an explanation stays plain text.",
   "Every number, name and date in a UI must come from a tool result or from the person's messages in this conversation. Never invent figures to fill a layout.",
   "A Button's action must be {\"event\":{\"name\":\"send\",\"context\":{\"text\":\"...\"}}}: its text is sent to you as if the person had typed it. Do not add a button that approves, buys, sells, sends or deletes unless the person asked for that step.",
-  "Pictures: use a file the code interpreter saved (url \"sandbox:chart.png\") or an https address that appeared in a tool result. Never make up an address.",
+  "Pictures: use a file the code interpreter saved (url \"sandbox:chart.png\") or an https address the person gave you or that appeared in a tool result. Never make up an address.",
   "Keep it small: about 40 components at most, one surface per reply, and a short surfaceId such as \"plan\". Reusing a surfaceId replaces that surface; updateDataModel changes its values.",
   "Write the messages once, inside the ```a2ui fence, after one or two sentences of plain text. Do not repeat the UI's content in prose.",
 ];

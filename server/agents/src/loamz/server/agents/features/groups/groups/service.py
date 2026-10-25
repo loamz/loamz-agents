@@ -144,6 +144,7 @@ class GroupsService:
                 sender_name=str(e.sender.type if e.sender else ""),
                 text=e.text or "",
                 created_at=e.at,
+                ui=e.data.get("ui") or None,
             )
             for e in entries
         ]

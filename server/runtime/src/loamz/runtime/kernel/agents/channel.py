@@ -43,6 +43,7 @@ from loamz.engine.agents.kernel.types.content import (
 
 if TYPE_CHECKING:
     from loamz.engine.agents.kernel.runtime.context import RunContext
+    from loamz.engine.agents.kernel.tools.chain import InvocationResult
 
 MediaLoader = Callable[[Mapping[str, Any]], Awaitable[MediaBlock | None]]
 """Opens one shared attachment as media the model can be shown (the host knows where files are kept), or ``None`` when it cannot."""
@@ -134,7 +135,15 @@ class ChannelMemberAgent(ReActAgent):
         self._config = channel
         self._answers: dict[str, str] = {}
         self._outbox: dict[str, list[dict[str, Any]]] = {}
+        self._surfaces: dict[str, list[dict[str, Any]]] = {}
         self._drafts: dict[str, tuple[Any, ...]] = {}
+
+    def _observe(self, ctx: RunContext, tool_name: str, result: InvocationResult) -> None:
+        """A tool showed the person something (A2UI messages in its structured content): the post carries it, so the group sees what
+        a one-to-one chat would. One surface per post: the latest of the turn."""
+        shown = result.structured.get("a2ui") if result.structured else None
+        if isinstance(shown, list) and shown:
+            self._surfaces[ctx.run_id] = shown
 
     async def _share(self, ctx: Any, path: str) -> Mapping[str, Any]:
         assert self._config.publish is not None
@@ -225,14 +234,23 @@ class ChannelMemberAgent(ReActAgent):
                     text,
                     mentions=self._mentions(text),
                     read_up_to=entries[-1].seq,
-                    data={"attachments": files} if files else None,
+                    data=self._post_data(ctx, files),
                 )
                 if not posted.stale:
                     await self._keep(ctx)
                     return
         finally:
             self._outbox.pop(ctx.run_id, None)
+            self._surfaces.pop(ctx.run_id, None)
             self._drafts.pop(ctx.run_id, None)
+
+    def _post_data(self, ctx: RunContext, files: list[dict[str, Any]]) -> dict[str, Any] | None:
+        data: dict[str, Any] = {}
+        if files:
+            data["attachments"] = files
+        if (surface := self._surfaces.get(ctx.run_id)) is not None:
+            data["ui"] = surface
+        return data or None
 
     def _line(self, e: ChannelEntry) -> str:
         to = (

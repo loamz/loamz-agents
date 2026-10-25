@@ -666,3 +666,76 @@ async def test_what_happened_to_an_entry_is_not_something_a_member_reads() -> No
     assert (
         members[scout].cursor == latest
     )  # it has read past the markers, so they never wake it again
+
+
+class ShowTool:
+    """A tool that shows the person a card (A2UI messages in its structured content) and tells the model only a sentence."""
+
+    from loamz.engine.agents.kernel.tools import ToolRisk as _Risk
+
+    risk = _Risk.SAFE
+    idempotent = True
+    name = "show"
+    description = "shows a plan"
+    input_schema: dict[str, object] = {"type": "object", "properties": {}}
+
+    def __init__(self, surfaces: list[list[dict]]) -> None:
+        self.surfaces, self.calls = surfaces, 0
+
+    async def execute(self, **_kw: object):
+        from loamz.engine.agents.kernel.tools import ToolExecutionResult
+        from loamz.engine.agents.kernel.types.content import TextBlock
+
+        shown = self.surfaces[min(self.calls, len(self.surfaces) - 1)]
+        self.calls += 1
+        return ToolExecutionResult(
+            name=self.name, content=[TextBlock(text="the plan")], structured_content={"a2ui": shown}
+        )
+
+
+def surface(surface_id: str) -> list[dict]:
+    return [
+        {"version": "v0.9", "createSurface": {"surfaceId": surface_id, "catalogId": "c"}},
+        {
+            "version": "v0.9",
+            "updateComponents": {
+                "surfaceId": surface_id,
+                "components": [{"id": "root", "component": "Text", "text": "hi"}],
+            },
+        },
+    ]
+
+
+async def test_what_a_tool_shows_the_person_rides_with_the_members_post() -> None:
+    scout = Actor("member", "scout@g")
+    tool = ShowTool([surface("plan"), surface("later")])
+    agent = ChannelMemberAgent(
+        "member",
+        session_id="scout@g",
+        model=ScriptedModel(ToolCall("show", {}), ToolCall("show", {}), "Here is the plan."),
+        context=ContextConfig(history=fs_history()),
+        system_instructions="You are scout.",
+        tools=[tool],
+        channel=ChannelMemberConfig(names=roster(scout), debounce_s=0.05),
+    )
+    async with ephemeral_runtime() as rt:
+        await rt.register(agent)
+        await rt.store.channel_open(G, members=[Member(agent=scout)])
+        await rt.store.channel_append(G, sender=HUMAN, text="plan please")
+        await settle(rt.store)
+        entries = await rt.store.channel_read(G)
+    reply = entries[-1]
+    assert reply.text == "Here is the plan."
+    assert reply.data["ui"] == surface("later")  # one surface per post: the latest of the turn
+    assert "attachments" not in reply.data
+
+
+async def test_a_post_with_nothing_shown_carries_no_ui() -> None:
+    scout = Actor("member", "scout@g")
+    async with ephemeral_runtime() as rt:
+        await rt.register(member_with("scout", ScriptedModel("Just words."), roster(scout)))
+        await rt.store.channel_open(G, members=[Member(agent=scout)])
+        await rt.store.channel_append(G, sender=HUMAN, text="hello")
+        await settle(rt.store)
+        entries = await rt.store.channel_read(G)
+    assert entries[-1].text == "Just words." and "ui" not in entries[-1].data

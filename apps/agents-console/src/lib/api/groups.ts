@@ -88,6 +88,8 @@ export interface GroupEntry {
   /** Set when its sender took it back: the text and files are gone. */
   deleted_at?: string | null;
   reactions?: Reaction[];
+  /** A2UI messages the sender's tool showed (a plan, an account), drawn folded under the text. */
+  ui?: unknown[] | null;
 }
 
 export interface GroupMessages {

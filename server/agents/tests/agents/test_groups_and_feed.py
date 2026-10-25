@@ -92,3 +92,38 @@ async def test_feed_endpoint(app):
             resp = await client.post("/api/v1/feed", json={"since": {}})
             assert resp.status_code == 200
             assert "text/event-stream" in resp.headers["content-type"]
+
+
+async def test_a_message_carries_the_ui_its_senders_tool_showed(tmp_path):
+    from loamz.engine.agents.kernel.runtime.channel import EntryKind
+    from loamz.engine.agents.kernel.types.identity import Actor
+    from loamz.server.agents.features.groups.groups.service import groups
+
+    container = Container(Settings(database={"path": str(tmp_path / "agents.db")}))
+    application = create_app(container, roles={"all"})
+    application.dependency_overrides[caller_dependency] = lambda: ALICE
+    shown = [{"version": "v0.9", "createSurface": {"surfaceId": "plan", "catalogId": "c"}}]
+    async with application.router.lifespan_context(application):
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=application), base_url="http://test"
+        ) as client:
+            group_id = (await client.post("/api/v1/groups", json={"name": "Trading"})).json()["id"]
+            service = container.get(groups)
+            await service._channels.channel_append(
+                service._channel_name(group_id),
+                sender=Actor("member", "trader@g"),
+                text="Here is the plan.",
+                kind=EntryKind.MESSAGE,
+                data={"ui": shown},
+            )
+            await service._channels.channel_append(
+                service._channel_name(group_id),
+                sender=Actor("member", "trader@g"),
+                text="Just words.",
+                kind=EntryKind.MESSAGE,
+                data={},
+            )
+            items = (await client.get(f"/api/v1/groups/{group_id}/messages")).json()["items"]
+    by_text = {m["text"]: m for m in items}
+    assert by_text["Here is the plan."]["ui"] == shown
+    assert by_text["Just words."]["ui"] is None
