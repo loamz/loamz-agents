@@ -30,6 +30,17 @@ async def start_chat(body: ChatRequest, caller: CallerDep, service: Service) -> 
     )
 
 
+@router.get("/api/v1/stream/{thread_id}")
+async def reconnect(thread_id: str, caller: CallerDep, service: Service) -> StreamingResponse:
+    """Rejoin a conversation's run in progress (a console that reloaded while it waited for an approval): what happens next."""
+    run_id, from_seq = await service.attach(caller, thread_id)
+    return StreamingResponse(
+        service.reconnect(run_id, from_seq),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
+    )
+
+
 @router.post("/api/v1/chat/respond/{request_id}")
 async def respond_to_hitl(
     request_id: str, body: HitlResponse, caller: CallerDep, service: Service

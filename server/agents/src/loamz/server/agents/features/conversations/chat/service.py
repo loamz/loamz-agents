@@ -23,6 +23,8 @@ from loamz.server.agents.features.conversations.chat.model import (
 )
 from loamz.server.agents.features.conversations.threads.service import ThreadsService, threads
 
+INTERRUPTED = "interrupted: the server restarted while it ran"
+
 
 class ChatService:
     def __init__(self, container: Container, threads_service: ThreadsService) -> None:
@@ -78,9 +80,7 @@ class ChatService:
             # (the server restarted while it ran) can never finish: close it rather than block the conversation for ever.
             if self._rt.is_live(run.agent):
                 raise ConflictError(f"A stream is already running for thread {req.thread_id}.")
-            await self._rt.cancel(
-                run.run_id, reason="interrupted: the server restarted while it ran"
-            )
+            await self._rt.cancel(run.run_id, reason=INTERRUPTED)
 
     async def chat(self, caller: Caller, req: ChatRequest) -> AsyncIterator[str]:
         """Stream one turn. The caller has already been through `admit`."""
@@ -148,7 +148,12 @@ class ChatService:
             thread_id=req.thread_id,
         )
 
-        async for entry in self._rt.tail(run_id):
+        async for line in self._relay(run_id):
+            yield line
+
+    async def _relay(self, run_id: str, from_seq: int = 0) -> AsyncIterator[str]:
+        """A run's events as the console's event stream, from `from_seq`, to the end of the run."""
+        async for entry in self._rt.tail(run_id, from_seq=from_seq):
             wire = wire_from_log(entry.kind, entry.payload or {})
             if wire is not None:
                 yield f"event: {wire.type}\ndata: {wire.model_dump_json()}\n\n"
@@ -166,6 +171,29 @@ class ChatService:
                 break
         yield "data: [DONE]\n\n"
 
+    async def attach(self, caller: Caller, thread_id: str) -> tuple[str, int]:
+        """The run a conversation has in progress and where its stream picks up: after everything already recorded. For a
+        console that reloaded while the run waited on a person: what it missed is in the history, and what happens next is
+        what it needs. Raises when nothing is running."""
+        await self._threads.require(caller, thread_id)
+        active = [
+            r
+            for r in await self._rt.find_runs(thread_id=thread_id, active_only=True)
+            if r.tenant == caller.tenant_id
+        ]
+        if not active:
+            raise NotFoundError("No run is in progress for this conversation.")
+        run_id = active[-1].run_id
+        recorded = await self._rt.read(run_id)
+        return run_id, (recorded[-1].seq + 1) if recorded else 0
+
+    async def reconnect(self, run_id: str, from_seq: int) -> AsyncIterator[str]:
+        # A run waiting on a person sends nothing, and proxies hold a response's headers until its first byte: so the first thing
+        # sent is a ping, and the console (which answers the person only once it is connected) is not left waiting for it.
+        yield 'data: {"type": "ping"}\n\n'
+        async for line in self._relay(run_id, from_seq):
+            yield line
+
     async def respond_hitl(
         self, caller: Caller, request_id: str, body: HitlResponse
     ) -> dict[str, object]:
@@ -174,6 +202,13 @@ class ChatService:
         for run in runs:
             if run.tenant == caller.tenant_id:
                 pending = await self._rt.pending_approvals(run.run_id)
+                if any(p.request_id == request_id for p in pending) and not self._rt.is_live(
+                    run.agent
+                ):
+                    await self._rt.cancel(run.run_id, reason=INTERRUPTED)
+                    raise ConflictError(
+                        "The server restarted while this waited for you, so it cannot continue. Send your message again."
+                    )
                 for p in pending:
                     if p.request_id == request_id:
                         target_run_id = run.run_id
@@ -222,6 +257,10 @@ class ChatService:
         pending_list: list[dict[str, object]] = []
         for run in active:
             if run.tenant == caller.tenant_id:
+                if not self._rt.is_live(run.agent):
+                    # Its agent lived in a server that has since restarted: nobody can continue it, so nobody is waited for.
+                    await self._rt.cancel(run.run_id, reason=INTERRUPTED)
+                    continue
                 for p in await self._rt.pending_approvals(run.run_id):
                     pending_list.append(
                         {
@@ -232,7 +271,11 @@ class ChatService:
                             "summary": p.summary,
                         }
                     )
-        status = "waiting" if pending_list else ("running" if active else "idle")
+        status = (
+            "waiting"
+            if pending_list
+            else ("running" if any(self._rt.is_live(r.agent) for r in active) else "idle")
+        )
         return HitlStatus(status=status, pending=pending_list)
 
     async def list_approvals(self, caller: Caller) -> list[ApprovalOut]:

@@ -18,6 +18,7 @@ from loamz.engine.agents.kernel.wire import WireEvent, wire_from_log
 from loamz.engine.agents.stores import AgentStore
 from loamz.engine.sql import Row, Tx
 from loamz.server.agents.features.conversations.threads.model import LastWord, RunDetail, ToolStep
+from loamz.server.agents.features.text import one_line
 
 MESSAGE_KINDS = ("user.message", "assistant.message")
 MAX_THREADS = 500
@@ -158,9 +159,8 @@ class ThreadJournal:
                         said[entry.kind] = text
             text = said[RunLogKind.ASSISTANT_MESSAGE] or said[RunLogKind.USER_MESSAGE]
             if text:
-                line = " ".join(text.split())
                 return LastWord(
-                    text=line if len(line) <= limit else line[:limit] + "…",
+                    text=one_line(text, limit),
                     at=run.terminated_at or run.started_at or run.enqueued_at,
                 )
         return None

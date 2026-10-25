@@ -10,6 +10,7 @@ from typing import Protocol
 from loamz.engine.agents.kernel.runtime.store import RuntimeStore
 from loamz.engine.agents.kernel.types.identity import Actor
 from loamz.engine.agents.kernel.types.run_log import RunLogKind
+from loamz.server.agents.features.text import one_line
 
 PREVIEW_CHARS = 140
 
@@ -51,9 +52,8 @@ class RuntimeActivity:
                         said[RunLogKind(entry.kind)] = text
             text = said[RunLogKind.ASSISTANT_MESSAGE] or said[RunLogKind.USER_MESSAGE]
             if text:
-                line = " ".join(text.split())
                 return LastWord(
-                    line if len(line) <= PREVIEW_CHARS else line[:PREVIEW_CHARS] + "…",
+                    one_line(text, PREVIEW_CHARS),
                     run.terminated_at or run.started_at or run.enqueued_at,
                 )
         return None
