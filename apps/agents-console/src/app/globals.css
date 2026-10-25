@@ -393,3 +393,23 @@ select {
 .chat-bubble:has(img):not(:has(table, pre, .katex-display, svg[aria-roledescription])) {
   width: calc(var(--bubble-image) + 1.5rem); /* the image plus the bubble's padding */
 }
+
+/* A table, code or a formula needs more room than prose: its bubble may grow past the reading width, and what still does not
+   fit scrolls sideways inside it instead of being squeezed (a squeezed table wraps its text one word per line). */
+.chat-bubble:has(table, pre, .katex-display) {
+  max-width: min(96%, 64rem);
+}
+.chat-bubble th,
+.chat-bubble td:first-child {
+  white-space: nowrap; /* headers and the row's label stay on one line */
+}
+.chat-bubble td {
+  min-width: 4.5rem;
+}
+.chat-bubble :is(th, td) {
+  padding: 0.5rem 0.625rem;
+}
+/* In a wide table the last column is usually the words (why, notes): it gets reading room, the numbers take what they need. */
+.chat-bubble table:has(th:nth-child(6)) td:last-child {
+  min-width: 15rem;
+}

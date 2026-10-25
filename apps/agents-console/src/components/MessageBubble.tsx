@@ -415,6 +415,25 @@ export function MessageBubble({
   const [activeImageSource, setActiveImageSource] = useState<"main" | "tool" | "inline">("main");
   const [inlineImageIndex, setInlineImageIndex] = useState<number>(0);
   const [isCollapsed, setIsCollapsed] = useState(true);
+  // A bubble the person has dragged wider (or narrower); null is its natural, content-sized width.
+  const bubbleRef = useRef<HTMLDivElement | null>(null);
+  const [dragWidth, setDragWidth] = useState<number | null>(null);
+  const startResize = (event: React.PointerEvent<HTMLDivElement>) => {
+    const bubble = bubbleRef.current;
+    if (!bubble) return;
+    event.preventDefault();
+    const startX = event.clientX;
+    const startWidth = bubble.getBoundingClientRect().width;
+    const room = bubble.closest(".max-w-chat")?.getBoundingClientRect().width ?? window.innerWidth;
+    const move = (e: PointerEvent) =>
+      setDragWidth(Math.round(Math.min(room, Math.max(240, startWidth + e.clientX - startX))));
+    const stop = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", stop);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", stop);
+  };
 
   // Ensure content is always a valid string
   const safeContent = typeof content === 'string' ? content : String(content || "");
@@ -914,7 +933,22 @@ export function MessageBubble({
           {/* Content column */}
           {/* In a one-to-one chat the header already says who this is: a bubble sized to its content, no avatar or name. */}
           <div>
-          <div className={speaker ? "chat-bubble min-w-0 w-fit space-y-2 rounded-xl rounded-tl-sm bg-card px-3 py-2 shadow-sm" : "space-y-3"}>
+          <div
+            ref={bubbleRef}
+            style={dragWidth ? { width: dragWidth, maxWidth: "100%" } : undefined}
+            className={speaker ? "chat-bubble group/bubble relative min-w-0 w-fit space-y-2 rounded-xl rounded-tl-sm bg-card px-3 py-2 shadow-sm" : "space-y-3"}
+          >
+            {speaker && (
+              <div
+                role="separator"
+                aria-orientation="vertical"
+                aria-label="Drag to resize this message, double-click to reset"
+                title="Drag to resize"
+                onPointerDown={startResize}
+                onDoubleClick={() => setDragWidth(null)}
+                className="absolute inset-y-2 -right-1 z-10 w-2 cursor-ew-resize touch-none rounded-full opacity-0 transition-opacity hover:bg-primary/40 group-hover/bubble:opacity-100"
+              />
+            )}
             {/* Tool Calls — pill-style inline display */}
             {visibleToolCalls.length > 0 && (
               <div className="space-y-1.5">
