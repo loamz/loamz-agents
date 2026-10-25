@@ -105,8 +105,8 @@ export function ChatsPanel({ agents, groups, selection, onSelect, onViewAs, onCh
             detailOpen
               ? isCollapsed
                 ? "w-0 border-r-0 hidden"
-                : "hidden w-64 sm:w-72 @4xl:block"
-              : "w-full @4xl:w-72"
+                : "hidden w-80 xl:w-96 @4xl:block"
+              : "w-full @4xl:w-80 xl:w-96"
           )}
         >
           <ChatList

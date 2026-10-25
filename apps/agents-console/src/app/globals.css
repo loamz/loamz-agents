@@ -368,3 +368,19 @@ select {
 .signed-out-bar {
   background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 55%, var(--accent-2)));
 }
+
+/* ─── Message bubbles in a one-to-one chat ──────────────────────────────────
+   Sized to their content up to a comfortable reading width, like a messaging app; images and charts inside stay message-sized
+   (open one to see it full size). */
+.chat-bubble,
+.chat-bubble-out {
+  max-width: min(85%, 40rem);
+}
+.chat-bubble img {
+  /* A set width, not just a cap: the bubble sizes to its content, and a chart's natural pixel width would stretch it. */
+  width: 26rem;
+  max-width: 100%;
+  height: auto;
+  max-height: 22rem;
+  object-fit: contain;
+}

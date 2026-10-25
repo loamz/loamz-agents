@@ -381,6 +381,11 @@ function ChatPageContent() {
     }
   }, [settingsPanelOpen]);
 
+  // Like a messaging app: with the chat list open, the main navigation is just its icon strip, so the conversation has the room.
+  useEffect(() => {
+    if (agentsPanelOpen || groupsPanelOpen) setDesktopSidebarOpen(false);
+  }, [agentsPanelOpen, groupsPanelOpen]);
+
   useEffect(() => {
     if (routeState.settingsTab === "admin" && !isAdmin) {
       router.replace(buildSettingsPath("general"), { scroll: false });
@@ -2003,7 +2008,7 @@ function ChatPageContent() {
                   />
                   )
                 ) : (
-                  <div className={`mx-auto w-full py-4 sm:py-6 ${isAgentChat ? "space-y-3" : "space-y-6"}`}>
+                  <div className={`mx-auto w-full py-4 sm:py-6 ${isAgentChat ? "space-y-2" : "space-y-6"}`}>
                     {messages.map((m, index) => {
                       if (m.role === "tool_approval" && m.metadata) {
                         return (

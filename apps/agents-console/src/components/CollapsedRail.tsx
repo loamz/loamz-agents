@@ -192,11 +192,11 @@ export function CollapsedRail({
             </>
           ) : (
             <>
-              <RailButton highlight icon={Plus} label="New" onClick={onNewChat} />
-              <RailButton icon={Search} label="Search" onClick={onSearch} />
-              <RailButton icon={MessagesSquare} label="Agents" onClick={onOpenAgents} active={isAgentsOpen || !!openGroupId} count={chatUnread} />
-              <RailButton icon={CalendarClock} label="Schedule" onClick={onOpenScheduled} active={isScheduledOpen} />
-              <RailButton icon={Bell} label="Alerts" onClick={onOpenNotifications} active={isNotificationsOpen} count={unreadCount} />
+              <RailButton compact highlight icon={Plus} label="New chat" onClick={onNewChat} />
+              <RailButton compact icon={Search} label="Search chats" onClick={onSearch} />
+              <RailButton compact icon={MessagesSquare} label="Agents and groups" onClick={onOpenAgents} active={isAgentsOpen || !!openGroupId} count={chatUnread} />
+              <RailButton compact icon={CalendarClock} label="Scheduled tasks" onClick={onOpenScheduled} active={isScheduledOpen} />
+              <RailButton compact icon={Bell} label="Notifications" onClick={onOpenNotifications} active={isNotificationsOpen} count={unreadCount} />
               {pinnedChats.length > 0 && (
                 <div className="mt-1 flex flex-col items-center gap-1.5 border-t border-border pt-2.5">
                   {pinnedChats.map((chat) => {

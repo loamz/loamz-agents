@@ -1,6 +1,5 @@
 "use client";
 
-import { Avatar } from "@/components/groups/Avatar";
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentPropsWithoutRef } from "react";
 import ReactMarkdown, { defaultUrlTransform } from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -776,14 +775,14 @@ export function MessageBubble({
       <>
         <div className="loamz-fade-up group px-4 sm:px-6">
           <div className="mx-auto max-w-chat flex justify-end">
-            <div className="flex max-w-[85%] flex-col items-end gap-2 sm:max-w-[75%]">
+            <div className={`flex flex-col items-end gap-2 ${speaker ? "chat-bubble-out" : "max-w-[85%] sm:max-w-[75%]"}`}>
               {imageAttachments.length > 0 && (
                 <div className="flex justify-end w-full">
                   {renderImageGallery()}
                 </div>
               )}
               {documentAttachments.length > 0 && (
-                <div className="flex w-full max-w-xl flex-wrap justify-end gap-2.5">
+                <div className="flex w-full max-w-sm flex-wrap justify-end gap-2.5">
                   {documentAttachments.map((attachment) => (
                     <AttachmentDocumentCard key={attachment.id} attachment={attachment} onOpenArtifact={onOpenArtifact} />
                   ))}
@@ -896,9 +895,9 @@ export function MessageBubble({
       <div className="loamz-fade-up group relative px-4 sm:px-6">
         <div className="mx-auto max-w-chat">
           {/* Content column */}
-          <div className={speaker ? "flex items-start gap-3" : undefined}>
-          {speaker && <Avatar name={speaker.name} src={speaker.avatar} className="size-8 text-xs shrink-0 mt-0.5" />}
-          <div className={speaker ? "min-w-0 flex-1 max-w-[96%] space-y-2 rounded-2xl rounded-tl-sm bg-card px-4 py-3 shadow-sm @3xl:max-w-[92%]" : "space-y-3"}>
+          {/* In a one-to-one chat the header already says who this is: a bubble sized to its content, no avatar or name. */}
+          <div>
+          <div className={speaker ? "chat-bubble min-w-0 w-fit space-y-2 rounded-xl rounded-tl-sm bg-card px-3 py-2 shadow-sm" : "space-y-3"}>
             {/* Tool Calls — pill-style inline display */}
             {visibleToolCalls.length > 0 && (
               <div className="space-y-1.5">
@@ -1135,7 +1134,7 @@ export function MessageBubble({
                                 onOpenArtifact(path, name);
                               }
                             }}
-                            className={`my-1 flex w-full max-w-xl items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-xs hover:shadow-sm hover:bg-card-hover hover:border-border-hover transition-all duration-200 ${onOpenArtifact ? "cursor-pointer" : ""}`}
+                            className={`my-1 flex w-full max-w-sm items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-xs hover:shadow-sm hover:bg-card-hover hover:border-border-hover transition-all duration-200 ${onOpenArtifact ? "cursor-pointer" : ""}`}
                           >
                             <FileTypeIcon name={name} size="lg" as="span" />
                             <span className="min-w-0 flex-1">
@@ -1191,7 +1190,7 @@ export function MessageBubble({
 
             {/* Generated/Attached Documents (left-aligned for assistant) */}
             {documentAttachments.length > 0 && (
-              <div className="flex w-full max-w-2xl flex-wrap gap-2.5 pt-1">
+              <div className="flex w-full max-w-sm flex-wrap gap-2.5 pt-1">
                 {documentAttachments.map((attachment) => (
                   <AttachmentDocumentCard key={attachment.id} attachment={attachment} onOpenArtifact={onOpenArtifact} />
                 ))}
