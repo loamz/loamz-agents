@@ -19,11 +19,19 @@ export interface OpenUiBlockProps {
 
 const isDark = () => document.documentElement.classList.contains("dark") || document.documentElement.dataset.theme === "dark";
 
-/** Follows the console's light/dark switch, which OpenUI reads as an attribute on an ancestor. */
+/**
+ * Follows the console's light/dark switch. OpenUI decides its colours from an attribute on the page root (its light values are the
+ * root's defaults, its dark ones apply to the root when the system prefers dark unless the attribute says light), so the attribute is
+ * set there: on an inner wrapper alone, a light console on a system that prefers dark draws white text on white.
+ */
 function useThemeName(): "light" | "dark" {
   const [name, setName] = useState<"light" | "dark">("dark");
   useEffect(() => {
-    const update = () => setName(isDark() ? "dark" : "light");
+    const update = () => {
+      const next = isDark() ? "dark" : "light";
+      document.documentElement.setAttribute("data-openui-theme", next);
+      setName(next);
+    };
     update();
     const watcher = new MutationObserver(update);
     watcher.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme"] });

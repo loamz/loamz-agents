@@ -86,3 +86,17 @@ describe("actionToSend", () => {
 });
 
 
+
+describe("the theme", () => {
+  it("is set on the page root, where OpenUI reads it, and follows the console's switch", async () => {
+    document.documentElement.classList.remove("dark");
+    draw(BRIEFING);
+    expect(document.documentElement.getAttribute("data-openui-theme")).toBe("light");
+    await act(async () => {
+      document.documentElement.classList.add("dark");
+      await new Promise((r) => setTimeout(r, 20));
+    });
+    expect(document.documentElement.getAttribute("data-openui-theme")).toBe("dark");
+    document.documentElement.classList.remove("dark");
+  });
+});
