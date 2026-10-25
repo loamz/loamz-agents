@@ -96,6 +96,13 @@ export function linkifyCitations(content: string, validIndices: Set<number>): st
  * failed load (e.g. the model referenced a file it didn't actually save)
  * collapses to a small caption instead of the browser's broken-image icon.
  */
+const IMAGE_EXTENSIONS = /\.(png|jpe?g|gif|webp|svg|avif)$/i;
+
+/** Whether a markdown link target names an image file (query strings ignored). */
+function isImageRef(ref: string): boolean {
+  return IMAGE_EXTENSIONS.test(ref.split(/[?#]/)[0]);
+}
+
 function MarkdownImage({
   src,
   alt,
@@ -419,10 +426,12 @@ export function MessageBubble({
   const inlineImageRefs = useMemo(() => {
     const refs: string[] = [];
     const seen = new Set<string>();
-    const re = /!\[[^\]]*\]\(([^)\s]+)\)/g;
+    // ![alt](ref), and [label](ref) when ref is an image file: both are shown as the image itself.
+    const re = /!?\[[^\]]*\]\(([^)\s]+)\)/g;
     let match: RegExpExecArray | null;
     while ((match = re.exec(safeContent)) !== null) {
       const ref = match[1];
+      if (!match[0].startsWith("!") && !isImageRef(ref)) continue;
       if (!seen.has(ref)) {
         seen.add(ref);
         refs.push(ref);
@@ -1096,6 +1105,19 @@ export function MessageBubble({
                       // Model-referenced file: [label](sandbox:report.xlsx) →
                       // a card that opens the file in the side-panel artifact
                       // viewer (Claude-style) with a download fallback.
+                      // A link to an image the code made is shown as the image, like a ![…](…) embed: the person came to
+                      // see the chart, not a file card.
+                      if (raw.startsWith("sandbox:") && threadId && isImageRef(raw)) {
+                        const galleryIndex = inlineImageRefs.indexOf(raw);
+                        return (
+                          <MarkdownImage
+                            src={raw}
+                            alt={typeof children === "string" ? children : undefined}
+                            threadId={threadId}
+                            onOpen={() => openInlineLightbox(Math.max(galleryIndex, 0))}
+                          />
+                        );
+                      }
                       if (raw.startsWith("sandbox:") && threadId) {
                         const path = raw.replace(/^sandbox:/, "").replace(/^\.?\//, "");
                         const name = path.split("/").pop() || path;
