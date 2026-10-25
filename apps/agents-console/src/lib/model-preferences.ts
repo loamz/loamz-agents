@@ -16,7 +16,7 @@ export const REALTIME_MODEL_STORAGE_KEY = "realtime_model";
 export const REALTIME_VOICE_STORAGE_KEY = "realtime_voice";
 export const MODEL_PREFERENCES_UPDATED_EVENT = "loamz:model-preferences-updated";
 
-export const DEFAULT_CHAT_MODEL = "google/gemini-3.1-flash-lite";
+export const DEFAULT_CHAT_MODEL = "openai/gpt-5.4-mini";
 export const DEFAULT_STT_MODEL = "openai/gpt-4o-mini-transcribe";
 export const DEFAULT_TTS_MODEL = "local/kokoro-82m";
 export const DEFAULT_TTS_VOICE: TTSVoice = "af_heart";
@@ -37,42 +37,11 @@ const PROVIDER_LABELS: Record<ModelProvider, string> = {
 
 export const CHAT_MODEL_OPTIONS: ModelOption[] = [
   {
-    id: "google/gemini-3.1-flash-lite",
-    label: "Gemini 3.1 Flash Lite",
-    provider: "google",
-    description: "Fast and low cost",
-  },
-  {
     id: "openai/gpt-5.4-mini",
     label: "GPT-5.4 Mini",
     provider: "openai",
     description: "Balanced quality and speed",
     thinkingLevels: ["off", "low", "medium", "high"],
-  },
-  {
-    id: "openai/gpt-5.4",
-    label: "GPT-5.4",
-    provider: "openai",
-    description: "Highest quality",
-    thinkingLevels: ["off", "low", "medium", "high"],
-  },
-  {
-    id: "nvidia/moonshotai/kimi-k2.6",
-    label: "Kimi K2.6",
-    provider: "nvidia",
-    description: "Reads images",
-  },
-  {
-    id: "openrouter/qwen/qwen3-coder:free",
-    label: "Qwen3 Coder",
-    provider: "openrouter",
-    description: "Free, built for code",
-  },
-  {
-    id: "groq/llama-3.3-70b-versatile",
-    label: "Llama 3.3 70B",
-    provider: "groq",
-    description: "Fast open model",
   },
 ];
 
