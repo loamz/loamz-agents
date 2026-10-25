@@ -163,13 +163,15 @@ class Runtime:
         profile, a changed roster). ``False`` if it was not resident or was registered directly."""
         return self._resolver.forget(actor)
 
-    def register_factory(self, actor_type: str, factory: ActorFactory) -> None:
+    def register_factory(
+        self, actor_type: str, factory: ActorFactory, *, cache: bool = True
+    ) -> None:
         """Say how to build *any* actor of a type on demand — one entry per type
         instead of one pinned object per entity::
 
             runtime.register_factory("conversation", lambda actor: ReActAgent(..., session_id=actor.key))
         """
-        self._resolver.register_factory(actor_type, factory)
+        self._resolver.register_factory(actor_type, factory, cache=cache)
 
     # ------------------------------------------------------------------ submitting work
 

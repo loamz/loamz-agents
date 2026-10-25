@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
 from loamz.server.agents.bootstrap.http import CallerDep, use
-from loamz.server.agents.features.groups.feed.model import FeedIn
-from loamz.server.agents.features.groups.feed.service import FeedService, feed
+from loamz.server.agents.features.messaging.feed.model import FeedIn
+from loamz.server.agents.features.messaging.feed.service import FeedService, feed
 
 Service = Annotated[FeedService, Depends(use(feed))]
 
@@ -15,7 +15,6 @@ router = APIRouter(tags=["feed"])
 
 
 @router.post("/api/v1/feed")
-@router.post("/feed", include_in_schema=False)
 async def open_feed(body: FeedIn, caller: CallerDep, service: Service) -> StreamingResponse:
     return StreamingResponse(
         service.stream(caller, body),

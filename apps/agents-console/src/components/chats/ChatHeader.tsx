@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Bot } from "lucide-react";
 import { Button, cn } from "@/design";
 import { SidebarToggleIcon } from "@/components/SidebarToggleIcon";
 
@@ -7,6 +7,7 @@ type Props = {
   /** Who it is: a picture, or a few overlapping ones. */
   avatar: ReactNode;
   title: string;
+  bot?: boolean;
   /** The line under the name: who is in it, what it is for, or "typing…". */
   subtitle: string;
   /** Shown in the live colour while someone is typing. */
@@ -20,7 +21,7 @@ type Props = {
 };
 
 /** The top of every conversation, a group's or an agent's: back (on narrow screens), who it is, what is happening, and its buttons. */
-export function ChatHeader({ avatar, title, subtitle, live, onBack, onToggleList, isListOpen, children }: Props) {
+export function ChatHeader({ avatar, title, bot = false, subtitle, live, onBack, onToggleList, isListOpen, children }: Props) {
   return (
     <header className="flex items-center gap-3 border-b border-border bg-background px-4 pb-3 pt-16 sm:pt-3">
       {onBack && (
@@ -43,7 +44,7 @@ export function ChatHeader({ avatar, title, subtitle, live, onBack, onToggleList
       )}
       {avatar}
       <div className="min-w-0 flex-1">
-        <h1 className="truncate text-base font-semibold text-foreground">{title}</h1>
+        <h1 className="truncate text-base font-semibold text-foreground">{title} {bot && <Bot aria-label="AI agent" />}</h1>
         <p className={cn("truncate text-xs", live ? "font-medium text-success" : "text-muted")}>{subtitle}</p>
       </div>
       {children}

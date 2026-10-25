@@ -172,3 +172,20 @@ async def test_factories_are_selected_by_type() -> None:
     assert conv.history == "conv"
     assert analyst.history == "analyst"
     assert conv is not analyst, "same key, different type — distinct actors"
+
+
+async def test_uncached_factory_rebuilds_permissions_at_every_activation() -> None:
+    resolver = ActorResolver()
+    actor = Actor("member", "agent@chat")
+    current = {"tools": ["read"]}
+
+    def build(address):
+        return StubAgent(address, seen=list(current["tools"]))
+
+    resolver.register_factory("member", build, cache=False)
+    first = await resolver.resolve(actor)
+    current["tools"] = []
+    second = await resolver.resolve(actor)
+    assert first is not second
+    assert first.seen == ["read"] and second.seen == []
+    assert resolver.live_count == 0

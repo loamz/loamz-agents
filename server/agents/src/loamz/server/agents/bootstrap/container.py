@@ -49,6 +49,25 @@ class Container:
 
     # ── infrastructure ──────────────────────────────────────────────────────
     @cached_property
+    def directory(self):
+        """Only a configured service account may resolve or invite organization members."""
+        from loamz.engine.errors import ServiceUnavailableError
+        from loamz.server.identity.directory import Directory
+
+        settings = self.settings.directory
+        if not settings.url or not settings.client_secret:
+            raise ServiceUnavailableError("The people directory is not configured")
+        directory = Directory(
+            settings.url, settings.realm, settings.client_id, settings.client_secret
+        )
+
+        async def close() -> None:
+            await asyncio.to_thread(directory.close)
+
+        self.on_close(close)
+        return directory
+
+    @cached_property
     def database(self) -> Database:
         db = self.settings.database
         database = (

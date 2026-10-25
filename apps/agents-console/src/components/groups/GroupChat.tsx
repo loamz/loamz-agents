@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, Info, Paperclip } from "lucide-react";
+import { ArrowLeft, Bell, Info, Paperclip } from "lucide-react";
 import { Button, cn } from "@/design";
 import { api } from "@/lib/api";
 import type { Agent } from "@/lib/api/agents";
 import type { Group, GroupEntry, GroupFile } from "@/lib/api/groups";
 import { groupFeed } from "@/lib/group-feed";
+import { enableNotifications } from "@/lib/push";
 import { reportError } from "@/lib/report-error";
 import { Avatar } from "./Avatar";
 import { Composer, type ComposerHandle } from "./Composer";
@@ -57,6 +58,7 @@ export function GroupChat({ group, agents, onBack, onToggleList, isListOpen, onC
       if (!alive || !("chat" in event) || event.chat !== group.id) return;
       if (event.type === "entry") {
         latest.current = Math.max(latest.current, event.entry.seq);
+        api.markGroupDelivered(group.id, latest.current).catch(() => undefined);
         setEntries((all) => foldEntries(all, [event.entry]));
         if (event.entry.kind === "message" && !event.entry.from_user) markRead();
       } else if (event.type === "working") setTyping(event.names);
@@ -77,6 +79,7 @@ export function GroupChat({ group, agents, onBack, onToggleList, isListOpen, onC
         after = page.latest;
         if (page.entries.length < HISTORY_PAGE) break;
       }
+      if (latest.current >= 0) api.markGroupDelivered(group.id, latest.current).catch(() => undefined);
       markRead();
       if (alive) onChanged();
     })();
@@ -167,7 +170,7 @@ export function GroupChat({ group, agents, onBack, onToggleList, isListOpen, onC
           onToggleList={onToggleList}
           isListOpen={isListOpen}
           title={group.name}
-          subtitle={typing.length > 0 ? typingLine(typing) : ["You", ...names].join(", ")}
+          subtitle={typing.length > 0 ? typingLine(typing) : names.join(", ")}
           live={typing.length > 0}
           avatar={
             group.avatar ? (
@@ -175,16 +178,18 @@ export function GroupChat({ group, agents, onBack, onToggleList, isListOpen, onC
             ) : (
               <div className="flex -space-x-2" aria-hidden>
                 {group.members.slice(0, 3).map((m) => (
-                  <Avatar key={m.agent_id} name={m.name} src={m.avatar} className="size-8 text-xs ring-2 ring-background" />
+                  <Avatar key={m.member} name={m.name} src={m.avatar} className="size-8 text-xs ring-2 ring-background" />
                 ))}
               </div>
             )
           }
         >
+          <Button variant="ghost" size="icon" aria-label="Enable notifications" onClick={() => void enableNotifications().catch((error) => reportError("Couldn't enable notifications", error))}><Bell /></Button>
           <Button variant="ghost" size="icon" aria-label="Group info" aria-pressed={infoOpen} onClick={() => setInfoOpen((v) => !v)}>
             <Info />
           </Button>
         </ChatHeader>
+        {group.members.some((m) => m.kind === "agent") && <p role="note" className="flex items-center gap-2 border-b border-border bg-surface px-4 py-2 text-xs text-muted">AI agents {group.members.filter((m) => m.kind === "agent").map((m) => m.name).join(", ")} and their AI providers can read this chat.</p>}
         <Messages entries={entries} names={names} avatars={avatars} typing={typing} readByAll={readByAll} onReply={setReplyTo} onReact={react} onEdit={edit} onDelete={remove} onCardAction={cardAction} />
         <Composer ref={composer} groupId={group.id} names={names} avatars={avatars} replyTo={replyTo} onClearReply={() => setReplyTo(null)} onSend={send} />
       </section>

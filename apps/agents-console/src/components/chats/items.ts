@@ -27,7 +27,7 @@ export function buildChatItems(agents: Agent[], groups: Group[]): ChatItem[] {
     ...groups.map(
       (g): ChatItem => ({
         key: chatKey("group", g.id),
-        kind: "group",
+        kind: g.kind === "direct" ? "person" : "group",
         id: g.id,
         name: g.name,
         avatar: g.avatar,

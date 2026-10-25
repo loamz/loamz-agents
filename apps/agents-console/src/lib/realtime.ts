@@ -11,7 +11,7 @@ export type FeedEvent =
   | { type: "ready"; chats: string[] }
   | { type: "entry"; chat: string; entry: GroupEntry }
   | { type: "working"; chat: string; names: string[] }
-  | { type: "read"; chat: string; by_all: number }
+  | { type: "read"; chat: string; by_all: number; by?: Record<string, number>; delivered?: Record<string, number> }
   | { type: "chats"; chats: string[] }
   | { type: "resync" };
 

@@ -38,13 +38,21 @@ function draw(ui: unknown, onSend: (t: string) => void = () => {}) {
   return host;
 }
 
+async function waitForSurface(host: HTMLElement) {
+  const deadline = Date.now() + 3000;
+  while (!host.querySelector("[data-a2ui]") && Date.now() < deadline) {
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 20)));
+  }
+  expect(host.querySelector("[data-a2ui]")).not.toBeNull();
+}
+
 describe("GroupCard", () => {
   it("is folded to its title until opened", async () => {
     const host = draw(plan);
     expect(host.textContent).toContain("Plan 3f2a");
     expect(host.querySelector("[data-a2ui]")).toBeNull();
     act(() => host.querySelector("button")!.click());
-    await act(async () => new Promise((r) => setTimeout(r, 200)));
+    await waitForSurface(host);
     expect(host.querySelector("[data-a2ui]")).not.toBeNull();
   });
 
@@ -52,7 +60,7 @@ describe("GroupCard", () => {
     const sent: string[] = [];
     const host = draw(plan, (t) => sent.push(t));
     act(() => host.querySelector("button")!.click());
-    await act(async () => new Promise((r) => setTimeout(r, 200)));
+    await waitForSurface(host);
     act(() => [...host.querySelectorAll("button")].find((b) => b.textContent?.includes("Approve"))!.click());
     expect(sent).toEqual(["@Paper trader Approve plan 3f2a"]);
   });

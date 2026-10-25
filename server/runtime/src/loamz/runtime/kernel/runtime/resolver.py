@@ -48,6 +48,7 @@ class ActorResolver:
         idle_ttl: float = 300.0,
     ) -> None:
         self._factories: dict[str, ActorFactory] = {}
+        self._uncached: set[str] = set()
         self._live: OrderedDict[Actor, tuple[Agent, float]] = OrderedDict()
         self._pinned: set[Actor] = set()
         self._max_live = max_live
@@ -60,9 +61,15 @@ class ActorResolver:
 
     # -- registration ---------------------------------------------------------
 
-    def register_factory(self, actor_type: str, factory: ActorFactory) -> None:
+    def register_factory(
+        self, actor_type: str, factory: ActorFactory, *, cache: bool = True
+    ) -> None:
         """Register how to build actors of ``actor_type``, for every instance."""
         self._factories[actor_type] = factory
+        if cache:
+            self._uncached.discard(actor_type)
+        else:
+            self._uncached.add(actor_type)
 
     def register_instance(self, agent: Agent, *, pinned: bool = True) -> None:
         """Register one already-built actor.
@@ -107,7 +114,7 @@ class ActorResolver:
         late registration can still pick the run up).
         """
         self._evict_idle()
-        live = self._live.get(actor)
+        live = self._live.get(actor) if actor.type not in self._uncached else None
         if live is not None:
             self._live.move_to_end(actor)
             self._live[actor] = (live[0], time.monotonic())
@@ -122,6 +129,8 @@ class ActorResolver:
             agent = await agent
         for prepare in self._preparers:
             prepare(agent)
+        if actor.type in self._uncached:
+            return agent
         self._live[actor] = (agent, time.monotonic())
         self._evict_over_capacity()
         return agent

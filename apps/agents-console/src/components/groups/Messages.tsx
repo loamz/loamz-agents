@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Ban, Check, CheckCheck, ChevronDown, PauseCircle } from "lucide-react";
+import { Bot, Ban, Check, CheckCheck, ChevronDown, PauseCircle } from "lucide-react";
 import { Button, Textarea, cn, confirmAction } from "@/design";
 import type { GroupEntry } from "@/lib/api/groups";
 import { shortTime } from "@/lib/short-time";
@@ -139,7 +139,7 @@ export function Messages({ entries, names, avatars, typing, readByAll, onReply, 
                   >
                     {!entry.from_user && startsRun && (
                       <p className="mb-0.5 text-xs font-semibold" style={{ color: `hsl(${hueOf(entry.sender)} 55% 45%)` }}>
-                        {entry.sender}
+                        {entry.sender} {entry.sender_kind === "agent" && <Bot aria-label="AI agent" />}
                       </p>
                     )}
                     {quoted && (

@@ -8,7 +8,8 @@ const agent = (id: string, name: string, last_active: string | null, extra: Part
   thread_id: null, last_active, last_message: null, working: false, avatar: null, pinned_at: null, model: null, sees: null, ...extra,
 });
 const group = (id: string, name: string, updated_at: string, extra: Partial<Group> = {}): Group => ({
-  id, name, created_at: updated_at, updated_at, members: [{ agent_id: "a", name: "Scout", role: "", mode: "all", avatar: null, tokens_used: 0, cost_usd: 0 }],
+  kind: "group", e2ee: false,
+  id, name, created_at: updated_at, updated_at, members: [{ member: "agent:a", kind: "agent", tenant: "acme", user_id: null, read: -1, delivered: -1, agent_id: "a", name: "Scout", role: "", mode: "all", avatar: null, tokens_used: 0, cost_usd: 0 }],
   last_message: null, last_sender: null, unread: 0, paused: false, working: [], tokens_used: 0, token_cap: 1, budget_usd: null, cost_usd: 0, breaker: 40, avatar: null, pinned_at: null, ...extra,
 });
 

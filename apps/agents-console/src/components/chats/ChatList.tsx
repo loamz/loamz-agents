@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Pin, Plus, Search } from "lucide-react";
+import { Bot, Pin, Plus, Search } from "lucide-react";
 import { Button, Input, Menu, MenuContent, MenuItem, MenuTrigger, cn } from "@/design";
 import { Avatar } from "@/components/groups/Avatar";
 import { typingLine } from "@/components/groups/text";
@@ -128,7 +128,7 @@ export function ChatList({ items, selectedKey, onSelect, onTogglePin, onNew, tit
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-baseline justify-between gap-2">
-                    <span className={cn("truncate text-base text-foreground", unread ? "font-bold" : "font-semibold")}>{item.name}</span>
+                    <span className={cn("truncate text-base text-foreground", unread ? "font-bold" : "font-semibold")}>{item.name} {item.kind === "agent" && <Bot aria-label="AI agent" />}</span>
                     <span className={cn("shrink-0 text-2xs", unread ? "font-semibold text-accent" : "text-muted")}>{shortTime(item.time)}</span>
                   </span>
                   <span className="mt-1 flex items-center justify-between gap-2">

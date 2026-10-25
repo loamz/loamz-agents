@@ -366,7 +366,7 @@ function ChatPageContent() {
   const handleOpenNotifications = useCallback(() => openView("notifications"), [openView]);
   const handleOpenGroup = useCallback((groupId: string | null) => openView("groups", groupId ?? undefined), [openView]);
   const handleSelectChat = useCallback(
-    (kind: "agent" | "group", id: string | null, tab?: "info") => openView(kind === "agent" ? "agents" : "groups", id ? (tab ? `${id}/${tab}` : id) : undefined),
+    (kind: "agent" | "group" | "person", id: string | null, tab?: "info") => openView(kind === "agent" ? "agents" : "groups", id ? (tab ? `${id}/${tab}` : id) : undefined),
     [openView],
   );
   // Another agent's account, read only: picked from a list (any number of agents), and opened at /view/<id>[/<conversation>].
@@ -2030,6 +2030,7 @@ function ChatPageContent() {
   const agentWorking = loading || !!threadAgent?.working;
   const chatHeader = isAgentChat ? (
     <ChatHeader
+      bot={isAgentChat}
       onBack={agentChatId ? () => handleSelectChat("agent", null) : undefined}
       onToggleList={() => setChatListCollapsed((c) => !c)}
       isListOpen={!chatListCollapsed}

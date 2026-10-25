@@ -17,8 +17,8 @@ from loamz.server.agents.features.conversations import FEATURES as CONVERSATIONS
 from loamz.server.agents.features.directory import FEATURES as DIRECTORY
 from loamz.server.agents.features.feature import Feature
 from loamz.server.agents.features.governance import FEATURES as GOVERNANCE
-from loamz.server.agents.features.groups import FEATURES as GROUPS
 from loamz.server.agents.features.knowledge import FEATURES as KNOWLEDGE
+from loamz.server.agents.features.messaging import FEATURES as GROUPS
 from loamz.server.agents.features.people import FEATURES as PEOPLE
 from loamz.server.agents.features.workspace import FEATURES as WORKSPACE
 

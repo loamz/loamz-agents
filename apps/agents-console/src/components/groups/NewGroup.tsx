@@ -2,64 +2,52 @@
 
 import { useState } from "react";
 import { Bot } from "lucide-react";
-import { Button, Checkbox, Input, Page, PageEmpty, Section } from "@/design";
+import { Button, Checkbox, Input, Page, Section } from "@/design";
 import { api } from "@/lib/api";
 import type { Agent } from "@/lib/api/agents";
-import type { Group } from "@/lib/api/groups";
+import type { Group, Person } from "@/lib/api/groups";
 import { reportError } from "@/lib/report-error";
+import { PeoplePicker } from "./PeoplePicker";
 
 type Props = { agents: Agent[]; onBack: () => void; onCreated: (group: Group) => void };
 
-/** Make a group: a name, and which of your agents are in it. */
 export function NewGroup({ agents, onBack, onCreated }: Props) {
   const [name, setName] = useState("");
   const [chosen, setChosen] = useState<string[]>([]);
+  const [people, setPeople] = useState<Person[]>([]);
+  const [direct, setDirect] = useState(false);
   const [busy, setBusy] = useState(false);
-
-  if (agents.length === 0) {
-    return (
-      <Page title="New group" onBack={onBack}>
-        <PageEmpty icon={Bot} title="Make an agent first">
-          A group is you and your agents in one conversation. Create at least one agent, then come back.
-        </PageEmpty>
-      </Page>
-    );
-  }
-
   const create = async () => {
     setBusy(true);
     try {
-      onCreated(await api.createGroup(name.trim(), chosen.map((agent_id) => ({ agent_id, mode: "mentions" }))));
+      const members = [...people.map((p) => ({ member: `user:${p.user_id}`, mode: "mentions" as const })), ...chosen.map((id) => ({ member: `agent:${id}`, mode: "mentions" as const }))];
+      onCreated(await api.createGroup(direct ? people[0].name : name.trim(), members, direct ? "direct" : "group"));
     } catch (err) {
-      reportError("Couldn't create the group", err);
+      reportError("Couldn't create the conversation", err);
     } finally {
       setBusy(false);
     }
   };
-
   return (
-    <Page title="New group" subtitle="You and several of your agents in one conversation." onBack={onBack} layout="columns">
-        <Section title="Name">
-          <Input value={name} maxLength={60} placeholder="Trip planning" onChange={(e) => setName(e.target.value)} aria-label="Group name" />
-        </Section>
-        <Section title="Agents in it" description="Each one sees every message and decides whether to reply.">
-          <ul className="space-y-2">
-            {agents.map((a) => (
-              <li key={a.id}>
-                <Checkbox
-                  checked={chosen.includes(a.id)}
-                  onChange={(e) => setChosen(e.target.checked ? [...chosen, a.id] : chosen.filter((id) => id !== a.id))}
-                  label={a.role ? `${a.name} · ${a.role}` : a.name}
-                />
-              </li>
-            ))}
-          </ul>
-        </Section>
-        <div data-span="all" className="flex justify-end">
-          <Button variant="primary" disabled={!name.trim() || chosen.length === 0 || busy} onClick={() => void create()}>
-            {busy ? "Creating…" : "Create group"}
-          </Button>
+    <Page title="New conversation" subtitle="Chat with colleagues and visible AI members." onBack={onBack} layout="columns">
+      <Section title="Conversation">
+        <div className="flex flex-col gap-3">
+          <Checkbox label="Direct conversation with one colleague" checked={direct} onChange={(e) => { setDirect(e.target.checked); if (e.target.checked) setChosen([]); }} />
+          {!direct && <Input value={name} maxLength={60} placeholder="Project team" onChange={(e) => setName(e.target.value)} aria-label="Group name" />}
+          <p className="text-xs text-muted">Messages are stored on this server. End-to-end encryption is not available yet.</p>
         </div>
+      </Section>
+      <Section title="People" description="Only colleagues in your organization appear here.">
+        <PeoplePicker chosen={people} onChange={setPeople} />
+      </Section>
+      {!direct && <Section title="AI agents" description="An agent and its AI provider can read every message in a chat it joins.">
+        <ul className="flex flex-col gap-2">
+          {agents.map((a) => <li key={a.id} className="flex items-center gap-2"><Bot aria-label="AI agent" /><Checkbox checked={chosen.includes(a.id)} onChange={(e) => setChosen(e.target.checked ? [...chosen, a.id] : chosen.filter((id) => id !== a.id))} label={a.role ? `${a.name} · ${a.role}` : a.name} /></li>)}
+        </ul>
+      </Section>}
+      <div data-span="all" className="flex justify-end">
+        <Button variant="primary" disabled={busy || (direct ? people.length !== 1 : !name.trim() || people.length + chosen.length === 0)} onClick={() => void create()}>{busy ? "Creating…" : "Create conversation"}</Button>
+      </div>
     </Page>
   );
 }

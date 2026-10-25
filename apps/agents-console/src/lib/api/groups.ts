@@ -4,7 +4,13 @@ import { API_BASE, requestJson, requestVoid, requestList } from "./_client";
 export type MemberMode = "all" | "mentions" | "muted";
 
 export interface GroupMember {
-  agent_id: string;
+  agent_id: string | null;
+  user_id: string | null;
+  member: string;
+  kind: "human" | "agent";
+  tenant: string;
+  read: number;
+  delivered: number;
   name: string;
   role: string;
   mode: MemberMode;
@@ -15,6 +21,8 @@ export interface GroupMember {
 }
 
 export interface Group {
+  kind: "group" | "direct";
+  e2ee: boolean;
   id: string;
   name: string;
   created_at: string;
@@ -73,6 +81,7 @@ export interface GroupEntry {
   sender_id: string;
   sender: string;
   from_user: boolean;
+  sender_kind: "human" | "agent" | "system";
   /**
    * `message` is something someone said and `system` a note from the group itself (it paused). `edit`, `reaction` and `tombstone` are not shown:
    * they say what happened to the entry in `reply_to` (the new text, the emoji, a delete), and `foldEntries` applies them to it.
@@ -99,6 +108,8 @@ export interface GroupMessages {
   working: string[];
   /** The latest entry every agent has read: your messages up to here show as seen by all. */
   read_by_all: number;
+  read_by: Record<string, number>;
+  delivered_by: Record<string, number>;
 }
 
 export interface Contact {
@@ -108,13 +119,20 @@ export interface Contact {
   note: string;
 }
 
+export interface Person {
+  user_id: string;
+  name: string;
+  email: string | null;
+  avatar: string | null;
+}
+
 export const groupsApi = {
   async getGroups(): Promise<Group[]> {
     return requestList<Group>("/groups");
   },
 
-  async createGroup(name: string, members: { agent_id: string; mode: MemberMode }[]): Promise<Group> {
-    return requestJson<Group>("/groups", { method: "POST", body: JSON.stringify({ name, members }) });
+  async createGroup(name: string, members: { member: string; mode: MemberMode; role?: "admin" | "member" }[], kind: "group" | "direct" = "group"): Promise<Group> {
+    return requestJson<Group>("/groups", { method: "POST", body: JSON.stringify({ name, members, kind }) });
   },
 
   async renameGroup(id: string, name: string): Promise<Group> {
@@ -201,15 +219,35 @@ export const groupsApi = {
   },
 
   async addGroupMember(id: string, agentId: string, mode: MemberMode = "mentions"): Promise<Group> {
-    return requestJson<Group>(`/groups/${id}/members`, { method: "POST", body: JSON.stringify({ agent_id: agentId, mode }) });
+    return requestJson<Group>(`/groups/${id}/members`, { method: "POST", body: JSON.stringify({ member: `agent:${agentId}`, mode }) });
   },
 
   async setGroupMemberMode(id: string, agentId: string, mode: MemberMode): Promise<Group> {
-    return requestJson<Group>(`/groups/${id}/members/${agentId}`, { method: "PATCH", body: JSON.stringify({ mode }) });
+    return requestJson<Group>(`/groups/${id}/members/${encodeURIComponent(agentId)}`, { method: "PATCH", body: JSON.stringify({ mode }) });
   },
 
   async removeGroupMember(id: string, agentId: string): Promise<void> {
     await requestVoid(`/groups/${id}/members/${agentId}`, { method: "DELETE" });
+  },
+
+  async addPersonToGroup(id: string, userId: string): Promise<Group> {
+    return requestJson<Group>(`/groups/${id}/members`, { method: "POST", body: JSON.stringify({ member: `user:${userId}`, mode: "mentions" }) });
+  },
+
+  async setGroupMemberRole(id: string, member: string, role: "admin" | "member"): Promise<Group> {
+    return requestJson<Group>(`/groups/${id}/members/${encodeURIComponent(member)}`, { method: "PATCH", body: JSON.stringify({ role }) });
+  },
+
+  async markGroupDelivered(id: string, upto: number): Promise<void> {
+    await requestVoid(`/groups/${id}/delivered`, { method: "POST", body: JSON.stringify({ upto }) });
+  },
+
+  async searchPeople(q: string): Promise<Person[]> {
+    return requestList<Person>(`/people?q=${encodeURIComponent(q)}`);
+  },
+
+  async invitePerson(email: string): Promise<void> {
+    await requestVoid("/people/invites", { method: "POST", body: JSON.stringify({ email }) });
   },
 
   async getContacts(agentId: string): Promise<Contact[]> {

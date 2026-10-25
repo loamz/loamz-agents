@@ -315,6 +315,19 @@ class SandboxSettings(BaseModel):
         return data
 
 
+class PushSettings(BaseModel):
+    vapid_public_key: str = ""
+    vapid_private_key: str = ""
+    contact: str = "mailto:admin@example.invalid"
+
+
+class DirectorySettings(BaseModel):
+    url: str = ""
+    realm: str = "loamz"
+    client_id: str = "loamz-directory"
+    client_secret: str = ""
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="LOAMZ_AGENTS_", env_nested_delimiter="__", env_file=".env", extra="ignore"
@@ -322,6 +335,8 @@ class Settings(BaseSettings):
 
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
     oidc: OidcSettings = Field(default_factory=OidcSettings)
+    directory: DirectorySettings = Field(default_factory=DirectorySettings)
+    push: PushSettings = Field(default_factory=PushSettings)
     http: HttpSettings = Field(default_factory=HttpSettings)
     llm: LlmSettings = Field(default_factory=LlmSettings)
     redis: RedisSettings = Field(default_factory=RedisSettings)

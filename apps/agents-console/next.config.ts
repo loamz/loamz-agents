@@ -36,6 +36,12 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_WS_URL: WS_BACKEND_URL,
   },
+  async headers() {
+    return [{ source: "/sw.js", headers: [
+      { key: "Service-Worker-Allowed", value: "/chat" },
+      { key: "Cache-Control", value: "no-cache" },
+    ] }];
+  },
   // The app lives under /chat, so its own routes answer nowhere else. Send the bare view addresses there instead of a 404.
   async redirects() {
     return [

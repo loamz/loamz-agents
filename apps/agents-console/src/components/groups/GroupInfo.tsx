@@ -1,16 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Coins, Pin, Trash2, X } from "lucide-react";
+import { Bot, Coins, Pin, Trash2, X } from "lucide-react";
 import { Badge, Button, Input, Meter, Section, Select, confirmAction, toast } from "@/design";
 import { api } from "@/lib/api";
 import type { Agent } from "@/lib/api/agents";
-import type { Group, GroupFile, MemberMode } from "@/lib/api/groups";
+import type { Group, GroupFile, MemberMode, Person } from "@/lib/api/groups";
 import { reportError } from "@/lib/report-error";
 import { MAX_PINS, setPinned } from "@/lib/pins";
 import { PictureEditor } from "@/components/PictureEditor";
 import { Attachment } from "./Attachments";
 import { Avatar } from "./Avatar";
+import { PeoplePicker } from "./PeoplePicker";
 
 const MODES = [
   { value: "mentions", label: "When addressed" },
@@ -28,6 +29,7 @@ type Props = {
 
 /** Who is in the group and how closely each follows it; rename it, add or remove agents, or delete it. */
 export function GroupInfo({ group, agents, onChanged, onDeleted }: Props) {
+  const [people, setPeople] = useState<Person[]>([]);
   const isPinned = !!group.pinned_at;
   const [name, setName] = useState(group.name);
   const [cap, setCap] = useState(String(group.token_cap));
@@ -83,13 +85,22 @@ export function GroupInfo({ group, agents, onChanged, onDeleted }: Props) {
         </div>
       </Section>
 
+      {group.kind !== "direct" && <Section title="Add colleagues">
+        <PeoplePicker chosen={people} exclude={group.members.flatMap((m) => m.user_id ? [m.user_id] : [])} onChange={setPeople} />
+        <Button disabled={people.length === 0} onClick={() => void run(async () => {
+          let updated = group;
+          for (const person of people) updated = await api.addPersonToGroup(group.id, person.user_id);
+          setPeople([]);
+          return updated;
+        }, "Couldn't add the colleagues")}>Add people</Button>
+      </Section>}
       <Section title="Members" description="Like people in a busy group: an agent answers when it is addressed and keeps up the conversation for a while. Active ones also chip in when they have something to add; muted ones only when named.">
         <ul className="space-y-3">
           {group.members.map((m) => (
-            <li key={m.agent_id} className="flex items-center gap-3">
+            <li key={m.member} className="flex items-center gap-3">
               <Avatar name={m.name} src={m.avatar} />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-foreground">{m.name}</p>
+                <p className="truncate text-sm font-medium text-foreground">{m.name} {m.kind === "agent" && <Bot aria-label="AI agent" />}</p>
                 <p className="truncate text-xs text-muted">{m.role || "No role set"}</p>
                 {m.tokens_used > 0 && (
                   <p className="truncate text-2xs text-muted">
@@ -97,21 +108,21 @@ export function GroupInfo({ group, agents, onChanged, onDeleted }: Props) {
                   </p>
                 )}
               </div>
-              <Select
+              {m.kind === "agent" && <Select
                 size="sm"
                 className="w-36"
                 aria-label={`How ${m.name} follows the group`}
                 value={m.mode}
                 options={MODES}
-                onValueChange={(mode) => void run(() => api.setGroupMemberMode(group.id, m.agent_id, mode as MemberMode), "Couldn't change that")}
-              />
+                onValueChange={(mode) => void run(() => api.setGroupMemberMode(group.id, m.member, mode as MemberMode), "Couldn't change that")}
+              />}
               <Button
                 variant="ghost"
                 size="icon-sm"
                 aria-label={`Remove ${m.name}`}
                 disabled={group.members.length <= 1}
                 onClick={() => void run(async () => {
-                  await api.removeGroupMember(group.id, m.agent_id);
+                  await api.removeGroupMember(group.id, m.member);
                 }, "Couldn't remove the agent")}
               >
                 <X />

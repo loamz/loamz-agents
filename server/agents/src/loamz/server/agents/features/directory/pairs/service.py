@@ -8,10 +8,7 @@ with a hundred contacts is a page of rows, not a hundred journals.
 
 from __future__ import annotations
 
-from collections.abc import Callable
-
 from loamz.engine.agents.kernel.runtime.channel import ChannelStore, EntryKind
-from loamz.engine.agents.kernel.runtime.persistence.store import RuntimeStore
 from loamz.engine.agents.kernel.types.identity import Actor
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.directory.pairs.store import Pair, PairsStore
@@ -35,25 +32,9 @@ def _line(text: str) -> str:
     return one if len(one) <= PREVIEW else one[:PREVIEW] + "…"
 
 
-class ChannelsStore(RuntimeStore):
-    """The runtime store on the container's database, its tables made on first use.
-
-    TODO(integration): the conversations context's runtime owns the one store a process uses (so the live feed hears
-    what workers post); `channels` then returns that one.
-    """
-
-    _opened = False
-
-    async def _tx[T](self, fn: Callable[..., T]) -> T:
-        if not self._opened:
-            await self.start()
-            self._opened = True
-        return await super()._tx(fn)
-
-
 def channels(container: Container) -> ChannelStore:
     """Provider: the channel store (group and pair conversations) shared by everything in this container."""
-    return ChannelsStore(container.database)
+    return container.runtime.store
 
 
 class PairsService:

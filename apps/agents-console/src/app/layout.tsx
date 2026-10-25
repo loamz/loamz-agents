@@ -1,9 +1,11 @@
+import { headers } from "next/headers";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "katex/dist/katex.min.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { MessengerPwa } from "@/components/MessengerPwa";
 import { ConfirmHost, Toaster } from "@/design";
 
 const geistSans = Geist({
@@ -35,15 +37,18 @@ export const viewport = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <script
+          nonce={nonce}
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem("loamz-theme");if(t){document.documentElement.setAttribute("data-theme",t);document.documentElement.classList.toggle("dark",t==="dark")}else if(window.matchMedia("(prefers-color-scheme: dark)").matches){document.documentElement.setAttribute("data-theme","dark");document.documentElement.classList.add("dark")}else{document.documentElement.setAttribute("data-theme","light");document.documentElement.classList.remove("dark")}}catch(e){}})()`,
           }}
@@ -56,6 +61,7 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             {children}
+            <MessengerPwa />
             <Toaster />
             <ConfirmHost />
           </AuthProvider>

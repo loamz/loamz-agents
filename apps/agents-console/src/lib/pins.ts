@@ -2,7 +2,7 @@ import { api } from "@/lib/api";
 import { ApiError } from "@/lib/api/_client";
 
 /** A chat you keep at the top of your list and in the sidebar: an agent or a group. Which are pinned is kept on your account (`pinned_at`). */
-export type ChatKind = "agent" | "group";
+export type ChatKind = "agent" | "group" | "person";
 export const chatKey = (kind: ChatKind, id: string) => `${kind}:${id}`;
 export const MAX_PINS = 5;
 

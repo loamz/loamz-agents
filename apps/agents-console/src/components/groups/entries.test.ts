@@ -9,6 +9,7 @@ const entry = (seq: number, over: Partial<GroupEntry> = {}): GroupEntry => ({
   sender_id: "member/scout@g",
   sender: "Scout",
   from_user: false,
+  sender_kind: "agent",
   kind: "message",
   text: `m${seq}`,
   mentions: [],

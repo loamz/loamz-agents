@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from "react";
+import { disableNotifications } from "@/lib/push";
 import type { AuthUser } from "@/types";
 
 type AuthContextType = {
@@ -182,6 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    await disableNotifications().catch(() => undefined);
     try {
       if (spotifyAuth) {
         await fetch("/chat/api/spotify/token", {

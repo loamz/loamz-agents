@@ -35,7 +35,14 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        from loamz.server.agents.features.messaging.chats.member import register_members
+        from loamz.server.agents.features.messaging.feed.service import feed
+        from loamz.server.agents.features.messaging.push.service import push
+
+        register_members(container)
         await container.start(wanted)
+        await container.get(feed).start()
+        await container.get(push).start()
         try:
             yield
         finally:
