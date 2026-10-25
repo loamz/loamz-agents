@@ -58,7 +58,12 @@ class ChatService:
         data = [
             self._c.data_tool_set[n] for n in profile.allowed_tools if n in self._c.data_tool_set
         ]
-        return [*self._c.tool_servers.tools(profile.allowed_tools), *data]
+        code = (
+            [self._c.code_tool]
+            if "code_interpreter" in profile.allowed_tools and self._c.code_tool
+            else []
+        )
+        return [*self._c.tool_servers.tools(profile.allowed_tools), *data, *code]
 
     async def chat(self, caller: Caller, req: ChatRequest) -> AsyncIterator[str]:
         header = await self._threads.require(caller, req.thread_id)

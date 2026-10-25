@@ -10,8 +10,6 @@ answer comes back, and a result that would be large is cut off with a note that 
 
 from __future__ import annotations
 
-import asyncio
-import io
 import json
 from typing import Any
 
@@ -19,7 +17,7 @@ from loamz.core.exceptions import HttpResponseError
 from loamz.engine.agents.data._connection import DataServiceConnection
 from loamz.engine.agents.data.tokens import DataTokenMinter
 from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import MediaBlock, TextBlock
+from loamz.engine.agents.kernel.types.content import TextBlock
 from loamz.engine.agents.kernel.types.run import scope_of
 
 MAX_ROWS = 200
@@ -68,8 +66,6 @@ class DataTool:
             return self._reply(call_id, error.detail or str(error), True)
         except (TypeError, ValueError) as error:
             return self._reply(call_id, f"Bad arguments: {error}", True)
-        if isinstance(text, list):
-            return ToolExecutionResult(call_id=call_id, content=text, is_error=False)
         return self._reply(call_id, text, False)
 
     @staticmethod
@@ -78,7 +74,7 @@ class DataTool:
             call_id=call_id, content=[TextBlock(text=text[:MAX_CHARS])], is_error=is_error
         )
 
-    async def run(self, **kwargs: Any) -> str | list[Any]:
+    async def run(self, **kwargs: Any) -> str:
         raise NotImplementedError
 
 
@@ -145,164 +141,9 @@ class DataQuery(DataTool):
         return out
 
 
-MAX_POINTS = 2000
-BRAND = ("#7c3aed", "#f95716", "#0ea5a4", "#64748b", "#d946ef", "#eab308")
-
-
-def render_chart(
-    kind: str,
-    names: list[str],
-    rows: list[list[Any]],
-    x: str,
-    ys: list[str],
-    series: str | None,
-    title: str,
-) -> bytes:
-    """A PNG of a query result. Only the plotted values are ever here: the engine already did the aggregation."""
-    from matplotlib.backends.backend_agg import FigureCanvasAgg
-    from matplotlib.figure import Figure
-    from matplotlib.ticker import FuncFormatter
-
-    at = {n: i for i, n in enumerate(names)}
-    for column in [x, *ys, *([series] if series else [])]:
-        if column not in at:
-            raise ValueError(
-                f"the result has no column {column!r}; its columns are {', '.join(names)}"
-            )
-
-    def number(value: Any) -> float:
-        try:
-            return float(value)
-        except (TypeError, ValueError):
-            return float("nan")
-
-    if series:
-        groups: dict[str, list[list[Any]]] = {}
-        for row in rows:
-            groups.setdefault(str(row[at[series]]), []).append(row)
-        lines = [(name, part, ys[0]) for name, part in groups.items()]
-    else:
-        lines = [(y, rows, y) for y in ys]
-    categorical = kind == "bar" or not all(isinstance(r[at[x]], (int, float)) for r in rows)
-    labels = [str(r[at[x]]) for r in lines[0][1]]
-
-    figure = Figure(figsize=(9, 4.8), dpi=150, facecolor="white")
-    FigureCanvasAgg(figure)
-    ax = figure.add_subplot(111)
-    for side in ("top", "right"):
-        ax.spines[side].set_visible(False)
-    for side in ("left", "bottom"):
-        ax.spines[side].set_color("#cbd5e1")
-    ax.grid(axis="y", color="#e2e8f0", linewidth=0.8)
-    ax.set_axisbelow(True)
-    ax.tick_params(colors="#475569", labelsize=9)
-
-    n = len(lines)
-    for i, (name, part, column) in enumerate(lines):
-        values = [number(r[at[column]]) for r in part]
-        color = BRAND[i % len(BRAND)]
-        xs = list(range(len(values))) if categorical else [number(r[at[x]]) for r in part]
-        if kind == "bar":
-            width = 0.8 / n
-            ax.bar(
-                [p + (i - (n - 1) / 2) * width for p in xs],
-                values,
-                width=width * 0.92,
-                color=color,
-                label=name,
-            )
-        elif kind == "scatter":
-            ax.scatter(xs, values, s=14, color=color, alpha=0.75, label=name)
-        else:
-            ax.plot(xs, values, color=color, linewidth=2.2, marker="o", markersize=4, label=name)
-    if categorical:
-        step = max(1, len(labels) // 14)
-        long = len(labels) > 6
-        ax.set_xticks(range(0, len(labels), step))
-        ax.set_xticklabels(
-            labels[::step], rotation=30 if long else 0, ha="right" if long else "center"
-        )
-    ax.set_xlabel(x, color="#475569", fontsize=10)
-    ax.set_ylabel(", ".join(ys), color="#475569", fontsize=10)
-    ax.yaxis.set_major_formatter(
-        FuncFormatter(lambda v, _: f"{v:,.0f}" if abs(v) >= 1000 else f"{v:g}")
-    )
-    if title:
-        ax.set_title(title, loc="left", fontsize=13, fontweight="bold", color="#0f172a", pad=14)
-    if n > 1:
-        ax.legend(frameon=False, fontsize=9)
-    figure.tight_layout()
-    buffer = io.BytesIO()
-    figure.savefig(buffer, format="png")
-    return buffer.getvalue()
-
-
-class DataChart(DataTool):
-    name = "data_chart"
-    description = (
-        "Draw a chart of a SQL result and show it to the person. The engine runs the query on all the rows, so aggregate in SQL "
-        f"first (GROUP BY, ORDER BY) and chart only the answer: at most {MAX_POINTS} points. `x` and `y` are column names of the "
-        "result. Use `series` to draw one line or bar group per value of another column. kind is bar, line or scatter."
-    )
-    input_schema: dict[str, object] = {
-        "type": "object",
-        "properties": {
-            "query": {
-                "type": "string",
-                "description": "A single SELECT whose result is what to plot, in plot order.",
-            },
-            "kind": {"type": "string", "enum": ["bar", "line", "scatter"]},
-            "x": {"type": "string", "description": "Column for the horizontal axis."},
-            "y": {
-                "type": "array",
-                "items": {"type": "string"},
-                "description": "Column(s) for the vertical axis.",
-            },
-            "series": {
-                "type": "string",
-                "description": "Optional column whose values become separate series (then give one y).",
-            },
-            "title": {"type": "string"},
-        },
-        "required": ["query", "kind", "x", "y"],
-        "additionalProperties": False,
-    }
-
-    async def run(
-        self,
-        query: str,
-        kind: str,
-        x: str,
-        y: list[str] | str,
-        series: str | None = None,
-        title: str = "",
-        **_: Any,
-    ) -> list[Any]:
-        if kind not in {"bar", "line", "scatter"}:
-            raise ValueError("kind is bar, line or scatter")
-        ys = [y] if isinstance(y, str) else list(y)
-        result = await self.connection.client.sql.rows(query, max_rows=MAX_POINTS)
-        if not result.rows:
-            raise ValueError("the query returned no rows, so there is nothing to draw")
-        if result.truncated:
-            raise ValueError(
-                f"the result has more than {MAX_POINTS} rows: aggregate it in SQL, then chart that"
-            )
-        png = await asyncio.to_thread(
-            render_chart, kind, result.names, result.rows, x, ys, series, title
-        )
-        return [
-            TextBlock(
-                text=f"Drew a {kind} chart of {len(result.rows)} rows ({x} against {', '.join(ys)}). It is shown to the person."
-            ),
-            MediaBlock.image(data=png, media_type="image/png"),
-        ]
-
-
 def data_tools(connection: DataServiceConnection, minter: DataTokenMinter) -> list[DataTool]:
     return [
         DataSearch(connection, minter),
         DataDescribe(connection, minter),
         DataQuery(connection, minter),
-        DataChart(connection, minter),
     ]

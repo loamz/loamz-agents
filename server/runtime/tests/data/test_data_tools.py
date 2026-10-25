@@ -95,38 +95,3 @@ async def test_a_run_without_a_signed_in_person_gets_no_data_and_makes_no_reques
 
     result = await tools["data_sql"].execute(ctx=Anonymous(), query="select 1")
     assert result.is_error and not calls
-
-
-async def test_a_chart_is_drawn_from_the_engines_answer_and_shown_as_an_image(tmp_path):
-    import pytest
-
-    pytest.importorskip("matplotlib")
-    tools = build(
-        tmp_path,
-        lambda r: answer(
-            ["month", "avg_fare"], [["2025-01", 17.1], ["2025-02", 16.8], ["2025-03", 17.8]]
-        ),
-    )
-    result = await tools["data_chart"].execute(
-        ctx=Ctx(),
-        query="select 1",
-        kind="bar",
-        x="month",
-        y=["avg_fare"],
-        title="Average fare",
-        call_id="c1",
-    )
-    assert not result.is_error
-    image = next(b for b in result.content if getattr(b, "type", "") == "image")
-    assert image.data.startswith(b"\x89PNG") and image.media_type == "image/png"
-
-
-async def test_a_chart_of_a_missing_column_says_which_columns_exist(tmp_path):
-    import pytest
-
-    pytest.importorskip("matplotlib")
-    tools = build(tmp_path, lambda r: answer(["month", "avg_fare"], [["2025-01", 17.1]]))
-    result = await tools["data_chart"].execute(
-        ctx=Ctx(), query="select 1", kind="line", x="month", y=["fare"]
-    )
-    assert result.is_error and "month, avg_fare" in result.content[0].text

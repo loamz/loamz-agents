@@ -123,8 +123,11 @@ class NamedTools:
 
 def tool_catalog(container: Container) -> ToolCatalog:
     """Provider: which tools an agent can be given: the toolkit's, the data tools, and those of the connected tool servers."""
+    code = container.code_tool
     return CombinedTools(
-        DiscoveredTools(), NamedTools(container.data_tool_set), container.tool_servers
+        DiscoveredTools(),
+        NamedTools({**container.data_tool_set, **({"code_interpreter": code} if code else {})}),
+        container.tool_servers,
     )
 
 

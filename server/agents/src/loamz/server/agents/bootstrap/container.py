@@ -21,6 +21,7 @@ from loamz.engine.agents.kernel.runtime import Runtime
 from loamz.engine.agents.kernel.telemetry import set_capture_content
 from loamz.engine.agents.stores import AgentStore
 from loamz.engine.sql import Database, postgres, sqlite
+from loamz.server.agents.bootstrap.data_access import GatewayDataAccess
 from loamz.server.agents.bootstrap.settings import Settings
 
 if TYPE_CHECKING:
@@ -97,6 +98,55 @@ class Container:
         from loamz.engine.agents.data import data_tools
 
         return {tool.name: tool for tool in data_tools(connection, minter)}
+
+    @cached_property
+    def code_tool(self) -> object | None:
+        """The code interpreter, with governed data for each run; None when sandboxing is unavailable here (it never falls back
+        to running code without isolation) or there is no data service for it to reach."""
+        import logging
+        from pathlib import Path
+        from urllib.parse import urlsplit
+
+        log = logging.getLogger(__name__)
+        sandbox = self.settings.sandbox
+        try:
+            from loamz.engine.agents.data import DataGateway
+            from loamz.engine.agents.toolkit.code import CodeInterpreterTool
+            from loamz.engine.agents.toolkit.code.runtimes.factory import (
+                build_runtime,
+                network_policy,
+            )
+
+            runtime = build_runtime(
+                sandbox.runtime,
+                workspace_root=sandbox.scratch_root
+                or str(Path(self.settings.files.path).parent / "sandbox"),
+                runtime_class_name=sandbox.runtime_class,
+                workspace_pvc_claim=sandbox.workspace_pvc_claim or None,
+                python_bin=sandbox.python,
+            )
+        except Exception as error:  # noqa: BLE001 - reported once; agents simply do not get the tool
+            log.warning("code interpreter unavailable: %s", error)
+            return None
+        data = None
+        minter, url = self.data_read_tokens, self.settings.data.url
+        if minter is not None and url:
+            gateway = DataGateway(url, insecure_hosts=(urlsplit(url).hostname or "",))
+            data = GatewayDataAccess(
+                gateway,
+                minter,
+                Path(sandbox.scratch_root or "/data/sandbox").parent / "sandbox-data",
+            )
+        tool = CodeInterpreterTool(
+            runtime,
+            network=network_policy(sandbox.network_policy),
+            default_timeout_s=sandbox.timeout_seconds,
+            memory_bytes=sandbox.memory_bytes,
+            model_client=self.chat_model(),
+            data=data,
+        )
+        self.on_close(tool.stop)
+        return tool
 
     @cached_property
     def data_connection(self) -> DataServiceConnection | None:
