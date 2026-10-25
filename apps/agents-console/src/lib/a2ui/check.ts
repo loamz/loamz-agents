@@ -97,7 +97,7 @@ export function messagesFromFence(source: string): A2uiMessage[] | null {
 
 /** A model sometimes glues the fence to its sentence ("...takeaway.```a2ui"): Markdown only opens a fence at the start of a line. */
 export function separateFence(markdown: string): string {
-  return markdown.replace(/([^\n])(```a2ui\b)/g, "$1\n\n$2");
+  return markdown.replace(/([^\n])(```(?:a2ui|openui)\b)/g, "$1\n\n$2");
 }
 
 /** What a card's button says to the agent, as a message from the person. `send` carries the words; any other action is named. */

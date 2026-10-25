@@ -67,6 +67,10 @@ describe("fences", () => {
     expect(messagesFromFence("just some words")).toBeNull();
   });
 
+  it("treats an openui fence the same way", () => {
+    expect(separateFence("here.```openui\nroot = Card([])\n```")).toBe("here.\n\n```openui\nroot = Card([])\n```");
+  });
+
   it("puts a glued fence on its own line, and leaves a proper one alone", () => {
     expect(separateFence("a takeaway.```a2ui\n{}\n```")).toBe("a takeaway.\n\n```a2ui\n{}\n```");
     expect(separateFence("words\n\n```a2ui\n{}\n```")).toBe("words\n\n```a2ui\n{}\n```");

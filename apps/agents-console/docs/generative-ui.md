@@ -1,4 +1,4 @@
-# UI in a message (A2UI)
+# UI in a message (A2UI and OpenUI)
 
 An agent's answer can be more than text: a plan to approve, an account, a comparison, a picture. It is drawn from **A2UI**
 ([a2ui.org](https://a2ui.org), v0.9): a small set of JSON messages (`createSurface`, `updateComponents`, `updateDataModel`) that
@@ -7,7 +7,8 @@ the console checks and draws with its own components. Nothing is executed: a car
 | Who | How | When |
 |---|---|---|
 | **A tool** | Returns `structuredContent: {"a2ui": [messages]}` beside its text. | Anything the tool already knows exactly (a plan, an account). The numbers come from code, never from the model. |
-| **The model** | Writes an `a2ui` fence in its reply: a sentence, then one message per line. | A layout it composes from what it learnt in the conversation. |
+| **The model, a card** | Writes an `a2ui` fence in its reply: a sentence, then one message per line. | A small layout it composes from what it learnt in the conversation. |
+| **The model, a rich page** | Writes an `openui` fence: OpenUI Lang ([openui.com](https://www.openui.com)). | A briefing or overview: header picture, stat tiles, charts, tables, carousels (see below). |
 
 Both are drawn the same way, live, while a reply streams, and when a conversation is reloaded.
 
@@ -82,3 +83,24 @@ return Reply.shown("Plan 3f2a: ...", ui)    # text for the model, card for the p
 No script, no HTML, no classes, no addresses loaded as written, no `openUrl`. A button only sends text. A card in an old message can
 still be clicked: whatever it asks for goes through the agent's checks again (the trading desk refuses an approval for any plan that
 is not the current one).
+
+## Rich pages (OpenUI)
+
+For answers that deserve a page, not a card, the console draws OpenUI's component library (about 84 components: Card, CardHeader,
+TagBlock, OverviewCardBlock, seven kinds of chart, Table, Carousel, ImageBlock, ImageGallery, Tabs, SectionBlock, FollowUpBlock...).
+The model writes OpenUI Lang inside an `openui` fence, after a sentence of text, and it is drawn as it streams.
+
+- **Agent setting:** add `rich_ui` to the agent's tools. Its instructions then include `openui_prompt.md` (about 14,000 tokens),
+  generated from the library by `pnpm --filter agents-console openui:prompt`; a test fails when they differ. Give an agent
+  `rich_ui` or `generative_ui`, not both: with both the model may pick the smaller A2UI catalog, which has no charts.
+- **Our changes to their prompt:** it is framed for a chat reply (text, then a fence), and their rule "generate realistic/plausible
+  data" is replaced by ours: nothing in a UI may be made up.
+- **Pictures** go through the same rules as A2UI (`src/lib/openui/library.tsx`): every picture address is resolved to a workspace
+  file, a small data image or the picture proxy; one that may not be shown becomes empty.
+- **Buttons:** `@ToAssistant("...")` and the follow-up suggestions send their text to the agent; `@OpenUrl` opens only an `https`
+  address, in a new tab. Other actions arrive as `[card action] ...`.
+- **Pictures to use:** the solutions tool server has `web_images` (DuckDuckGo images, no key): it returns the search engine's own
+  small copy of each picture, which the proxy fetches reliably. Results for abstract queries can be off-topic; give it concrete ones.
+- **Weight:** the library brings its own styles (a CSS layer, so ours win) and charting; it is loaded only when an answer uses it.
+
+Tool cards that must be exact (a plan with an Approve button) stay A2UI, built in Python: their numbers come from code.

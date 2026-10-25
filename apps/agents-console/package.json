@@ -16,7 +16,8 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "check:design": "node scripts/check-design.mjs",
-    "a2ui:prompt": "A2UI_PROMPT_WRITE=1 vitest run src/lib/a2ui/prompt"
+    "a2ui:prompt": "A2UI_PROMPT_WRITE=1 vitest run src/lib/a2ui/prompt",
+    "openui:prompt": "OPENUI_PROMPT_WRITE=1 vitest run src/lib/openui/prompt"
   },
   "dependencies": {
     "@a2ui/react": "0.14.0",
@@ -28,6 +29,9 @@
     "@betteroffice/xlsx-react": "^0.1.0",
     "@loamz/oidc-bff": "workspace:*",
     "@monaco-editor/react": "^4.7.0",
+    "@openuidev/react-headless": "^0.18.1",
+    "@openuidev/react-lang": "1.0.1",
+    "@openuidev/react-ui": "0.18.1",
     "@prisma/client": "^6.3.0",
     "@radix-ui/react-dialog": "^1.1.23",
     "@radix-ui/react-dropdown-menu": "^2.1.24",
@@ -55,7 +59,8 @@
     "tailwind-merge": "^3.7.0",
     "undici": "^7.24.4",
     "uuid": "^11.0.3",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "zustand": "^4.5.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

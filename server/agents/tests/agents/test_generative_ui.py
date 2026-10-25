@@ -6,8 +6,10 @@ from types import SimpleNamespace
 
 from loamz.server.agents.features.directory.agents.service import (
     GENERATIVE_UI,
+    RICH_UI,
     generative_ui_prompt,
     instructions_block,
+    rich_ui_prompt,
 )
 
 
@@ -43,3 +45,19 @@ def test_the_prompt_names_the_catalog_the_console_draws():
     ):
         assert part in prompt
     assert "createSurface" in prompt and "updateComponents" in prompt and "openUrl" not in prompt
+
+
+def test_rich_ui_teaches_openui_lang_inside_a_fence_and_is_separate_from_cards():
+    both = instructions_block(profile([GENERATIVE_UI, RICH_UI]))
+    assert "```openui" in both and "```a2ui" in both
+    only_rich = instructions_block(profile([RICH_UI]))
+    assert "```openui" in only_rich and "```a2ui" not in only_rich
+    assert "```openui" not in instructions_block(profile([GENERATIVE_UI, "data_sql"]))
+    assert "```openui" not in instructions_block(profile(None))
+
+
+def test_the_rich_prompt_is_openuis_with_our_rules():
+    prompt = rich_ui_prompt()
+    for part in ("Card", "ImageBlock", "Carousel", "BarChart", "FollowUpBlock", "TagBlock"):
+        assert part in prompt
+    assert "Never invent figures" in prompt and "realistic/plausible data" not in prompt

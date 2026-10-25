@@ -18,3 +18,12 @@ def test_plain_text_is_collapsed_and_cut():
     assert (
         one_line("a ```python\nprint(1)\n``` b", 140) == "a ```python print(1) ``` b"
     )  # only a UI fence is replaced
+
+
+def test_a_rich_answer_is_a_card_too():
+    assert (
+        one_line(
+            'Here is the briefing.\n```openui\nroot = Card([a])\na = TextContent("x")\n```', 140
+        )
+        == "Here is the briefing. [card]"
+    )

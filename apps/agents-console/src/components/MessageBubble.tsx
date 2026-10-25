@@ -34,6 +34,7 @@ import { getAttachmentKind, getFileGlyph, formatFileSize } from "@/lib/file-util
 import { FileTypeIcon } from "@/components/FileTypeIcon";
 import { AdSlot } from "@/components/AdSlot";
 import { A2ui, A2uiFence } from "@/components/A2ui";
+import { OpenUiFence } from "@/components/OpenUi";
 import { separateFence, type A2uiMessage } from "@/lib/a2ui/check";
 
 function isPersistentToolCall(toolCall: ToolCall): boolean {
@@ -258,6 +259,7 @@ function MarkdownPre({ children, className }: ComponentPropsWithoutRef<"pre">) {
   const raw = String((child as { props?: { children?: unknown } } | undefined)?.props?.children ?? "").replace(/\n$/, "");
   if (/language-mermaid/.test(childClass)) return <Mermaid chart={raw} />;
   if (/language-a2ui\b/.test(childClass)) return <A2uiFence source={raw} streaming={env.streaming} onSend={env.onSend} threadId={env.threadId} />;
+  if (/language-openui\b/.test(childClass)) return <OpenUiFence source={raw} streaming={env.streaming} onSend={env.onSend} threadId={env.threadId} />;
   return <CopyablePre className={className}>{children}</CopyablePre>;
 }
 

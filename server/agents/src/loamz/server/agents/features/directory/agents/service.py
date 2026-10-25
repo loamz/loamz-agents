@@ -166,6 +166,16 @@ def generative_ui_prompt() -> str:
     return (resources.files(__package__) / "a2ui_prompt.md").read_text(encoding="utf-8")
 
 
+RICH_UI = "rich_ui"  # not a tool either: listing it teaches the agent to write rich pages in OpenUI Lang (see openui_prompt.md)
+
+
+@cache
+def rich_ui_prompt() -> str:
+    """How to write a rich answer in a reply (OpenUI Lang and its chat library). Generated from the console's library by
+    `pnpm openui:prompt` in apps/agents-console; a test there fails when the two differ."""
+    return (resources.files(__package__) / "openui_prompt.md").read_text(encoding="utf-8")
+
+
 def instructions_block(profile: AgentProfile, drives: Sequence[Drive] = ()) -> str:
     """What the model is told about the role it plays and where its files are, appended to the base instructions."""
     lines = [f"\n\n---\nYou are acting as **{profile.name}**."]
@@ -176,6 +186,8 @@ def instructions_block(profile: AgentProfile, drives: Sequence[Drive] = ()) -> s
     lines.append(files_instructions(tuple(drives)))
     if GENERATIVE_UI in (profile.allowed_tools or ()):
         lines.append(f"\n{generative_ui_prompt()}")
+    if RICH_UI in (profile.allowed_tools or ()):
+        lines.append(f"\n{rich_ui_prompt()}")
     return "\n".join(lines) + "\n"
 
 
@@ -219,6 +231,7 @@ class AgentsService:
             **self._catalog.describe(),
             TOOL_NAME: "Ask one of your other agents to do a piece of work and get its answer.",
             GENERATIVE_UI: "Draw cards, tables, dashboards and pictures in replies, in the A2UI standard. Costs about 5,000 tokens of instructions.",
+            RICH_UI: "Answer with rich visual pages: headers with pictures, stat tiles, charts, tables, carousels (OpenUI). Costs about 14,000 tokens of instructions.",
         }
 
     def _check_model(self, model: str | None) -> None:
