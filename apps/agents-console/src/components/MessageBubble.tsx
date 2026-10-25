@@ -371,6 +371,8 @@ type Props = {
   onInspect?: () => void;
   /** Who is answering, shown above a reply in a conversation with one agent: its picture and name. */
   speaker?: { name: string; avatar?: string | null };
+  /** Images this message's turn captured, by file name: a `sandbox:` name shows that copy, as it was then. */
+  capturedImages?: Map<string, string>;
 };
 
 export function MessageBubble({
@@ -394,6 +396,7 @@ export function MessageBubble({
   rating = 0,
   onInspect,
   speaker,
+  capturedImages,
 }: Props) {
   const isUser = role === "user";
   const [copied, setCopied] = useState(false);
@@ -415,13 +418,7 @@ export function MessageBubble({
   const safeReasoning = typeof reasoning === 'string' ? reasoning : String(reasoning || "");
   // Every markdown image ref in THIS message's raw content, in document
   // order, deduped — the navigable list for the "inline" lightbox below.
-  // Not matched against toolImageAttachments: that gallery's `name` is a
-  // synthetic sequential name the backend assigns when auto-capturing tool
-  // output (`code_interpreter-0.png`, `-1.png`, ...), decoupled from
-  // whatever real filename the model wrote and references here via
-  // `sandbox:...` — matching by name only works by coincidence. Extracting
-  // straight from this message's own markdown instead is correct regardless
-  // of naming on either side.
+  // Each is resolved below to this message's own captured copy when its run captured one under that file name.
   const inlineImageRefs = useMemo(() => {
     const refs: string[] = [];
     const seen = new Set<string>();
@@ -438,18 +435,6 @@ export function MessageBubble({
     }
     return refs;
   }, [safeContent]);
-  const inlineImageAttachments = useMemo(
-    () =>
-      inlineImageRefs.map((raw) => {
-        const resolved = raw.startsWith("sandbox:")
-          ? threadId
-            ? buildWorkspaceFileUrl(threadId, raw)
-            : ""
-          : raw;
-        return { id: `inline:${raw}`, name: raw, mime: "image/*", size: 0, url: resolved };
-      }),
-    [inlineImageRefs, threadId]
-  );
   const sourceByIndex = useMemo(
     () => new Map((sources ?? []).map((s) => [s.index, s])),
     [sources]
@@ -478,6 +463,28 @@ export function MessageBubble({
       (attachment, index, arr) =>
         arr.findIndex((a) => a.url === attachment.url) === index
     );
+  // The copy of each image this message's own run captured, by file name. A message that names `sandbox:chart.png` shows
+  // that copy, as it was when the message was written, not whatever the workspace file holds now (the agent may have
+  // redrawn it since).
+  const capturedByName = new Map<string, string>(capturedImages ?? []);
+  for (const attachment of toolImageAttachments) {
+    if (attachment.url) capturedByName.set(attachment.name.split("/").pop() || attachment.name, attachment.url);
+  }
+  const resolveImageRef = (raw: string): string => {
+    if (!raw.startsWith("sandbox:")) return raw;
+    const name = raw.replace(/^sandbox:/, "").split("/").pop() || "";
+    return capturedByName.get(name) ?? (threadId ? buildWorkspaceFileUrl(threadId, raw) : "");
+  };
+  const inlineImageAttachments = inlineImageRefs.map((raw) => ({
+    id: `inline:${raw}`,
+    name: raw,
+    mime: "image/*",
+    size: 0,
+    url: resolveImageRef(raw),
+  }));
+  // Images already shown in the text are not listed again under "charts generated".
+  const shownInline = new Set(inlineImageAttachments.map((a) => a.url));
+  const extraToolImages = toolImageAttachments.filter((a) => !shownInline.has(a.url ?? ""));
   const imageAttachments = visibleAttachments.filter((attachment) => {
     const kind = getAttachmentKind(attachment.mime, attachment.name);
     return attachment.origin !== "tool" && kind === "image" && Boolean(attachment.url);
@@ -491,7 +498,7 @@ export function MessageBubble({
   // activeImageSource above.
   const activeList =
     activeImageSource === "tool"
-      ? toolImageAttachments
+      ? extraToolImages
       : activeImageSource === "inline"
         ? inlineImageAttachments
         : imageAttachments;
@@ -1080,7 +1087,7 @@ export function MessageBubble({
                       const galleryIndex = inlineImageRefs.indexOf(raw);
                       return (
                         <MarkdownImage
-                          src={typeof src === "string" ? src : undefined}
+                          src={raw ? resolveImageRef(raw) : undefined}
                           alt={alt}
                           threadId={threadId}
                           onOpen={() => openInlineLightbox(Math.max(galleryIndex, 0))}
@@ -1110,7 +1117,7 @@ export function MessageBubble({
                         const galleryIndex = inlineImageRefs.indexOf(raw);
                         return (
                           <MarkdownImage
-                            src={raw}
+                            src={resolveImageRef(raw)}
                             alt={typeof children === "string" ? children : undefined}
                             threadId={threadId}
                             onOpen={() => openInlineLightbox(Math.max(galleryIndex, 0))}
@@ -1200,17 +1207,17 @@ export function MessageBubble({
             {/* Tool-generated charts — collapsed so exploratory re-runs don't
               flood the chat; the model surfaces the key ones inline above via
               sandbox: markdown refs. */}
-            {toolImageAttachments.length > 0 && (
+            {extraToolImages.length > 0 && (
               <details className="group/plots w-full">
                 <summary
                   className="inline-flex cursor-pointer select-none list-none items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium text-badge-foreground transition-colors hover:bg-card-hover"
                   style={{ background: "var(--badge-bg)" }}
                 >
-                  {`${toolImageAttachments.length} chart${toolImageAttachments.length > 1 ? "s" : ""} generated`}
+                  {`${extraToolImages.length} chart${extraToolImages.length > 1 ? "s" : ""} generated`}
                   <ChevronRight className="h-3 w-3 shrink-0 transition-transform group-open/plots:rotate-90 text-muted" />
                 </summary>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {toolImageAttachments.map((attachment, idx) => (
+                  {extraToolImages.map((attachment, idx) => (
                     <button
                       key={attachment.id}
                       type="button"

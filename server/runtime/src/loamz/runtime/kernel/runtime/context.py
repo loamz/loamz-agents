@@ -576,7 +576,10 @@ class RunContext:
         attachments = [
             {
                 "id": new_id(),
-                "name": f"{name}-{i}.{(img.media_type or 'image/png').split('/')[-1]}",
+                # The file's own name when the tool knows it (the code saved `chart.png`), so a message that names the file
+                # shows this copy, made by this run, not whatever the file holds later.
+                "name": img.filename
+                or f"{name}-{i}.{(img.media_type or 'image/png').split('/')[-1]}",
                 "mime": img.media_type or "image/png",
                 "size": len(img.data or b""),
                 "url": url,

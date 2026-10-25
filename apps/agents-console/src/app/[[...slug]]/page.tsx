@@ -1928,6 +1928,21 @@ function ChatPageContent() {
     doSendMessage(input);
   }
 
+  // The images each turn's tools captured, by file name, for every message of that turn: the agent's closing text (which names
+  // `sandbox:chart.png`) is a different message from the tool result that captured the image.
+  const capturedByMessage = useMemo(() => {
+    const out = new Map<string, Map<string, string>>();
+    let turn = new Map<string, string>();
+    for (const m of messages) {
+      if (m.role === "user") turn = new Map();
+      for (const a of m.attachments ?? []) {
+        if (a.origin === "tool" && a.url && a.name) turn.set(a.name.split("/").pop() || a.name, a.url);
+      }
+      out.set(m.id, turn);
+    }
+    return out;
+  }, [messages]);
+
   // ── Auth guards ───────────────────────────────────────────────────────
   if (authLoading) {
     return (
@@ -2086,6 +2101,7 @@ function ChatPageContent() {
                               role={m.role}
                               content={m.content}
                               attachments={m.attachments}
+                              capturedImages={capturedByMessage.get(m.id)}
                               reasoning={m.reasoning}
                               timestamp={m.timestamp}
                               toolCalls={m.toolCalls}

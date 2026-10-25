@@ -83,7 +83,11 @@ def sandbox_result_to_tool_result(result: dict[str, Any]) -> ToolExecutionResult
         content_b64: str = artifact.get("content_base64", "")
         if mime.startswith("image/") and content_b64:
             try:
-                media.append(MediaBlock.image(data=base64.b64decode(content_b64), media_type=mime))
+                media.append(
+                    MediaBlock.image(
+                        data=base64.b64decode(content_b64), media_type=mime, filename=name
+                    )
+                )
                 text_parts.append(f"[Generated {name}]")
             except Exception:
                 text_parts.append(f"[Generated {name}] (image decode failed)")
