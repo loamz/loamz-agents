@@ -49,3 +49,16 @@ async def test_mcp_tool_wrapping_and_execution():
     assert isinstance(res.content[0], TextBlock)
     assert res.content[0].text == "hello from mcp"
     client.call_tool.assert_called_once_with("test_mcp_tool", {"arg": "value"})
+
+
+def test_a_servers_structured_content_reaches_the_result_but_not_the_model_text():
+    tool = MCPTool(
+        client=Mock(is_connected=True), name="t", description="d", input_schema={"type": "object"}
+    )
+    item = Mock(type="text", text="the plan, in words")
+    reply = Mock(content=[item], isError=False, structuredContent={"card": {"type": "card"}})
+    result = tool.to_result("c1", reply)
+    assert result.structured_content == {"card": {"type": "card"}}
+    assert result.text == "the plan, in words"
+    # a server without structured content (here a bare mock) leaves it empty
+    assert tool.to_result("c2", Mock(content=[item], isError=False)).structured_content == {}

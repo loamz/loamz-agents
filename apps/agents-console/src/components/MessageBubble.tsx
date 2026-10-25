@@ -33,6 +33,8 @@ import { buildWorkspaceFileUrl } from "@/lib/api/_client";
 import { getAttachmentKind, getFileGlyph, formatFileSize } from "@/lib/file-utils";
 import { FileTypeIcon } from "@/components/FileTypeIcon";
 import { AdSlot } from "@/components/AdSlot";
+import { GenUi, SpecBlock } from "@/components/GenUi";
+import { separateSpecFence } from "@/lib/genui/spec";
 
 function isPersistentToolCall(toolCall: ToolCall): boolean {
   return Boolean(toolCall._meta?.ui?.httpUrl);
@@ -376,6 +378,8 @@ type Props = {
   speaker?: { name: string; avatar?: string | null };
   /** Images this message's turn captured: a `sandbox:` name shows that copy, as it was then. */
   capturedImages?: CapturedImages;
+  /** What a card's button sends to the agent, as if the person had typed it. */
+  onSendMessage?: (text: string) => void;
 };
 
 export function MessageBubble({
@@ -400,6 +404,7 @@ export function MessageBubble({
   onInspect,
   speaker,
   capturedImages,
+  onSendMessage,
 }: Props) {
   const isUser = role === "user";
   const [copied, setCopied] = useState(false);
@@ -804,7 +809,8 @@ export function MessageBubble({
 
   /* ── User message: right-aligned speech bubble ── */
   // A step that said nothing (it only called tools whose results are not worth keeping) is not a message to show in a conversation.
-  if (speaker && !isUser && !isStreaming && !safeContent && !safeReasoning && visibleToolCalls.length === 0 && imageAttachments.length === 0 && documentAttachments.length === 0) return null;
+  const hasUi = toolCalls?.some((tool) => tool.spec) ?? false;
+  if (speaker && !isUser && !isStreaming && !safeContent && !safeReasoning && !hasUi && visibleToolCalls.length === 0 && imageAttachments.length === 0 && documentAttachments.length === 0) return null;
 
   if (isUser) {
     return (
@@ -1055,6 +1061,11 @@ export function MessageBubble({
               </div>
             )}
 
+            {/* UI the tools returned for the person to see (a plan, an account): drawn here, not described */}
+            {toolCalls?.map((tool) =>
+              tool.spec ? <GenUi key={`ui-${tool.id}`} spec={tool.spec} onSend={onSendMessage} /> : null,
+            )}
+
             {/* Reasoning — expandable thinking card */}
             {safeReasoning && (
               <details className="group/think">
@@ -1112,6 +1123,10 @@ export function MessageBubble({
                         const raw = (child as { props?: { children?: unknown } }).props
                           ?.children;
                         return <Mermaid chart={String(raw).replace(/\n$/, "")} />;
+                      }
+                      if (/language-spec\b/.test(childClass)) {
+                        const raw = (child as { props?: { children?: unknown } }).props?.children;
+                        return <SpecBlock source={String(raw).replace(/\n$/, "")} streaming={Boolean(isStreaming)} onSend={onSendMessage} />;
                       }
                       return <CopyablePre className={className}>{children}</CopyablePre>;
                     },
@@ -1224,7 +1239,7 @@ export function MessageBubble({
                     },
                   }}
                 >
-                  {linkifyCitations(preprocessMarkdown(safeContent), validCitationIndices)}
+                  {linkifyCitations(preprocessMarkdown(separateSpecFence(safeContent)), validCitationIndices)}
                 </ReactMarkdown>
                 {role === "assistant" && (
                   <SourcesStrip sources={sources} onOpenSource={onOpenSource} />

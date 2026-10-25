@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
 import { CitationSource, Message, ToolCall } from "@/types";
+import { specFromStructured } from "@/lib/genui/spec";
 import { mergeSources, parseCitations } from "@/lib/citations";
 import { getMessageAttachments } from "./_client";
 
@@ -198,7 +199,7 @@ export function foldWireEventsToMessages(events: WireEvent[]): Message[] {
               ? tc.id === event.call_id
               : tc.name === event.tool_name && !tc.result;
             if (!matches) return tc;
-            return { ...tc, result: resultText, isError: !event.ok };
+            return { ...tc, result: resultText, isError: !event.ok, spec: specFromStructured(event.structured_content) ?? tc.spec };
           });
         }
         // Media the tool produced (e.g. code_interpreter charts) — tagged

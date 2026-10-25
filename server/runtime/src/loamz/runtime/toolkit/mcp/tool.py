@@ -153,7 +153,15 @@ class MCPTool:
                 content.append(TextBlock(text=str(item)))
 
         is_error: bool = getattr(result, "isError", False)
-        return ToolExecutionResult(call_id=call_id, content=content, is_error=is_error)
+        # What the server returned for the person's screen, not the model's: the console draws it (a card), the model reads
+        # only the text above.
+        structured = getattr(result, "structuredContent", None)
+        return ToolExecutionResult(
+            call_id=call_id,
+            content=content,
+            is_error=is_error,
+            structured_content=structured if isinstance(structured, dict) else {},
+        )
 
     @classmethod
     async def from_mcp_client(

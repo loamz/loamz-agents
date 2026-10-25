@@ -399,6 +399,11 @@ select {
 .chat-bubble:has(table, pre, .katex-display) {
   max-width: min(96%, 64rem);
 }
+/* A generated UI is as wide as its parts need, up to a comfortable dashboard width. */
+.chat-bubble:has([data-genui]) {
+  width: min(100%, 40rem);
+  max-width: 100%;
+}
 .chat-bubble th,
 .chat-bubble td:first-child {
   white-space: nowrap; /* headers and the row's label stay on one line */

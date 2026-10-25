@@ -46,6 +46,7 @@ import type { ResolvedBranchMessage } from "@/lib/api/branches";
 import { ChatConflictError, ChatLockedError } from "@/lib/api/chat";
 import { ApiError, getMessageAttachments, buildWorkspaceFileUrl, buildFileContentUrl } from "@/lib/api/_client";
 import { mergeSources, parseCitations } from "@/lib/citations";
+import { specFromStructured } from "@/lib/genui/spec";
 import {
   getPreferredChatModel,
   CHAT_MODEL_OPTIONS,
@@ -1576,7 +1577,7 @@ function ChatPageContent() {
             if (!hasMatch) return msg;
             const updatedCalls = msg.toolCalls.map((tc) => {
               if (!matchesCall(tc)) return tc;
-              return { ...tc, result: resultText, isError };
+              return { ...tc, result: resultText, isError, spec: specFromStructured(data.structured_content) ?? tc.spec };
             });
             return {
               ...msg,
@@ -2135,6 +2136,7 @@ function ChatPageContent() {
                                 });
                               }}
                               messageId={m.id}
+                              onSendMessage={(text) => doSendMessage(text)}
                               speaker={threadAgent ? { name: threadAgent.name, avatar: threadAgent.avatar } : undefined}
                               onForkBranch={threadAgent ? undefined : handleForkFromMessage}
                               onInspect={m.role === "assistant" && currentThreadId ? () => setInspectOpen(true) : undefined}

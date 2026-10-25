@@ -1,3 +1,4 @@
+import type { Spec } from "@json-render/core";
 import type { CitationSource } from "./citations";
 
 export type ToolCallMeta = {
@@ -18,6 +19,8 @@ export type ToolCall = {
   risk?: "safe" | "sensitive" | "critical";
   /** Colour badge to show in the UI: green | yellow | red */
   color?: "green" | "yellow" | "red";
+  /** The UI the tool returned for the person to see (structured_content.spec, json-render), drawn in the message. */
+  spec?: Spec;
 };
 
 export type Message = {
