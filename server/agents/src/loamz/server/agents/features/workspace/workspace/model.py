@@ -38,14 +38,14 @@ class VersionsResponse(BaseModel):
 class RestoreRequest(BaseModel):
     path: str
     seq: int
-    session_id: str | None = None
+    thread_id: str | None = None
     branch_id: str = "main"
 
 
 class SaveFileRequest(BaseModel):
     path: str
     content: str
-    session_id: str | None = None
+    thread_id: str | None = None
     branch_id: str = "main"
 
 

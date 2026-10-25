@@ -154,6 +154,10 @@ class Runtime:
         if self._threads is not None and callable(bind):
             bind(self._threads)
 
+    def is_live(self, actor: Actor) -> bool:
+        """Whether this process holds the agent: a run whose agent is not here and cannot be built here will never finish."""
+        return actor in self._resolver
+
     def forget(self, actor: Actor) -> bool:
         """Drop a factory-built actor from memory, so its next message rebuilds it from current data (a changed
         profile, a changed roster). ``False`` if it was not resident or was registered directly."""

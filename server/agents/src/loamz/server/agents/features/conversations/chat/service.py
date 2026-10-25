@@ -65,18 +65,27 @@ class ChatService:
         )
         return [*self._c.tool_servers.tools(profile.allowed_tools), *data, *code]
 
-    async def chat(self, caller: Caller, req: ChatRequest) -> AsyncIterator[str]:
+    async def admit(self, caller: Caller, req: ChatRequest) -> None:
+        """Everything that can refuse a message, checked before the response starts streaming, so a refusal is a proper error
+        rather than a stream that breaks off."""
         header = await self._threads.require(caller, req.thread_id)
         if header.locked_at is not None:
             raise InvalidRequestError(header.locked_reason or "This conversation is locked.")
-
-        active = await self._rt.find_runs(thread_id=req.thread_id, active_only=True)
-        if active:
-            raise ConflictError(f"A stream is already running for thread {req.thread_id}.")
-
-        raw_prompt = req.prompt_text()
-        if not raw_prompt:
+        if not req.prompt_text():
             raise InvalidRequestError("Message prompt cannot be empty.")
+        for run in await self._rt.find_runs(thread_id=req.thread_id, active_only=True):
+            # A chat agent is built for each message and lives only in the process that built it, so a run whose agent is gone
+            # (the server restarted while it ran) can never finish: close it rather than block the conversation for ever.
+            if self._rt.is_live(run.agent):
+                raise ConflictError(f"A stream is already running for thread {req.thread_id}.")
+            await self._rt.cancel(
+                run.run_id, reason="interrupted: the server restarted while it ran"
+            )
+
+    async def chat(self, caller: Caller, req: ChatRequest) -> AsyncIterator[str]:
+        """Stream one turn. The caller has already been through `admit`."""
+        header = await self._threads.require(caller, req.thread_id)
+        raw_prompt = req.prompt_text()
 
         prompt = raw_prompt
         if req.file_ids:

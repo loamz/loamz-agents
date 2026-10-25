@@ -1,7 +1,6 @@
 "use client";
 
 import { Avatar } from "@/components/groups/Avatar";
-import { hueOf } from "@/components/groups/text";
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentPropsWithoutRef } from "react";
 import ReactMarkdown, { defaultUrlTransform } from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -891,11 +890,6 @@ export function MessageBubble({
           <div className={speaker ? "flex items-end gap-2" : undefined}>
           {speaker && <Avatar name={speaker.name} src={speaker.avatar} className="size-8 text-xs" />}
           <div className={speaker ? "min-w-0 max-w-[85%] space-y-2 rounded-xl rounded-tl-sm bg-card px-3 py-2 shadow-sm @3xl:max-w-[70%]" : "space-y-3"}>
-            {speaker && (
-              <p className="text-xs font-semibold" style={{ color: `hsl(${hueOf(speaker.name)} 55% 45%)` }}>
-                {speaker.name}
-              </p>
-            )}
             {/* Tool Calls — pill-style inline display */}
             {visibleToolCalls.length > 0 && (
               <div className="space-y-1.5">

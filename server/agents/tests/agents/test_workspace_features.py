@@ -28,23 +28,23 @@ async def test_workspace_file_and_versions(app):
                 json={
                     "path": "script.py",
                     "content": "print('hello world')",
-                    "session_id": "s1",
+                    "thread_id": "s1",
                 },
             )
             assert save_resp.status_code == 200
 
             # Get file
-            get_resp = await client.get("/api/v1/workspace/file?path=script.py&session_id=s1")
+            get_resp = await client.get("/api/v1/workspace/file?path=script.py&thread_id=s1")
             assert get_resp.status_code == 200
             assert get_resp.content == b"print('hello world')"
 
             # List files
-            list_resp = await client.get("/api/v1/workspace/files?session_id=s1")
+            list_resp = await client.get("/api/v1/workspace/files?thread_id=s1")
             assert list_resp.status_code == 200
             assert len(list_resp.json()["files"]) >= 1
 
             # Get versions
-            ver_resp = await client.get("/api/v1/workspace/versions?path=script.py&session_id=s1")
+            ver_resp = await client.get("/api/v1/workspace/versions?path=script.py&thread_id=s1")
             assert ver_resp.status_code == 200
             versions = ver_resp.json()["versions"]
             assert len(versions) >= 1
@@ -53,7 +53,7 @@ async def test_workspace_file_and_versions(app):
             # Restore version
             rest_resp = await client.post(
                 "/api/v1/workspace/versions/restore",
-                json={"path": "script.py", "seq": seq, "session_id": "s1"},
+                json={"path": "script.py", "seq": seq, "thread_id": "s1"},
             )
             assert rest_resp.status_code == 200
 
@@ -63,7 +63,7 @@ async def test_workspace_file_and_versions(app):
             assert usage_resp.json()["used_bytes"] > 0
 
             # Delete file
-            del_resp = await client.delete("/api/v1/workspace/files?path=script.py&session_id=s1")
+            del_resp = await client.delete("/api/v1/workspace/files?path=script.py&thread_id=s1")
             assert del_resp.status_code == 200
 
 

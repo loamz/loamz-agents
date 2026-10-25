@@ -97,6 +97,7 @@ async def converse(container, agent, header, text, decide=None):
 
     async def drain():
         request = ChatRequest(thread_id=header.id, agent_id=agent.id, prompt=text)
+        await service.admit(CALLER, request)
         async for piece in service.chat(CALLER, request):
             events.append(piece)
 

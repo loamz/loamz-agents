@@ -22,6 +22,7 @@ router = APIRouter(tags=["chat"])
 
 @router.post("/api/v1/chat")
 async def start_chat(body: ChatRequest, caller: CallerDep, service: Service) -> StreamingResponse:
+    await service.admit(caller, body)
     return StreamingResponse(
         service.chat(caller, body),
         media_type="text/event-stream",
