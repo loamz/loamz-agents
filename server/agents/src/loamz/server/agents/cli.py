@@ -83,10 +83,40 @@ def cmd_serve(args: argparse.Namespace) -> None:
     from loamz.server.agents.bootstrap import Container, Settings
     from loamz.server.agents.http import create_app
 
+    if args.reload:
+        # Development: restart on every change to the Loamz packages (the dev compose mounts the source over them).
+        import os
+        from pathlib import Path
+
+        import loamz.engine
+        import loamz.server
+
+        os.environ["LOAMZ_SERVE_ROLES"] = args.roles
+        watch = [str(Path(p)) for pkg in (loamz.server, loamz.engine) for p in pkg.__path__]
+        uvicorn.run(
+            "loamz.server.agents.cli:app_from_environment",
+            factory=True,
+            host=args.host,
+            port=args.port,
+            reload=True,
+            reload_dirs=watch,
+        )
+        return
     settings = Settings()
     roles = set(args.roles.split(",")) if args.roles else None
     app = create_app(Container(settings), roles=roles)
     uvicorn.run(app, host=args.host, port=args.port)
+
+
+def app_from_environment():  # noqa: ANN201 - an ASGI app, built fresh by each reload
+    """The app `serve --reload` builds in each fresh worker."""
+    import os
+
+    from loamz.server.agents.bootstrap import Container, Settings
+    from loamz.server.agents.http import create_app
+
+    roles = os.environ.get("LOAMZ_SERVE_ROLES", "")
+    return create_app(Container(Settings()), roles=set(roles.split(",")) if roles else None)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -115,6 +145,9 @@ def main(argv: list[str] | None = None) -> None:
     )
     serve.add_argument("--host", default="127.0.0.1")
     serve.add_argument("--port", type=int, default=8000)
+    serve.add_argument(
+        "--reload", action="store_true", help="restart when the code changes (development)"
+    )
     serve.set_defaults(func=cmd_serve)
 
     args = parser.parse_args(argv)

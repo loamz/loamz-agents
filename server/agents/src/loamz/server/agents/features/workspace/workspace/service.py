@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from loamz.engine.agents.kernel.caller import Caller
 from loamz.engine.agents.kernel.ports.files import FileStore
+from loamz.engine.agents.stores.workspace.cas import BlobCAS
 from loamz.engine.agents.stores.workspace.layout import (
     conversation_shared_key,
     conversation_shared_prefix,
+    is_persistent_workspace,
     user_prefix,
 )
 from loamz.engine.errors import NotFoundError
@@ -67,6 +69,15 @@ class WorkspaceService:
     async def serve_file(
         self, caller: Caller, path: str, session_id: str, branch_id: str = "main"
     ) -> bytes:
+        if not is_persistent_workspace(session_id):
+            # A conversation's files are versioned snapshots (one per run of its code); show the branch's latest.
+            head = await self._c.agent_store.workspaces.get_branch_snapshot_head(
+                session_id, branch_id
+            )
+            entry = head.manifest.files.get(path.lstrip("/")) if head and head.manifest else None
+            if entry is not None:
+                cas = BlobCAS(self._files, tenant_id=caller.tenant_id, user_id=caller.user_id)
+                return await cas.get(entry.content)
         key = conversation_shared_key(caller.tenant_id, caller.user_id, session_id, path, branch_id)
         return await self._files.download(key)
 

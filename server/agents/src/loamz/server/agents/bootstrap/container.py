@@ -117,10 +117,10 @@ class Container:
                 network_policy,
             )
 
+            scratch = sandbox.scratch_root or str(Path(self.settings.files.path).parent / "sandbox")
             runtime = build_runtime(
                 sandbox.runtime,
-                workspace_root=sandbox.scratch_root
-                or str(Path(self.settings.files.path).parent / "sandbox"),
+                workspace_root=scratch,
                 runtime_class_name=sandbox.runtime_class,
                 workspace_pvc_claim=sandbox.workspace_pvc_claim or None,
                 python_bin=sandbox.python,
@@ -128,6 +128,18 @@ class Container:
         except Exception as error:  # noqa: BLE001 - reported once; agents simply do not get the tool
             log.warning("code interpreter unavailable: %s", error)
             return None
+        jail_uid = getattr(runtime, "jail_uid", None)
+        if sandbox.runtime != "k8s":
+            # A run works on a local copy of the workspace: checked out before, committed as a snapshot after, so what the code
+            # makes is saved and shows in the chat (k8s keeps files in the pod's own volume instead).
+            from loamz.engine.agents.toolkit.code.runtimes.staged import StagedSandboxRuntime
+
+            runtime = StagedSandboxRuntime(
+                runtime,
+                object_store=self.file_store,
+                workspace_store=self.agent_store.workspaces,
+                scratch_root=scratch,
+            )
         data = None
         minter, url = self.data_read_tokens, self.settings.data.url
         if minter is not None and url:
@@ -136,7 +148,7 @@ class Container:
                 gateway,
                 minter,
                 Path(sandbox.scratch_root or "/data/sandbox").parent / "sandbox-data",
-                socket_owner=getattr(runtime, "jail_uid", None),
+                socket_owner=jail_uid,
             )
         tool = CodeInterpreterTool(
             runtime,

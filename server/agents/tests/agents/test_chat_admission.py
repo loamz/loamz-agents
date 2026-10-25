@@ -32,7 +32,9 @@ class Threads:
         self.locked = locked
 
     async def require(self, caller, thread_id):
-        return SimpleNamespace(locked_at="now" if self.locked else None, locked_reason=None, agent_id=None)
+        return SimpleNamespace(
+            locked_at="now" if self.locked else None, locked_reason=None, agent_id=None
+        )
 
 
 def service(runtime, threads=None):
