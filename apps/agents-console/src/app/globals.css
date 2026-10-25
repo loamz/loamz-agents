@@ -399,8 +399,8 @@ select {
 .chat-bubble:has(table, pre, .katex-display) {
   max-width: min(96%, 64rem);
 }
-/* A generated UI is as wide as its parts need, up to a comfortable dashboard width. */
-.chat-bubble:has([data-genui]) {
+/* An A2UI surface is as wide as its parts need, up to a comfortable dashboard width. */
+.chat-bubble:has([data-a2ui]) {
   width: min(100%, 40rem);
   max-width: 100%;
 }

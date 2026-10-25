@@ -33,8 +33,8 @@ import { buildWorkspaceFileUrl } from "@/lib/api/_client";
 import { getAttachmentKind, getFileGlyph, formatFileSize } from "@/lib/file-utils";
 import { FileTypeIcon } from "@/components/FileTypeIcon";
 import { AdSlot } from "@/components/AdSlot";
-import { GenUi, SpecBlock } from "@/components/GenUi";
-import { separateSpecFence } from "@/lib/genui/spec";
+import { A2ui, A2uiFence } from "@/components/A2ui";
+import { separateFence } from "@/lib/a2ui/check";
 
 function isPersistentToolCall(toolCall: ToolCall): boolean {
   return Boolean(toolCall._meta?.ui?.httpUrl);
@@ -809,7 +809,7 @@ export function MessageBubble({
 
   /* ── User message: right-aligned speech bubble ── */
   // A step that said nothing (it only called tools whose results are not worth keeping) is not a message to show in a conversation.
-  const hasUi = toolCalls?.some((tool) => tool.spec) ?? false;
+  const hasUi = toolCalls?.some((tool) => tool.a2ui) ?? false;
   if (speaker && !isUser && !isStreaming && !safeContent && !safeReasoning && !hasUi && visibleToolCalls.length === 0 && imageAttachments.length === 0 && documentAttachments.length === 0) return null;
 
   if (isUser) {
@@ -1063,7 +1063,7 @@ export function MessageBubble({
 
             {/* UI the tools returned for the person to see (a plan, an account): drawn here, not described */}
             {toolCalls?.map((tool) =>
-              tool.spec ? <GenUi key={`ui-${tool.id}`} spec={tool.spec} onSend={onSendMessage} /> : null,
+              tool.a2ui ? <A2ui key={`ui-${tool.id}`} messages={tool.a2ui} onSend={onSendMessage} threadId={threadId} /> : null,
             )}
 
             {/* Reasoning — expandable thinking card */}
@@ -1124,9 +1124,9 @@ export function MessageBubble({
                           ?.children;
                         return <Mermaid chart={String(raw).replace(/\n$/, "")} />;
                       }
-                      if (/language-spec\b/.test(childClass)) {
+                      if (/language-a2ui\b/.test(childClass)) {
                         const raw = (child as { props?: { children?: unknown } }).props?.children;
-                        return <SpecBlock source={String(raw).replace(/\n$/, "")} streaming={Boolean(isStreaming)} onSend={onSendMessage} />;
+                        return <A2uiFence source={String(raw).replace(/\n$/, "")} streaming={Boolean(isStreaming)} onSend={onSendMessage} threadId={threadId} />;
                       }
                       return <CopyablePre className={className}>{children}</CopyablePre>;
                     },
@@ -1239,7 +1239,7 @@ export function MessageBubble({
                     },
                   }}
                 >
-                  {linkifyCitations(preprocessMarkdown(separateSpecFence(safeContent)), validCitationIndices)}
+                  {linkifyCitations(preprocessMarkdown(separateFence(safeContent)), validCitationIndices)}
                 </ReactMarkdown>
                 {role === "assistant" && (
                   <SourcesStrip sources={sources} onOpenSource={onOpenSource} />

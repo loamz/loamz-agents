@@ -155,15 +155,15 @@ def narrow_tools[T](tools: list[T], profile: AgentProfile, name_of: Callable[[T]
 
 
 GENERATIVE_UI = (
-    "generative_ui"  # not a tool: listing it teaches the agent to draw UI (see genui_prompt.md)
+    "generative_ui"  # not a tool: listing it teaches the agent to draw UI (see a2ui_prompt.md)
 )
 
 
 @cache
 def generative_ui_prompt() -> str:
-    """How to draw UI in a reply (json-render's inline format and the console's catalog). Generated from the console's catalog
-    by `pnpm genui:prompt` in apps/agents-console; a test there fails when the two differ."""
-    return (resources.files(__package__) / "genui_prompt.md").read_text(encoding="utf-8")
+    """How to draw UI in a reply (A2UI v0.9 and the console's catalog). Generated from the console's catalog
+    by `pnpm a2ui:prompt` in apps/agents-console; a test there fails when the two differ."""
+    return (resources.files(__package__) / "a2ui_prompt.md").read_text(encoding="utf-8")
 
 
 def instructions_block(profile: AgentProfile, drives: Sequence[Drive] = ()) -> str:
@@ -218,7 +218,7 @@ class AgentsService:
         return {
             **self._catalog.describe(),
             TOOL_NAME: "Ask one of your other agents to do a piece of work and get its answer.",
-            GENERATIVE_UI: "Draw cards, tables and dashboards in replies, in the json-render standard. Costs about 5,000 tokens of instructions.",
+            GENERATIVE_UI: "Draw cards, tables, dashboards and pictures in replies, in the A2UI standard. Costs about 5,000 tokens of instructions.",
         }
 
     def _check_model(self, model: str | None) -> None:

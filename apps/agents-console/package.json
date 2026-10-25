@@ -16,17 +16,16 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "check:design": "node scripts/check-design.mjs",
-    "genui:prompt": "GENUI_PROMPT_WRITE=1 vitest run src/lib/genui/prompt"
+    "a2ui:prompt": "A2UI_PROMPT_WRITE=1 vitest run src/lib/a2ui/prompt"
   },
   "dependencies": {
+    "@a2ui/react": "0.14.0",
+    "@a2ui/web_core": "0.14.0",
     "@betteroffice/docx-react": "^0.1.0",
     "@betteroffice/fonts": "^0.1.0",
     "@betteroffice/pptx": "^0.0.4",
     "@betteroffice/pptx-react": "^0.0.4",
     "@betteroffice/xlsx-react": "^0.1.0",
-    "@json-render/core": "0.21.3",
-    "@json-render/react": "0.21.3",
-    "@json-render/shadcn": "0.21.3",
     "@loamz/oidc-bff": "workspace:*",
     "@monaco-editor/react": "^4.7.0",
     "@prisma/client": "^6.3.0",
@@ -56,7 +55,7 @@
     "tailwind-merge": "^3.7.0",
     "undici": "^7.24.4",
     "uuid": "^11.0.3",
-    "zod": "^4.6.7"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -66,6 +65,7 @@
     "@types/uuid": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.3",
+    "happy-dom": "^21.0.4",
     "json-schema-to-typescript": "^15.0.4",
     "prisma": "^6.3.0",
     "tailwindcss": "^4",

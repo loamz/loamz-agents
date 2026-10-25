@@ -46,7 +46,7 @@ import type { ResolvedBranchMessage } from "@/lib/api/branches";
 import { ChatConflictError, ChatLockedError } from "@/lib/api/chat";
 import { ApiError, getMessageAttachments, buildWorkspaceFileUrl, buildFileContentUrl } from "@/lib/api/_client";
 import { mergeSources, parseCitations } from "@/lib/citations";
-import { specFromStructured } from "@/lib/genui/spec";
+import { messagesFromStructured } from "@/lib/a2ui/check";
 import {
   getPreferredChatModel,
   CHAT_MODEL_OPTIONS,
@@ -1577,7 +1577,7 @@ function ChatPageContent() {
             if (!hasMatch) return msg;
             const updatedCalls = msg.toolCalls.map((tc) => {
               if (!matchesCall(tc)) return tc;
-              return { ...tc, result: resultText, isError, spec: specFromStructured(data.structured_content) ?? tc.spec };
+              return { ...tc, result: resultText, isError, a2ui: messagesFromStructured(data.structured_content) ?? tc.a2ui };
             });
             return {
               ...msg,
