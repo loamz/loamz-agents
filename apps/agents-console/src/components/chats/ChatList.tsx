@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bot, Pin, Plus, Search } from "lucide-react";
+import { Pin, Plus, Search } from "lucide-react";
 import { Button, Input, Menu, MenuContent, MenuItem, MenuTrigger, cn } from "@/design";
+import { SidebarToggleIcon } from "@/components/SidebarToggleIcon";
 import { Avatar } from "@/components/groups/Avatar";
 import { typingLine } from "@/components/groups/text";
 import { shortTime } from "@/lib/short-time";
@@ -35,12 +36,13 @@ type Props = {
   /** Without these the list is read only: no pinning and no new chat. */
   onTogglePin?: (item: ChatItem) => void;
   onNew?: (kind: "agent" | "group") => void;
+  onCollapse?: () => void;
   title?: string;
   server?: ServerList;
 };
 
 /** Your agents and groups as a chat list: search, filters, the pinned ones on top, and per row who said what last, who is typing and what you have not read. */
-export function ChatList({ items, selectedKey, onSelect, onTogglePin, onNew, title = "Chats", server }: Props) {
+export function ChatList({ items, selectedKey, onSelect, onTogglePin, onNew, onCollapse, title = "Chats", server }: Props) {
   const [ownQuery, setOwnQuery] = useState("");
   const [ownFilter, setOwnFilter] = useState<ChatFilter>("all");
   const query = server ? server.query : ownQuery;
@@ -68,6 +70,18 @@ export function ChatList({ items, selectedKey, onSelect, onTogglePin, onNew, tit
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
             <h1 className="truncate text-xl font-bold tracking-tight text-foreground">{title}</h1>
+            {onCollapse && (
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Collapse chats list"
+                title="Collapse chats list"
+                onClick={onCollapse}
+                className="hidden @4xl:inline-flex size-7 h-7! w-7! text-muted hover:text-foreground"
+              >
+                <SidebarToggleIcon direction="close" className="h-3.5 w-3.5" />
+              </Button>
+            )}
           </div>
           {onNew && (
             <Menu>
@@ -123,12 +137,12 @@ export function ChatList({ items, selectedKey, onSelect, onTogglePin, onNew, tit
                 className={cn("h-auto! min-h-0 w-full justify-start gap-3 whitespace-normal rounded-lg px-3 py-3 text-left font-normal", open ? "bg-accent/12" : "hover:bg-card-hover")}
               >
                 <span className="relative shrink-0">
-                  <Avatar name={item.name} src={item.avatar} className="size-12 text-lg" />
-                  {typing && <span className="absolute bottom-0 right-0 size-3 animate-pulse rounded-full border-2 border-background bg-success" aria-hidden />}
+                  <Avatar name={item.name} src={item.avatar} className="size-12 text-lg" isBot={item.kind === "agent"} badgeClassName="size-[18px] -bottom-0.5 -right-0.5 ring-2 ring-card" />
+                  {typing && <span className="absolute -top-0.5 -right-0.5 size-3 animate-pulse rounded-full border-2 border-card bg-success" aria-hidden />}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-baseline justify-between gap-2">
-                    <span className={cn("truncate text-base text-foreground", unread ? "font-bold" : "font-semibold")}>{item.name} {item.kind === "agent" && <Bot aria-label="AI agent" />}</span>
+                    <span className={cn("truncate text-base text-foreground", unread ? "font-bold" : "font-semibold")}>{item.name}</span>
                     <span className={cn("shrink-0 text-2xs", unread ? "font-semibold text-accent" : "text-muted")}>{shortTime(item.time)}</span>
                   </span>
                   <span className="mt-1 flex items-center justify-between gap-2">
