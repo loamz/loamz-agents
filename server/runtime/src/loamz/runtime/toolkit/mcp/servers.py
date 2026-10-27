@@ -24,10 +24,10 @@ from collections.abc import Callable, Collection
 from dataclasses import dataclass, field
 from typing import Any
 
-from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import TextBlock
-from loamz.engine.agents.toolkit.mcp.client import MCPClient
-from loamz.engine.agents.toolkit.mcp.tool import MCPTool
+from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import TextBlock
+from loamz.runtime.toolkit.mcp.client import MCPClient
+from loamz.runtime.toolkit.mcp.tool import MCPTool
 
 logger = logging.getLogger(__name__)
 NAME = re.compile(r"^[a-z][a-z0-9_]{0,31}$")

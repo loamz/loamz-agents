@@ -21,8 +21,8 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from loamz.engine.agents.kernel.events.envelope import EventEnvelope
-from loamz.engine.agents.kernel.types.content import KernelModel
+from loamz.runtime.kernel.events.envelope import EventEnvelope
+from loamz.runtime.kernel.types.content import KernelModel
 from loamz.engine.errors import InvalidRequestError
 
 

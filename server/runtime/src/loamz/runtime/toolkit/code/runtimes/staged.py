@@ -44,17 +44,17 @@ from contextlib import AsyncExitStack
 from pathlib import Path
 from typing import Any
 
-from loamz.engine.agents.kernel.errors import SnapshotConflictError
-from loamz.engine.agents.kernel.ports.files import FileStore
-from loamz.engine.agents.kernel.ports.workspace import WorkspaceStore
-from loamz.engine.agents.stores.workspace.cas import BlobCAS
-from loamz.engine.agents.stores.workspace.layout import (
+from loamz.runtime.kernel.errors import SnapshotConflictError
+from loamz.runtime.kernel.ports.files import FileStore
+from loamz.runtime.kernel.ports.workspace import WorkspaceStore
+from loamz.runtime.stores.workspace.cas import BlobCAS
+from loamz.runtime.stores.workspace.layout import (
     conversation_shared_prefix,
     is_persistent_workspace,
 )
-from loamz.engine.agents.stores.workspace.materialize import materialize as materialize_manifest
-from loamz.engine.agents.stores.workspace.scope import WorkspaceScope
-from loamz.engine.agents.stores.workspace.snapshots import commit_turn
+from loamz.runtime.stores.workspace.materialize import materialize as materialize_manifest
+from loamz.runtime.stores.workspace.scope import WorkspaceScope
+from loamz.runtime.stores.workspace.snapshots import commit_turn
 
 from .base import ExecResult, SandboxSpec
 from .prefix_sync import PrefixSync

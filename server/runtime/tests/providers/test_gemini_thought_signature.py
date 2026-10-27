@@ -6,9 +6,9 @@ from __future__ import annotations
 import base64
 from types import SimpleNamespace
 
-from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock, ToolUseBlock
-from loamz.engine.agents.providers.llm.encoders.gemini import _encode_assistant
-from loamz.engine.agents.providers.llm.gemini.gemini_client import _extra_of
+from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock, ToolUseBlock
+from loamz.runtime.providers.llm.encoders.gemini import _encode_assistant
+from loamz.runtime.providers.llm.gemini.gemini_client import _extra_of
 
 SIGNATURE = b"\x00opaque-signature\xff"
 

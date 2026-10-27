@@ -1,10 +1,10 @@
-"""loamz.engine.agents.kernel.runtime — The durable runtime: runs, journal, worker, run context, runtime stores."""
+"""loamz.runtime.kernel.runtime — The durable runtime: runs, journal, worker, run context, runtime stores."""
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.runtime.agent import AgentRunContext
-from loamz.engine.agents.kernel.runtime.cancellation import CancellationToken
-from loamz.engine.agents.kernel.runtime.channel import (
+from loamz.runtime.kernel.runtime.agent import AgentRunContext
+from loamz.runtime.kernel.runtime.cancellation import CancellationToken
+from loamz.runtime.kernel.runtime.channel import (
     EVERYONE,
     SPOKEN,
     AppendResult,
@@ -20,22 +20,22 @@ from loamz.engine.agents.kernel.runtime.channel import (
     WakeReason,
     mentions_in,
 )
-from loamz.engine.agents.kernel.runtime.communication import AskOutcome, RunStatusSummary
-from loamz.engine.agents.kernel.runtime.context import Agent, RunContext
-from loamz.engine.agents.kernel.runtime.effects import Effect, EffectResult
-from loamz.engine.agents.kernel.runtime.inbox import DeadLetterEntry, DeadLetterReason
-from loamz.engine.agents.kernel.runtime.journal import Journal
-from loamz.engine.agents.kernel.runtime.message import (
+from loamz.runtime.kernel.runtime.communication import AskOutcome, RunStatusSummary
+from loamz.runtime.kernel.runtime.context import Agent, RunContext
+from loamz.runtime.kernel.runtime.effects import Effect, EffectResult
+from loamz.runtime.kernel.runtime.inbox import DeadLetterEntry, DeadLetterReason
+from loamz.runtime.kernel.runtime.journal import Journal
+from loamz.runtime.kernel.runtime.message import (
     ChatPayload,
     DataPayload,
     Message,
     Payload,
     Subscription,
 )
-from loamz.engine.agents.kernel.runtime.resolver import ActorFactory, ActorResolver
-from loamz.engine.agents.kernel.runtime.runtime import PendingApproval, RunOutcome, Runtime
-from loamz.engine.agents.kernel.runtime.scheduler import RunRetryPolicy
-from loamz.engine.agents.kernel.runtime.store import (
+from loamz.runtime.kernel.runtime.resolver import ActorFactory, ActorResolver
+from loamz.runtime.kernel.runtime.runtime import PendingApproval, RunOutcome, Runtime
+from loamz.runtime.kernel.runtime.scheduler import RunRetryPolicy
+from loamz.runtime.kernel.runtime.store import (
     Cancel,
     Commit,
     CommitResult,
@@ -57,8 +57,8 @@ from loamz.engine.agents.kernel.runtime.store import (
     StoreStats,
     Suspend,
 )
-from loamz.engine.agents.kernel.runtime.supervisor import RunHandle, RunResult
-from loamz.engine.agents.kernel.runtime.worker import Worker
+from loamz.runtime.kernel.runtime.supervisor import RunHandle, RunResult
+from loamz.runtime.kernel.runtime.worker import Worker
 
 __all__ = [
     "ActorFactory",

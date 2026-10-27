@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import logging
 
-from loamz.engine.agents.kernel.context.protocols import CompactionStrategy
-from loamz.engine.agents.kernel.context.tokens import estimate_tokens
-from loamz.engine.agents.kernel.types.content import ChatMessage
+from loamz.runtime.kernel.context.protocols import CompactionStrategy
+from loamz.runtime.kernel.context.tokens import estimate_tokens
+from loamz.runtime.kernel.types.content import ChatMessage
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ class TokenBudgetComposedStrategy:
         default_context_length: int = 128_000,
     ) -> TokenBudgetComposedStrategy:
         """Build a strategy whose budget is derived from the model's context window."""
-        from loamz.engine.agents.kernel.models.registry import get_context_length
+        from loamz.runtime.kernel.models.registry import get_context_length
 
         context_length = get_context_length(model_name, default=default_context_length)
         token_budget = int(context_length * trigger_ratio)

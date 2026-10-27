@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from loamz.engine.agents.testing.conformance.runtime_store import NOW, RuntimeStoreConformance
-from loamz.engine.agents.testing.runtime import runtime_store
+from loamz.runtime.testing.conformance.runtime_store import NOW, RuntimeStoreConformance
+from loamz.runtime.testing.runtime import runtime_store
 
 
 class TestRuntimeStoreOnSqlite(RuntimeStoreConformance):
@@ -23,8 +23,8 @@ async def test_closing_while_cancelled_callers_statements_are_in_flight_does_not
     must queue behind in-flight work. Repeated, because the window is narrow."""
     import asyncio
 
-    from loamz.engine.agents.kernel.runtime import RunSpec
-    from loamz.engine.agents.kernel.types.identity import Actor
+    from loamz.runtime.kernel.runtime import RunSpec
+    from loamz.runtime.kernel.types.identity import Actor
 
     for _ in range(25):
         store = runtime_store()
@@ -45,8 +45,8 @@ async def test_a_conversation_is_followed_for_the_window_and_then_the_member_lis
 ) -> None:
     from datetime import timedelta
 
-    from loamz.engine.agents.kernel.runtime import Member, Mode
-    from loamz.engine.agents.kernel.types.identity import Actor
+    from loamz.runtime.kernel.runtime import Member, Mode
+    from loamz.runtime.kernel.types.identity import Actor
 
     now = [NOW]
     store = runtime_store(tmp_path / "store", clock=lambda: now[0])

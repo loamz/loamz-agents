@@ -19,7 +19,7 @@ import shutil
 import stat
 from pathlib import Path
 
-from loamz.engine.agents.kernel.ports.workspace import (
+from loamz.runtime.kernel.ports.workspace import (
     WorkspaceFileEntry,
     WorkspaceManifest,
     WorkspaceSnapshot,

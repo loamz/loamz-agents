@@ -22,18 +22,18 @@ from pathlib import Path
 from types import TracebackType
 from typing import TYPE_CHECKING
 
-from loamz.engine.agents.kernel.ports.files import FileStore
-from loamz.engine.agents.kernel.types.scope import Scope
-from loamz.engine.agents.stores.tenant import Tenant
+from loamz.runtime.kernel.ports.files import FileStore
+from loamz.runtime.kernel.types.scope import Scope
+from loamz.runtime.stores.tenant import Tenant
 from loamz.engine.sql import Database, Tx, migrate, sqlite
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.stores.graph import Graph
-    from loamz.engine.agents.stores.headers import ThreadHeaders
-    from loamz.engine.agents.stores.session import SessionState
-    from loamz.engine.agents.stores.tasks import Tasks
-    from loamz.engine.agents.stores.threads import Threads
-    from loamz.engine.agents.stores.workspace.tables import Workspaces
+    from loamz.runtime.stores.graph import Graph
+    from loamz.runtime.stores.headers import ThreadHeaders
+    from loamz.runtime.stores.session import SessionState
+    from loamz.runtime.stores.tasks import Tasks
+    from loamz.runtime.stores.threads import Threads
+    from loamz.runtime.stores.workspace.tables import Workspaces
 
 _ATTEMPTS = 4
 
@@ -82,42 +82,42 @@ class AgentStore:
     @property
     def threads(self) -> Threads:
         """The conversation DAG (a ``ThreadStore``)."""
-        from loamz.engine.agents.stores.threads import Threads
+        from loamz.runtime.stores.threads import Threads
 
         return Threads(self)
 
     @property
     def thread_headers(self) -> ThreadHeaders:
         """Names, owners, tags and pinned/archived/locked state of threads, keyed by tenant."""
-        from loamz.engine.agents.stores.headers import ThreadHeaders
+        from loamz.runtime.stores.headers import ThreadHeaders
 
         return ThreadHeaders(self)
 
     @property
     def session_state(self) -> SessionState:
         """Small key/value state a conversation keeps across runs (a ``ShortTermMemory``)."""
-        from loamz.engine.agents.stores.session import SessionState
+        from loamz.runtime.stores.session import SessionState
 
         return SessionState(self)
 
     @property
     def tasks(self) -> Tasks:
         """Each agent's Kanban boards (a ``TaskStore``)."""
-        from loamz.engine.agents.stores.tasks import Tasks
+        from loamz.runtime.stores.tasks import Tasks
 
         return Tasks(self)
 
     @property
     def graph(self) -> Graph:
         """Entities and relationships (a ``GraphStore``), traversed by recursive query."""
-        from loamz.engine.agents.stores.graph import Graph
+        from loamz.runtime.stores.graph import Graph
 
         return Graph(self)
 
     @property
     def workspaces(self) -> Workspaces:
         """Workspace snapshot trees and their branch heads (a ``WorkspaceStore``)."""
-        from loamz.engine.agents.stores.workspace.tables import Workspaces
+        from loamz.runtime.stores.workspace.tables import Workspaces
 
         return Workspaces(self)
 

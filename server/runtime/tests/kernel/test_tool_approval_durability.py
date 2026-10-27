@@ -14,17 +14,17 @@ from typing import Any
 
 import pytest  # noqa: F401
 
-from loamz.engine.agents.kernel.runtime import DataPayload, Delivery, Message, Runtime
-from loamz.engine.agents.kernel.tools import (
+from loamz.runtime.kernel.runtime import DataPayload, Delivery, Message, Runtime
+from loamz.runtime.kernel.tools import (
     ApprovalRequest,
     ApprovalResult,
     Toolbox,
     ToolExecutionResult,
     ToolRisk,
 )
-from loamz.engine.agents.kernel.types.content import TextBlock
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.run_log import RunLogKind
+from loamz.runtime.kernel.types.content import TextBlock
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.run_log import RunLogKind
 from tests._stores import open_runtime
 
 TIMEOUT = 10
@@ -164,15 +164,15 @@ async def _ask(runtime, agent):
 
 
 def _agent():
-    from loamz.engine.agents.kernel.agents import ReActAgent
-    from loamz.engine.agents.kernel.tools import DurableApproval, tool
+    from loamz.runtime.kernel.agents import ReActAgent
+    from loamz.runtime.kernel.tools import DurableApproval, tool
 
     @tool(risk=ToolRisk.CRITICAL, idempotent=False)
     def wire(amount: int) -> str:
         """Wire money."""
         return f"wired {amount}"
 
-    from loamz.engine.agents.testing.scripted import ScriptedModel, ToolCall
+    from loamz.runtime.testing.scripted import ScriptedModel, ToolCall
 
     return ReActAgent(
         "t",
@@ -187,7 +187,7 @@ async def test_pending_approvals_and_decide_close_the_loop_without_hand_rolled_s
 ) -> None:
     """``runtime.pending_approvals`` lists what a run waits on and ``runtime.decide`` answers it, so a person reading the
     list never needs the signal name or its payload; the decision is journaled with who made it."""
-    from loamz.engine.agents.kernel.tools import ApprovalDecision
+    from loamz.runtime.kernel.tools import ApprovalDecision
 
     async with open_runtime(tmp_path / "s") as runtime:
         work, run, pending = await _ask(runtime, _agent())
@@ -216,7 +216,7 @@ async def test_pending_approvals_and_decide_close_the_loop_without_hand_rolled_s
 async def test_a_denied_call_never_runs_and_a_modified_one_runs_with_the_edited_arguments(
     tmp_path: Path,
 ) -> None:
-    from loamz.engine.agents.kernel.tools import ApprovalDecision
+    from loamz.runtime.kernel.tools import ApprovalDecision
 
     async with open_runtime(tmp_path / "s") as runtime:
         work, run, pending = await _ask(runtime, _agent())
@@ -247,7 +247,7 @@ async def test_a_denied_call_never_runs_and_a_modified_one_runs_with_the_edited_
 
 async def test_a_decision_a_person_cannot_make_is_refused(tmp_path: Path) -> None:
 
-    from loamz.engine.agents.kernel.tools import ApprovalDecision
+    from loamz.runtime.kernel.tools import ApprovalDecision
 
     async with open_runtime(tmp_path / "s") as runtime:
         with pytest.raises(ValueError):
@@ -257,7 +257,7 @@ async def test_a_decision_a_person_cannot_make_is_refused(tmp_path: Path) -> Non
 
 
 async def test_auto_approve_allows_up_to_its_ceiling_and_says_why() -> None:
-    from loamz.engine.agents.kernel.tools import (
+    from loamz.runtime.kernel.tools import (
         ApprovalDecision,
         ApprovalRequest,
         AutoApprove,

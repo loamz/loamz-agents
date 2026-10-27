@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 from fastapi import APIRouter
 
-from loamz.engine.agents.kernel.events import DomainEvent
+from loamz.runtime.kernel.events import DomainEvent
 
 if TYPE_CHECKING:
     from loamz.server.agents.bootstrap.container import Container

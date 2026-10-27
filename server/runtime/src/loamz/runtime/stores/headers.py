@@ -23,13 +23,13 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import Field
 
-from loamz.engine.agents.kernel.types.content import JsonObject, KernelModel
-from loamz.engine.agents.kernel.types.ids import new_id
+from loamz.runtime.kernel.types.content import JsonObject, KernelModel
+from loamz.runtime.kernel.types.ids import new_id
 from loamz.engine.errors import InvalidRequestError
 from loamz.engine.sql import Row, Tx
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.stores.store import AgentStore
+    from loamz.runtime.stores.store import AgentStore
 
 COMPONENT = "thread_headers"
 SCRIPTS = [

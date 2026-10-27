@@ -27,35 +27,35 @@ import time
 from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any, cast
 
-from loamz.engine.agents.kernel.ports.blob import BlobStore
-from loamz.engine.agents.kernel.tools.approval import (
+from loamz.runtime.kernel.ports.blob import BlobStore
+from loamz.runtime.kernel.tools.approval import (
     ApprovalDecision,
     ApprovalHandler,
     ApprovalRequest,
     ApprovalResult,
     approval_signal,
 )
-from loamz.engine.agents.kernel.tools.chain import (
+from loamz.runtime.kernel.tools.chain import (
     ChainCallRecord,
     ChainFile,
     ChainPolicy,
     InvocationResult,
 )
-from loamz.engine.agents.kernel.tools.protocols import (
+from loamz.runtime.kernel.tools.protocols import (
     ToolCallRequest,
     ToolRegistry,
     ToolRisk,
     is_hosted_tool,
     is_provider_defined_tool,
 )
-from loamz.engine.agents.kernel.types.content import JsonObject, MediaBlock, content_blocks_to_str
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.run_log import RunLogKind
-from loamz.engine.agents.kernel.types.stream import AgentProgress, AgentStep
+from loamz.runtime.kernel.types.content import JsonObject, MediaBlock, content_blocks_to_str
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.run_log import RunLogKind
+from loamz.runtime.kernel.types.stream import AgentProgress, AgentStep
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.runtime.context import RunContext
-    from loamz.engine.agents.kernel.tools.protocols import ToolExecutionResult
+    from loamz.runtime.kernel.runtime.context import RunContext
+    from loamz.runtime.kernel.tools.protocols import ToolExecutionResult
 
 logger = logging.getLogger(__name__)
 
@@ -253,7 +253,7 @@ class ToolInvoker:
                 signal_payload = await ctx.sleep_until_signal(approval_signal(request_id))
                 result: ApprovalResult = ApprovalResult.from_response(signal_payload)
             else:
-                from loamz.engine.agents.kernel.types.identity import Actor
+                from loamz.runtime.kernel.types.identity import Actor
 
                 decision_key = call.call_id
                 approval_req = ApprovalRequest(
@@ -451,8 +451,8 @@ def build_invoker(agent: Any) -> ToolInvoker:
     """The ``ToolInvoker`` for an agent, from what the agent declares: its tools, its
     approval handler, its blob store and the highest risk it lets through
     without approval."""
-    from loamz.engine.agents.kernel.tools.approval import ApprovalDecision, ApprovalResult
-    from loamz.engine.agents.kernel.tools.toolbox import Toolbox
+    from loamz.runtime.kernel.tools.approval import ApprovalDecision, ApprovalResult
+    from loamz.runtime.kernel.tools.toolbox import Toolbox
 
     registry = getattr(agent, "tools", None) or Toolbox()
     approval = getattr(agent, "approval_handler", None)

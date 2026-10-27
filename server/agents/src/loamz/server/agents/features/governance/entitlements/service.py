@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from loamz.core.tenancy import PROVISION_TENANT_ROLE, TenancyError, check_tenant_id
-from loamz.engine.agents.kernel.caller import Caller
-from loamz.engine.agents.kernel.ports.counters import Counters, seconds_until_tomorrow
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.kernel.ports.counters import Counters, seconds_until_tomorrow
 from loamz.engine.errors import ForbiddenError, InvalidRequestError, RateLimitedError
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.governance.entitlements.model import Entitlements, EntitlementsIn

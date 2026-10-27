@@ -55,11 +55,11 @@ class AudioService:
 
     def client_for(self, requested: str | None, fallback: str) -> tuple[object, str, str]:
         """`(client, provider, model)` for the requested model, else the configured default for this job."""
-        from loamz.engine.agents.providers.llm import detect_provider, strip_provider_prefix
+        from loamz.runtime.providers.llm import detect_provider, strip_provider_prefix
 
         effective = requested.strip() if requested and requested.strip() else fallback
         if effective.startswith("local/kokoro"):
-            from loamz.engine.agents.providers.tts.kokoro_client import get_kokoro_client
+            from loamz.runtime.providers.tts.kokoro_client import get_kokoro_client
 
             return get_kokoro_client(), "local", effective
         return (
@@ -78,7 +78,7 @@ class AudioService:
         prompt: str | None = None,
     ) -> str:
         """The text of a recording. Only OpenAI models transcribe."""
-        from loamz.engine.agents.providers.llm import OpenAIClient
+        from loamz.runtime.providers.llm import OpenAIClient
 
         if not raw:
             raise InvalidRequestError("Empty audio file")
@@ -108,9 +108,9 @@ class AudioService:
     async def speak(self, body: TTSRequest) -> Speech:
         """Text to speech as an audio stream. The first chunk is pulled before answering, so a provider failure is an
         error the client can show rather than a 200 whose body stops short."""
-        from loamz.engine.agents.providers.llm import OpenAIClient
-        from loamz.engine.agents.providers.llm.gemini.gemini_client import GeminiClient
-        from loamz.engine.agents.providers.tts.kokoro_client import KokoroTTSClient
+        from loamz.runtime.providers.llm import OpenAIClient
+        from loamz.runtime.providers.llm.gemini.gemini_client import GeminiClient
+        from loamz.runtime.providers.tts.kokoro_client import KokoroTTSClient
 
         client, provider, effective = self.client_for(body.model, self._cfg.tts_model)
         if not isinstance(client, OpenAIClient | GeminiClient | KokoroTTSClient):

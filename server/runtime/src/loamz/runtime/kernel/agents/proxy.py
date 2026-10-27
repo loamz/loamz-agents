@@ -12,12 +12,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from loamz.engine.agents.kernel.agents.routed import RoutedAgent, handle
-from loamz.engine.agents.kernel.runtime.message import ChatPayload, DataPayload, Message
-from loamz.engine.agents.kernel.types.identity import Actor
+from loamz.runtime.kernel.agents.routed import RoutedAgent, handle
+from loamz.runtime.kernel.runtime.message import ChatPayload, DataPayload, Message
+from loamz.runtime.kernel.types.identity import Actor
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.runtime.context import RunContext
+    from loamz.runtime.kernel.runtime.context import RunContext
 
 
 class UserProxyAgent(RoutedAgent):
@@ -75,7 +75,7 @@ class UserProxyAgent(RoutedAgent):
     def _extract_text(self, msg: Message) -> str:
         payload = msg.payload
         if isinstance(payload, ChatPayload):
-            from loamz.engine.agents.kernel.types.content import content_blocks_to_str
+            from loamz.runtime.kernel.types.content import content_blocks_to_str
 
             return content_blocks_to_str(payload.message.content)  # type: ignore[arg-type]
         return str(getattr(payload, "data", payload))

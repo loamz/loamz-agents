@@ -9,7 +9,7 @@ Provides:
 
 Quick start::
 
-    from loamz.engine.agents.evals import EvalCase, EvalDataset, LLMJudge, EvalRunner, CORRECTNESS
+    from loamz.runtime.evals import EvalCase, EvalDataset, LLMJudge, EvalRunner, CORRECTNESS
 
     dataset = EvalDataset(cases=[
         EvalCase(
@@ -27,7 +27,7 @@ Quick start::
 
 from __future__ import annotations
 
-from loamz.engine.agents.evals.criteria import (
+from loamz.runtime.evals.criteria import (
     CONCISENESS,
     CORRECTNESS,
     HELPFULNESS,
@@ -36,15 +36,15 @@ from loamz.engine.agents.evals.criteria import (
     TOOL_USAGE,
     EvalCriterion,
 )
-from loamz.engine.agents.evals.judge import LLMJudge
-from loamz.engine.agents.evals.models import (
+from loamz.runtime.evals.judge import LLMJudge
+from loamz.runtime.evals.models import (
     EvalCase,
     EvalCaseResult,
     EvalDataset,
     EvalReport,
     EvalScore,
 )
-from loamz.engine.agents.evals.runner import EvalRunner
+from loamz.runtime.evals.runner import EvalRunner
 
 __all__ = [
     # Models

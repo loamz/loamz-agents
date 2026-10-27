@@ -5,8 +5,8 @@ from __future__ import annotations
 import httpx
 import jwt
 
-from loamz.engine.agents.data import DataServiceConnection, DataTokenMinter, data_tools
-from loamz.engine.agents.kernel.types.run import RunScope
+from loamz.runtime.data import DataServiceConnection, DataTokenMinter, data_tools
+from loamz.runtime.kernel.types.run import RunScope
 
 SCOPE = RunScope(tenant_id="acme", user_id="priya", thread_id="t1", groups=("sales",))
 

@@ -29,8 +29,8 @@ import logging
 import secrets
 from typing import Any
 
-from loamz.engine.agents.kernel.runtime.tool_invoker import InvokerSession, ToolInvoker
-from loamz.engine.agents.kernel.tools import InvocationResult, ToolCallRequest
+from loamz.runtime.kernel.runtime.tool_invoker import InvokerSession, ToolInvoker
+from loamz.runtime.kernel.tools import InvocationResult, ToolCallRequest
 
 logger = logging.getLogger(__name__)
 

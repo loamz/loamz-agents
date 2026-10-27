@@ -52,8 +52,8 @@ from loamz.engine.errors import (
 )
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.types.identity import Actor
-    from loamz.engine.agents.kernel.types.wakeup import Wakeup
+    from loamz.runtime.kernel.types.identity import Actor
+    from loamz.runtime.kernel.types.wakeup import Wakeup
 
 
 def _rebuild(cls: type, args: tuple[Any, ...], kwargs: dict[str, Any]) -> Any:

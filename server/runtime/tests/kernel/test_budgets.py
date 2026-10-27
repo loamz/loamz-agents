@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import pytest
 
-from loamz.engine.agents.kernel.agents import SpawnTracker
-from loamz.engine.agents.kernel.errors import BudgetExhaustedError
-from loamz.engine.agents.kernel.models import ModelCapabilities
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.supervision import ExecutionBudget, Priority, SpawnBudget
-from loamz.engine.agents.testing.runtime import ephemeral_runtime
+from loamz.runtime.kernel.agents import SpawnTracker
+from loamz.runtime.kernel.errors import BudgetExhaustedError
+from loamz.runtime.kernel.models import ModelCapabilities
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.supervision import ExecutionBudget, Priority, SpawnBudget
+from loamz.runtime.testing.runtime import ephemeral_runtime
 
 # ---------------------------------------------------------------------------
 # SpawnTracker unit tests
@@ -54,12 +54,12 @@ def test_spawn_tracker_priority_of_tracks_active_agents() -> None:
 
 
 async def test_react_agent_respects_execution_budget() -> None:
-    from loamz.engine.agents.kernel.agents import ReActAgent
-    from loamz.engine.agents.kernel.runtime import ChatPayload, Message
-    from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
-    from loamz.engine.agents.kernel.types.identity import Actor
-    from loamz.engine.agents.kernel.types.stream import CompletionEvent
-    from loamz.engine.agents.kernel.types.usage import Usage
+    from loamz.runtime.kernel.agents import ReActAgent
+    from loamz.runtime.kernel.runtime import ChatPayload, Message
+    from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
+    from loamz.runtime.kernel.types.identity import Actor
+    from loamz.runtime.kernel.types.stream import CompletionEvent
+    from loamz.runtime.kernel.types.usage import Usage
 
     class MockChatModel:
         model = "mock-model"
@@ -112,13 +112,13 @@ async def test_spawned_child_inherits_execution_budget_from_supervision() -> Non
     and docs/claude_docs/kernel's audit): Supervision.execution_budget flowed
     through ctx.spawn()/spawn_child() but nothing ever converted it into an
     enforced budget for the spawned run."""
-    from loamz.engine.agents.kernel.agents import ReActAgent
-    from loamz.engine.agents.kernel.runtime import ChatPayload, DataPayload, Message
-    from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
-    from loamz.engine.agents.kernel.types.identity import Actor
-    from loamz.engine.agents.kernel.types.stream import CompletionEvent
-    from loamz.engine.agents.kernel.types.supervision import ExecutionBudget, Supervision
-    from loamz.engine.agents.kernel.types.usage import Usage
+    from loamz.runtime.kernel.agents import ReActAgent
+    from loamz.runtime.kernel.runtime import ChatPayload, DataPayload, Message
+    from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
+    from loamz.runtime.kernel.types.identity import Actor
+    from loamz.runtime.kernel.types.stream import CompletionEvent
+    from loamz.runtime.kernel.types.supervision import ExecutionBudget, Supervision
+    from loamz.runtime.kernel.types.usage import Usage
 
     class MockChatModel:
         model = "mock-model"

@@ -19,7 +19,7 @@ from typing import Any
 import httpx
 from fastapi import FastAPI, Request
 
-from loamz.engine.agents.kernel.caller import Caller
+from loamz.runtime.kernel.caller import Caller
 from loamz.engine.errors import UnauthenticatedError
 from loamz.server.agents.bootstrap import Container, Settings
 from loamz.server.agents.bootstrap.http import caller as caller_dependency

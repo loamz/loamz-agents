@@ -4,8 +4,8 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from loamz.engine.agents.kernel.types.content import TextBlock
-from loamz.engine.agents.toolkit.mcp.tool import MCPTool
+from loamz.runtime.kernel.types.content import TextBlock
+from loamz.runtime.toolkit.mcp.tool import MCPTool
 
 
 @pytest.mark.asyncio

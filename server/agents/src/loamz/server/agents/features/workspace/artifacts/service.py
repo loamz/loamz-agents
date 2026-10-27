@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 import re
 
-from loamz.engine.agents.kernel.caller import Caller
-from loamz.engine.agents.kernel.ports.files import FileStore
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.kernel.ports.files import FileStore
 from loamz.engine.errors import NotFoundError
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.workspace.artifacts.model import (

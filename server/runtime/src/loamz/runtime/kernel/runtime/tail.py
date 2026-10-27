@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 
-from loamz.engine.agents.kernel.runtime.store import RuntimeStore
-from loamz.engine.agents.kernel.types.run_log import RunLogEntry
-from loamz.engine.agents.kernel.types.run_status import RunId
+from loamz.runtime.kernel.runtime.store import RuntimeStore
+from loamz.runtime.kernel.types.run_log import RunLogEntry
+from loamz.runtime.kernel.types.run_status import RunId
 
 _WAIT_S = 1.0
 

@@ -5,13 +5,13 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from loamz.engine.agents.kernel.context import (
+from loamz.runtime.kernel.context import (
     ContextWindow,
     DefaultContextBuilder,
     DefaultHistoryResolver,
 )
-from loamz.engine.agents.kernel.ports.threads import MessageNode
-from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
+from loamz.runtime.kernel.ports.threads import MessageNode
+from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
 from tests._stores import fs_history
 
 

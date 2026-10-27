@@ -7,14 +7,14 @@ two stay aligned (a drift in field names would surface here).
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.wire import (
+from loamz.runtime.kernel.wire import (
     ReasoningDeltaEvent,
     TextDeltaEvent,
     ToolCallEvent,
     ToolResultEvent,
     wire_from_log,
 )
-from loamz.engine.agents.kernel.wire.events import MessageFlaggedEvent
+from loamz.runtime.kernel.wire.events import MessageFlaggedEvent
 
 # ---------------------------------------------------------------------------
 # wire_from_log — streaming kinds

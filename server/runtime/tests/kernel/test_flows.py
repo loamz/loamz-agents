@@ -7,12 +7,12 @@ from dataclasses import dataclass
 
 import pytest
 
-from loamz.engine.agents.kernel.agents import ConditionalFlow, ParallelFlow, SequentialFlow
-from loamz.engine.agents.kernel.runtime import ChatPayload, Message, RunContext
-from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.run_status import new_run_id
-from loamz.engine.agents.testing.runtime import ephemeral_runtime
+from loamz.runtime.kernel.agents import ConditionalFlow, ParallelFlow, SequentialFlow
+from loamz.runtime.kernel.runtime import ChatPayload, Message, RunContext
+from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.run_status import new_run_id
+from loamz.runtime.testing.runtime import ephemeral_runtime
 
 # ---------------------------------------------------------------------------
 # Helpers — kernel-compliant stub agents

@@ -8,16 +8,16 @@ from __future__ import annotations
 
 import pytest
 
-from loamz.engine.agents.kernel.runtime.persistence.store import RuntimeStore
-from loamz.engine.agents.stores import AgentStore
-from loamz.engine.agents.testing.conformance.file_store import FileStoreConformance
-from loamz.engine.agents.testing.conformance.graph_store import GraphStoreConformance
-from loamz.engine.agents.testing.conformance.runtime_store import NOW, RuntimeStoreConformance
-from loamz.engine.agents.testing.conformance.short_term_memory import ShortTermMemoryConformance
-from loamz.engine.agents.testing.conformance.task_store import TaskStoreConformance
-from loamz.engine.agents.testing.conformance.thread_store import ThreadStoreConformance
-from loamz.engine.agents.testing.conformance.workspace_store import WorkspaceStoreConformance
-from loamz.engine.agents.testing.doubles import MemoryFileStore
+from loamz.runtime.kernel.runtime.persistence.store import RuntimeStore
+from loamz.runtime.stores import AgentStore
+from loamz.runtime.testing.conformance.file_store import FileStoreConformance
+from loamz.runtime.testing.conformance.graph_store import GraphStoreConformance
+from loamz.runtime.testing.conformance.runtime_store import NOW, RuntimeStoreConformance
+from loamz.runtime.testing.conformance.short_term_memory import ShortTermMemoryConformance
+from loamz.runtime.testing.conformance.task_store import TaskStoreConformance
+from loamz.runtime.testing.conformance.thread_store import ThreadStoreConformance
+from loamz.runtime.testing.conformance.workspace_store import WorkspaceStoreConformance
+from loamz.runtime.testing.doubles import MemoryFileStore
 
 
 class TestThreads(ThreadStoreConformance):

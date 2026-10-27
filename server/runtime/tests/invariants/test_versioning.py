@@ -13,9 +13,9 @@ import asyncio
 from pathlib import Path
 from typing import Any
 
-from loamz.engine.agents.kernel.runtime import DataPayload, Message, Runtime
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.run_log import RunLogKind
+from loamz.runtime.kernel.runtime import DataPayload, Message, Runtime
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.run_log import RunLogKind
 from tests._stores import open_runtime
 
 TERMINAL = (RunLogKind.RUN_COMPLETED, RunLogKind.RUN_FAILED, RunLogKind.RUN_CANCELLED)

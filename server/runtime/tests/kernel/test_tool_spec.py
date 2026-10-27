@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from loamz.engine.agents.kernel.tools import (
+from loamz.runtime.kernel.tools import (
     AnyTool,
     PayloadBase,
     ToolExecutionResult,
     is_hosted_tool,
     is_provider_defined_tool,
 )
-from loamz.engine.agents.kernel.types.content import TextBlock
+from loamz.runtime.kernel.types.content import TextBlock
 
 # ---------------------------------------------------------------------------
 # Fixtures

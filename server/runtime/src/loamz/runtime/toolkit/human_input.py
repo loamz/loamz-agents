@@ -13,7 +13,7 @@ Architecture:
 
 Usage::
 
-    from loamz.engine.agents.toolkit.human_input import CLIHumanHandler, AskHumanTool
+    from loamz.runtime.toolkit.human_input import CLIHumanHandler, AskHumanTool
 
     handler = CLIHumanHandler()
     ask_tool = AskHumanTool(handler=handler)
@@ -35,16 +35,16 @@ from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
-from loamz.engine.agents.kernel.types.run_log import RunLogKind
+from loamz.runtime.kernel.types.run_log import RunLogKind
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.runtime import RunContext
+    from loamz.runtime.kernel.runtime import RunContext
 
 from pydantic import BaseModel, Field
 
-from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.tools.approval import approval_signal
-from loamz.engine.agents.kernel.types.content import TextBlock
+from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.tools.approval import approval_signal
+from loamz.runtime.kernel.types.content import TextBlock
 
 logger = logging.getLogger(__name__)
 

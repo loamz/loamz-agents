@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pydantic import Field
 
-from loamz.engine.agents.kernel.types.content import KernelModel
+from loamz.runtime.kernel.types.content import KernelModel
 
 
 class Skill(KernelModel):
@@ -17,7 +17,7 @@ class Skill(KernelModel):
 
     Example::
 
-        from loamz.engine.agents.kernel.types import Skill
+        from loamz.runtime.kernel.types import Skill
 
         summarise = Skill(
             name="summarisation",

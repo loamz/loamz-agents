@@ -11,8 +11,8 @@ import pytest
 import uvicorn
 from mcp.server.fastmcp import FastMCP
 
-from loamz.engine.agents.kernel.tools import ToolRisk
-from loamz.engine.agents.toolkit.mcp.servers import McpServerSpec, McpToolServers, exposed
+from loamz.runtime.kernel.tools import ToolRisk
+from loamz.runtime.toolkit.mcp.servers import McpServerSpec, McpToolServers, exposed
 
 TOKEN = "s3cret"
 

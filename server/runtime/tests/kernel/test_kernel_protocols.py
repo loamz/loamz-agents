@@ -9,9 +9,9 @@ from typing import Protocol
 
 import pytest
 
-from loamz.engine.agents.kernel.errors import UnsupportedContentError
-from loamz.engine.agents.kernel.models import EmbeddingModel, EmbeddingResult, Modality
-from loamz.engine.agents.kernel.types.content import MediaBlock, TextBlock
+from loamz.runtime.kernel.errors import UnsupportedContentError
+from loamz.runtime.kernel.models import EmbeddingModel, EmbeddingResult, Modality
+from loamz.runtime.kernel.types.content import MediaBlock, TextBlock
 from tests._layout import contract_files, module_name
 
 
@@ -70,7 +70,7 @@ async def test_embed_accepts_a_string_and_blocks_embedded_together_as_one_vector
 
 
 async def test_text_only_embedding_clients_reject_media_content() -> None:
-    from loamz.engine.agents.providers.llm.base import BaseEmbeddingClient
+    from loamz.runtime.providers.llm.base import BaseEmbeddingClient
 
     class _TextOnlyClient(BaseEmbeddingClient):
         async def _embed_texts(self, texts: list[str], *, query: bool) -> EmbeddingResult:

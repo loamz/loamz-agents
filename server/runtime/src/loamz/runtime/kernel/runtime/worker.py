@@ -32,7 +32,7 @@ import random
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
-from loamz.engine.agents.kernel.errors import (
+from loamz.runtime.kernel.errors import (
     AgentCrashError,
     BudgetExhaustedError,
     CancellationError,
@@ -41,11 +41,11 @@ from loamz.engine.agents.kernel.errors import (
     NonDeterminismError,
     SuspendInterrupt,
 )
-from loamz.engine.agents.kernel.runtime.cancellation import CancellationToken
-from loamz.engine.agents.kernel.runtime.context import RunContext
-from loamz.engine.agents.kernel.runtime.journal import Journal
-from loamz.engine.agents.kernel.runtime.scheduler import RunRetryPolicy
-from loamz.engine.agents.kernel.runtime.store import (
+from loamz.runtime.kernel.runtime.cancellation import CancellationToken
+from loamz.runtime.kernel.runtime.context import RunContext
+from loamz.runtime.kernel.runtime.journal import Journal
+from loamz.runtime.kernel.runtime.scheduler import RunRetryPolicy
+from loamz.runtime.kernel.runtime.store import (
     Cancel,
     Commit,
     Complete,
@@ -58,16 +58,16 @@ from loamz.engine.agents.kernel.runtime.store import (
     RuntimeStore,
     Suspend,
 )
-from loamz.engine.agents.kernel.telemetry import semconv
-from loamz.engine.agents.kernel.telemetry.metrics import instruments
-from loamz.engine.agents.kernel.telemetry.tracing import span
-from loamz.engine.agents.kernel.types.error_info import ErrorInfo
-from loamz.engine.agents.kernel.types.run import RunMeta
-from loamz.engine.agents.kernel.types.run_log import RunLogKind
+from loamz.runtime.kernel.telemetry import semconv
+from loamz.runtime.kernel.telemetry.metrics import instruments
+from loamz.runtime.kernel.telemetry.tracing import span
+from loamz.runtime.kernel.types.error_info import ErrorInfo
+from loamz.runtime.kernel.types.run import RunMeta
+from loamz.runtime.kernel.types.run_log import RunLogKind
 from loamz.engine.errors import LoamzError, RateLimitedError
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.runtime.resolver import ActorResolver
+    from loamz.runtime.kernel.runtime.resolver import ActorResolver
 
 logger = logging.getLogger(__name__)
 
@@ -238,7 +238,7 @@ class Worker:
     # ------------------------------------------------------------------ one run
 
     def _build_tool_invoker(self, agent: Any) -> Any:
-        from loamz.engine.agents.kernel.runtime.tool_invoker import build_invoker
+        from loamz.runtime.kernel.runtime.tool_invoker import build_invoker
 
         return build_invoker(agent)
 
@@ -498,7 +498,7 @@ class Worker:
         """Delete run-scoped history once the run has ended. After the commit, never
         before: a crash between the two leaks a transcript, whereas deleting first would
         lose one a retry still needs."""
-        from loamz.engine.agents.kernel.types.supervision import HistoryRetention
+        from loamz.runtime.kernel.types.supervision import HistoryRetention
 
         context_cfg = getattr(agent, "_context", None)
         if (

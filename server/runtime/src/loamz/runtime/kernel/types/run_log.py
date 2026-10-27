@@ -44,8 +44,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
-from loamz.engine.agents.kernel.types.content import JsonObject
-from loamz.engine.agents.kernel.types.run_status import RunId
+from loamz.runtime.kernel.types.content import JsonObject
+from loamz.runtime.kernel.types.run_status import RunId
 
 
 class RunLogKind(StrEnum):

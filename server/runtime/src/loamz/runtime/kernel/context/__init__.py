@@ -1,33 +1,33 @@
-"""loamz.engine.agents.kernel.context — The context window: building it from a thread, compacting it, counting its tokens."""
+"""loamz.runtime.kernel.context — The context window: building it from a thread, compacting it, counting its tokens."""
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.context.builder import DefaultContextBuilder
-from loamz.engine.agents.kernel.context.compaction.coordinator import (
+from loamz.runtime.kernel.context.builder import DefaultContextBuilder
+from loamz.runtime.kernel.context.compaction.coordinator import (
     CompactionCoordinator,
     DefaultCompactionCoordinator,
 )
-from loamz.engine.agents.kernel.context.compaction.pipeline import CompactionPipeline
-from loamz.engine.agents.kernel.context.compaction.presets import build_token_budget_pipeline
-from loamz.engine.agents.kernel.context.compaction.selective_tool_call import (
+from loamz.runtime.kernel.context.compaction.pipeline import CompactionPipeline
+from loamz.runtime.kernel.context.compaction.presets import build_token_budget_pipeline
+from loamz.runtime.kernel.context.compaction.selective_tool_call import (
     SelectiveToolCallCompactionStrategy,
 )
-from loamz.engine.agents.kernel.context.compaction.sliding_window import SlidingWindowCompaction
-from loamz.engine.agents.kernel.context.compaction.summarization import SummarizationCompaction
-from loamz.engine.agents.kernel.context.compaction.threshold import ThresholdCheckpointStrategy
-from loamz.engine.agents.kernel.context.compaction.token_budget_composed import (
+from loamz.runtime.kernel.context.compaction.sliding_window import SlidingWindowCompaction
+from loamz.runtime.kernel.context.compaction.summarization import SummarizationCompaction
+from loamz.runtime.kernel.context.compaction.threshold import ThresholdCheckpointStrategy
+from loamz.runtime.kernel.context.compaction.token_budget_composed import (
     TokenBudgetComposedStrategy,
 )
-from loamz.engine.agents.kernel.context.compaction.tool_result import ToolResultCompactionStrategy
-from loamz.engine.agents.kernel.context.compaction.truncation import TruncationStrategy
-from loamz.engine.agents.kernel.context.context import AgentContext, ContextConfig
-from loamz.engine.agents.kernel.context.history import (
+from loamz.runtime.kernel.context.compaction.tool_result import ToolResultCompactionStrategy
+from loamz.runtime.kernel.context.compaction.truncation import TruncationStrategy
+from loamz.runtime.kernel.context.context import AgentContext, ContextConfig
+from loamz.runtime.kernel.context.history import (
     AncestryCheckpointResolver,
     DefaultHistoryResolver,
     ThreadStore,
     project_messages,
 )
-from loamz.engine.agents.kernel.context.protocols import (
+from loamz.runtime.kernel.context.protocols import (
     CompactionContext,
     CompactionPhase,
     CompactionResult,

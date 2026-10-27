@@ -6,16 +6,16 @@ import asyncio
 from dataclasses import replace
 from datetime import UTC, datetime
 
-from loamz.engine.agents.kernel.caller import Caller
-from loamz.engine.agents.kernel.runtime.channel import (
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.kernel.runtime.channel import (
     ChannelEntry,
     Member,
     Mode,
     ParticipantKind,
     mentions_in,
 )
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.supervision import ExecutionBudget
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.supervision import ExecutionBudget
 from loamz.engine.errors import InvalidRequestError, NotFoundError
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.directory.agents.service import agents

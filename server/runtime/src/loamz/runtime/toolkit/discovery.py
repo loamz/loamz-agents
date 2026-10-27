@@ -192,7 +192,7 @@ class CapabilityDiscovery:
     def _load_skill_metadata(self, skill_dir: Path, skill_md: Path) -> Any | None:
         """Parse SKILL.md using the SkillLoader helper."""
         try:
-            from loamz.engine.agents.toolkit.skills._loader import SkillLoader
+            from loamz.runtime.toolkit.skills._loader import SkillLoader
 
             loader = SkillLoader.__new__(SkillLoader)
             return loader._load_metadata(skill_dir, skill_md)

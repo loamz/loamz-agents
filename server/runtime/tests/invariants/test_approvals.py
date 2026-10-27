@@ -12,8 +12,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from loamz.engine.agents.kernel.runtime import DataPayload, Message
-from loamz.engine.agents.kernel.tools import (
+from loamz.runtime.kernel.runtime import DataPayload, Message
+from loamz.runtime.kernel.tools import (
     ApprovalDecision,
     ApprovalRequest,
     ApprovalResult,
@@ -21,9 +21,9 @@ from loamz.engine.agents.kernel.tools import (
     ToolExecutionResult,
     ToolRisk,
 )
-from loamz.engine.agents.kernel.types.content import TextBlock
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.run_log import RunLogKind
+from loamz.runtime.kernel.types.content import TextBlock
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.run_log import RunLogKind
 from tests._stores import open_runtime
 
 

@@ -4,10 +4,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from loamz.engine.agents.toolkit.web.read_url import ReadUrlTool, _extract_relevant
-from loamz.engine.agents.toolkit.web.search import WebSearchTool
-from loamz.engine.agents.toolkit.web.surfer import WebSurferTool
-from loamz.engine.agents.toolkit.web.wikipedia import WikipediaTool
+from loamz.runtime.toolkit.web.read_url import ReadUrlTool, _extract_relevant
+from loamz.runtime.toolkit.web.search import WebSearchTool
+from loamz.runtime.toolkit.web.surfer import WebSurferTool
+from loamz.runtime.toolkit.web.wikipedia import WikipediaTool
 
 # ---------------------------------------------------------------------------
 # ReadUrlTool — crawl4ai path
@@ -156,7 +156,7 @@ async def test_read_url_tool_exa_path():
 
 
 @pytest.mark.asyncio
-@patch("loamz.engine.agents.toolkit.web.wikipedia.httpx.AsyncClient")
+@patch("loamz.runtime.toolkit.web.wikipedia.httpx.AsyncClient")
 async def test_wikipedia_tool_capping(mock_client_class):
     mock_client = AsyncMock()
     mock_client_class.return_value.__aenter__.return_value = mock_client
@@ -317,8 +317,8 @@ async def test_web_search_tool_exa_priority_over_tavily():
 @pytest.mark.asyncio
 async def test_web_surfer_tool_capping():
     with (
-        patch("loamz.engine.agents.toolkit.web.surfer.PLAYWRIGHT_AVAILABLE", True),
-        patch("loamz.engine.agents.toolkit.web.surfer.async_playwright"),
+        patch("loamz.runtime.toolkit.web.surfer.PLAYWRIGHT_AVAILABLE", True),
+        patch("loamz.runtime.toolkit.web.surfer.async_playwright"),
     ):
         tool = WebSurferTool()
 

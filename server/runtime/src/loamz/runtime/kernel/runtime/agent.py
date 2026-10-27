@@ -44,8 +44,8 @@ from __future__ import annotations
 
 from typing import Protocol, TypeVar, runtime_checkable
 
-from loamz.engine.agents.kernel.runtime.message import Message
-from loamz.engine.agents.kernel.types.identity import Actor
+from loamz.runtime.kernel.runtime.message import Message
+from loamz.runtime.kernel.types.identity import Actor
 
 
 @runtime_checkable

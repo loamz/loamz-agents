@@ -1,4 +1,4 @@
-"""Tests for loamz.engine.agents.data adapters: tokens, files, memory, library."""
+"""Tests for loamz.runtime.data adapters: tokens, files, memory, library."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import jwt
 
-from loamz.engine.agents.data import (
+from loamz.runtime.data import (
     DataFileStore,
     DataLibrary,
     DataMemoryStore,

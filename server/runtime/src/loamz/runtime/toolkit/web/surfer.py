@@ -6,8 +6,8 @@ import base64
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, Literal
 
-from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import ContentBlock, MediaBlock, TextBlock
+from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import ContentBlock, MediaBlock, TextBlock
 
 if TYPE_CHECKING:
     from playwright.async_api import Browser, Page, Playwright

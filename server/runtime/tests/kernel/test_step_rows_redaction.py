@@ -11,13 +11,13 @@ from datetime import UTC, datetime
 
 import pytest
 
-from loamz.engine.agents.kernel.agents.log_projection import (
+from loamz.runtime.kernel.agents.log_projection import (
     rebuild_messages_from_steps,
     step_rows_from_log,
 )
-from loamz.engine.agents.kernel.runtime import Commit, NewEntry, RunSpec, RuntimeStore
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.testing.runtime import runtime_store
+from loamz.runtime.kernel.runtime import Commit, NewEntry, RunSpec, RuntimeStore
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.testing.runtime import runtime_store
 
 THREAD = "thread-1"
 

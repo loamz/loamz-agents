@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.ports.counters import Counters
+from loamz.runtime.kernel.ports.counters import Counters
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.bootstrap.settings import RateLimitSettings
 

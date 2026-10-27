@@ -1,9 +1,9 @@
 # Root entry points. Python: one uv workspace (uv.lock); JavaScript: one pnpm workspace.
 # The fast tier (`make test`) needs no infrastructure and finishes in a few minutes. PostgreSQL and Redis tests run when
 # LOAMZ_TEST_POSTGRES_URL / LOAMZ_TEST_REDIS_URL point at a server, and skip otherwise.
-.PHONY: cell cell-dev sync lint format imports test test-sdk test-engine test-server test-reader test-slow js-check check e2e help
+.PHONY: cell cell-dev sync lint format imports test test-sdk test-runtime test-server test-reader test-slow js-check check e2e help
 
-PY_DIRS := server/engine server/server server/reader
+PY_DIRS := server/runtime server/agents
 PYTEST := -q -n 4 --timeout=120
 
 help:
@@ -39,27 +39,27 @@ format:
 imports:
 	uv run lint-imports --config .importlinter
 
-test-engine:
-	cd server/engine && uv run --package loamz-engine pytest $(PYTEST)
+test-runtime:
+	cd server/runtime && uv run --package loamz-runtime pytest $(PYTEST)
 
 test-server:
-	cd server/server && uv run --package loamz-server pytest $(PYTEST)
+	cd server/agents && uv run --package loamz-agents-server pytest $(PYTEST)
 
 # loamz-reader runs on Python 3.13 with its own lock, outside the workspace.
 test-reader:
 	cd server/reader && uv run --python 3.13 --frozen --extra test python -m pytest -q
 
-test: test-sdk test-engine test-server test-reader
+test: test-runtime test-server
 
 test-slow:
-	cd server/server && uv run --package loamz-server pytest -q -m "slow or integration" --timeout=300
-	cd server/engine && uv run --package loamz-engine pytest -q -m "slow" --timeout=300
+	cd server/agents && uv run --package loamz-agents-server pytest -q -m "slow or integration" --timeout=300
+	cd server/runtime && uv run --package loamz-runtime pytest -q -m "slow" --timeout=300
 
 js-check:
 	pnpm -r typecheck
 	pnpm -r test
 
 e2e:
-	uv run --package loamz-server python deploy/compose/e2e.py deploy/compose/.env
+	uv run --package loamz-agents-server python deploy/compose/e2e.py deploy/compose/.env
 
 check: lint imports test js-check

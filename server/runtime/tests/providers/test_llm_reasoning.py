@@ -8,12 +8,12 @@ from unittest.mock import AsyncMock
 
 from pydantic import BaseModel
 
-from loamz.engine.agents.kernel.models import GenerationOptions, ReasoningEffort
-from loamz.engine.agents.kernel.types.content import ChatMessage, ReasoningBlock, Role, TextBlock
-from loamz.engine.agents.providers.llm import OpenAICompatibleClient
-from loamz.engine.agents.providers.llm.anthropic.anthropic_client import AnthropicClient
-from loamz.engine.agents.providers.llm.gemini.gemini_client import GeminiClient
-from loamz.engine.agents.providers.llm.openai.openai_client import OpenAIClient
+from loamz.runtime.kernel.models import GenerationOptions, ReasoningEffort
+from loamz.runtime.kernel.types.content import ChatMessage, ReasoningBlock, Role, TextBlock
+from loamz.runtime.providers.llm import OpenAICompatibleClient
+from loamz.runtime.providers.llm.anthropic.anthropic_client import AnthropicClient
+from loamz.runtime.providers.llm.gemini.gemini_client import GeminiClient
+from loamz.runtime.providers.llm.openai.openai_client import OpenAIClient
 
 MSGS = [ChatMessage(role=Role.USER, content=[TextBlock(text="hi")])]
 HIGH = GenerationOptions(reasoning=ReasoningEffort.HIGH)

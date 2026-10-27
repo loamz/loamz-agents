@@ -42,19 +42,19 @@ from typing import Annotated, Literal, Protocol, runtime_checkable
 
 from pydantic import Field
 
-from loamz.engine.agents.kernel.runtime.channel import ChannelStore
-from loamz.engine.agents.kernel.runtime.inbox import DeadLetterEntry
-from loamz.engine.agents.kernel.runtime.message import Message
-from loamz.engine.agents.kernel.runtime.scheduler import RunRetryPolicy
-from loamz.engine.agents.kernel.runtime.supervisor import RunHandle, RunResult
-from loamz.engine.agents.kernel.types.content import JsonObject, KernelModel
-from loamz.engine.agents.kernel.types.error_info import ErrorInfo
-from loamz.engine.agents.kernel.types.identity import Actor, Topic
-from loamz.engine.agents.kernel.types.run_log import RunLogEntry
-from loamz.engine.agents.kernel.types.run_status import RunId, RunStatus
-from loamz.engine.agents.kernel.types.supervision import ExecutionBudget, Priority, Supervision
-from loamz.engine.agents.kernel.types.trace import TraceContext
-from loamz.engine.agents.kernel.types.wakeup import Wakeup
+from loamz.runtime.kernel.runtime.channel import ChannelStore
+from loamz.runtime.kernel.runtime.inbox import DeadLetterEntry
+from loamz.runtime.kernel.runtime.message import Message
+from loamz.runtime.kernel.runtime.scheduler import RunRetryPolicy
+from loamz.runtime.kernel.runtime.supervisor import RunHandle, RunResult
+from loamz.runtime.kernel.types.content import JsonObject, KernelModel
+from loamz.runtime.kernel.types.error_info import ErrorInfo
+from loamz.runtime.kernel.types.identity import Actor, Topic
+from loamz.runtime.kernel.types.run_log import RunLogEntry
+from loamz.runtime.kernel.types.run_status import RunId, RunStatus
+from loamz.runtime.kernel.types.supervision import ExecutionBudget, Priority, Supervision
+from loamz.runtime.kernel.types.trace import TraceContext
+from loamz.runtime.kernel.types.wakeup import Wakeup
 
 # ---------------------------------------------------------------------------
 # Records

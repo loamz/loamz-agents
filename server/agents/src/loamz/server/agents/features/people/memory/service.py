@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.caller import Caller
+from loamz.runtime.kernel.caller import Caller
 from loamz.engine.errors import ConflictError, InvalidRequestError, NotFoundError
 from loamz.engine.memory import (
     MemoryCategory,
@@ -49,7 +49,7 @@ def memory_tool(
     """
     if short_term is None and long_term is None:
         return None
-    from loamz.engine.agents.toolkit.memory import MemoryTool
+    from loamz.runtime.toolkit.memory import MemoryTool
 
     return MemoryTool(session_id, short_term=short_term, long_term=long_term)
 

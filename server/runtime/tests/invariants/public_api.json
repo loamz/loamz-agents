@@ -1,5 +1,5 @@
 {
-  "loamz.engine.agents": [
+  "loamz.runtime": [
     "AgentStore",
     "ApprovalDecision",
     "AutoApprove",
@@ -34,7 +34,7 @@
     "create_model_client",
     "tool"
   ],
-  "loamz.engine.agents.kernel.types": [
+  "loamz.runtime.kernel.types": [
     "Actor",
     "AgentCrashError",
     "AgentProgress",
@@ -114,7 +114,7 @@
     "parse_content_block",
     "scope_of"
   ],
-  "loamz.engine.agents.kernel.errors": [
+  "loamz.runtime.kernel.errors": [
     "AgentCrashError",
     "AuthError",
     "BlockValidationError",
@@ -141,7 +141,7 @@
     "UnsupportedContentError",
     "WorkspacePathError"
   ],
-  "loamz.engine.agents.kernel.telemetry": [
+  "loamz.runtime.kernel.telemetry": [
     "Instruments",
     "SpanHandle",
     "capture_content",
@@ -150,7 +150,7 @@
     "set_capture_content",
     "span"
   ],
-  "loamz.engine.agents.kernel.tools": [
+  "loamz.runtime.kernel.tools": [
     "AnyTool",
     "ApprovalDecision",
     "ApprovalHandler",
@@ -182,7 +182,7 @@
     "is_provider_defined_tool",
     "tool"
   ],
-  "loamz.engine.agents.kernel.models": [
+  "loamz.runtime.kernel.models": [
     "ChatModel",
     "EmbeddingModel",
     "EmbeddingResult",
@@ -199,7 +199,7 @@
     "get_model_profile",
     "list_models"
   ],
-  "loamz.engine.agents.kernel.ports": [
+  "loamz.runtime.kernel.ports": [
     "BlobStore",
     "Branch",
     "ContentRef",
@@ -222,7 +222,7 @@
     "WorkspaceSnapshot",
     "WorkspaceStore"
   ],
-  "loamz.engine.agents.kernel.safety": [
+  "loamz.runtime.kernel.safety": [
     "ImageSafetyClassifier",
     "NormalizedText",
     "SafetyVerdict",
@@ -231,7 +231,7 @@
     "max_severity",
     "normalize"
   ],
-  "loamz.engine.agents.kernel.context": [
+  "loamz.runtime.kernel.context": [
     "AgentContext",
     "AncestryCheckpointResolver",
     "CompactionContext",
@@ -257,7 +257,7 @@
     "build_token_budget_pipeline",
     "project_messages"
   ],
-  "loamz.engine.agents.kernel.middleware": [
+  "loamz.runtime.kernel.middleware": [
     "AgentRunResult",
     "AuditLoggerMiddleware",
     "CacheMiddleware",
@@ -280,7 +280,7 @@
     "ToolCallRecord",
     "ToolCallValidationMiddleware"
   ],
-  "loamz.engine.agents.kernel.runtime": [
+  "loamz.runtime.kernel.runtime": [
     "ActorFactory",
     "ActorResolver",
     "Agent",
@@ -341,7 +341,7 @@
     "Worker",
     "mentions_in"
   ],
-  "loamz.engine.agents.kernel.agents": [
+  "loamz.runtime.kernel.agents": [
     "BaseAgent",
     "ChannelMemberAgent",
     "ChannelMemberConfig",
@@ -355,7 +355,7 @@
     "SubAgentConfig",
     "UserProxyAgent"
   ],
-  "loamz.engine.agents.kernel.events": [
+  "loamz.runtime.kernel.events": [
     "AUDITED",
     "CATALOG",
     "CancelRequested",
@@ -371,7 +371,7 @@
     "ThreadDeleted",
     "parse_event"
   ],
-  "loamz.engine.agents.kernel.wire": [
+  "loamz.runtime.kernel.wire": [
     "ApprovalRequestedEvent",
     "ApprovalResponse",
     "Attachment",
@@ -398,7 +398,7 @@
     "WireEvent",
     "wire_from_log"
   ],
-  "loamz.engine.agents.stores": [
+  "loamz.runtime.stores": [
     "AgentStore",
     "Erased",
     "Tenant",
@@ -411,7 +411,7 @@
     "bind_threads",
     "fence_objects"
   ],
-  "loamz.engine.agents.stores.workspace": [
+  "loamz.runtime.stores.workspace": [
     "BlobCAS",
     "ContentRef",
     "WorkspaceFileEntry",

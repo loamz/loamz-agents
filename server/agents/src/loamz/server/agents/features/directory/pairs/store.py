@@ -3,7 +3,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 
-from loamz.engine.agents.kernel.types.ids import new_id
+from loamz.runtime.kernel.types.ids import new_id
 from loamz.engine.sql import Database, Row, migrate
 from loamz.server.agents.features.directory.agents import store as agents_store
 

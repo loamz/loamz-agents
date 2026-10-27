@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.runtime.persistence.store import RuntimeStore
+from loamz.runtime.kernel.runtime.persistence.store import RuntimeStore
 
 __all__ = ["RuntimeStore"]

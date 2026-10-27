@@ -6,7 +6,7 @@ import hashlib
 import time
 from dataclasses import dataclass
 
-from loamz.engine.agents.kernel.types.ids import new_id
+from loamz.runtime.kernel.types.ids import new_id
 from loamz.engine.sql import Database, migrate
 
 SCHEMA = [

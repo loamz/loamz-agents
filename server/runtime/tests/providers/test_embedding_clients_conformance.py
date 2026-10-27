@@ -9,10 +9,10 @@ import numpy as np
 import pytest
 from openai import AsyncOpenAI
 
-from loamz.engine.agents.providers.llm.base import BaseEmbeddingClient
-from loamz.engine.agents.providers.llm.local_embeddings import SentenceTransformersEmbeddingClient
-from loamz.engine.agents.providers.llm.openai.openai_embedding_client import OpenAIEmbeddingClient
-from loamz.engine.agents.testing.conformance.embedding_model import (
+from loamz.runtime.providers.llm.base import BaseEmbeddingClient
+from loamz.runtime.providers.llm.local_embeddings import SentenceTransformersEmbeddingClient
+from loamz.runtime.providers.llm.openai.openai_embedding_client import OpenAIEmbeddingClient
+from loamz.runtime.testing.conformance.embedding_model import (
     EmbeddingModelConformance,
     vector_of,
 )
@@ -128,7 +128,7 @@ class TestSentenceTransformersEmbeddingClient(EmbeddingModelConformance):
 from google import genai  # noqa: E402
 from google.genai import types as genai_types  # noqa: E402
 
-from loamz.engine.agents.providers.llm.gemini.gemini_embedding_client import (  # noqa: E402
+from loamz.runtime.providers.llm.gemini.gemini_embedding_client import (  # noqa: E402
     GeminiEmbeddingClient,
 )
 

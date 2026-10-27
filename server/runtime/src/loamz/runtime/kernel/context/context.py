@@ -4,16 +4,16 @@ from __future__ import annotations
 
 import logging
 
-from loamz.engine.agents.kernel.context.builder import DefaultContextBuilder
-from loamz.engine.agents.kernel.context.compaction.coordinator import CompactionCoordinator
-from loamz.engine.agents.kernel.context.compaction.pipeline import CompactionPipeline
-from loamz.engine.agents.kernel.context.compaction.sliding_window import SlidingWindowCompaction
-from loamz.engine.agents.kernel.context.history import project_messages
-from loamz.engine.agents.kernel.context.protocols import ContextBuilder
-from loamz.engine.agents.kernel.ports.threads import ThreadStore
-from loamz.engine.agents.kernel.types.content import ChatMessage
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.supervision import HistoryRetention
+from loamz.runtime.kernel.context.builder import DefaultContextBuilder
+from loamz.runtime.kernel.context.compaction.coordinator import CompactionCoordinator
+from loamz.runtime.kernel.context.compaction.pipeline import CompactionPipeline
+from loamz.runtime.kernel.context.compaction.sliding_window import SlidingWindowCompaction
+from loamz.runtime.kernel.context.history import project_messages
+from loamz.runtime.kernel.context.protocols import ContextBuilder
+from loamz.runtime.kernel.ports.threads import ThreadStore
+from loamz.runtime.kernel.types.content import ChatMessage
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.supervision import HistoryRetention
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class ContextConfig:
 
     Pass a :class:`CompactionPipeline` configured with one or more strategies::
 
-        from loamz.engine.agents.kernel.context import CompactionPipeline, ToolResultCompactionStrategy, SlidingWindowCompaction
+        from loamz.runtime.kernel.context import CompactionPipeline, ToolResultCompactionStrategy, SlidingWindowCompaction
 
         ctx = ContextConfig(
             store.threads,

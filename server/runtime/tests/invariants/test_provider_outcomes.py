@@ -19,18 +19,18 @@ from typing import Any
 
 import pytest
 
-from loamz.engine.agents.kernel.agents import ReActAgent
-from loamz.engine.agents.kernel.errors import AuthError, ContentFilterError, ContextLengthError
-from loamz.engine.agents.kernel.models import GenerationOptions, ModelCapabilities
-from loamz.engine.agents.kernel.models.errors import classify_llm_error
-from loamz.engine.agents.kernel.runtime import ChatPayload, Message, RunRetryPolicy
-from loamz.engine.agents.kernel.types.content import ChatMessage, ContentBlock, Role, TextBlock
-from loamz.engine.agents.kernel.types.finish_reason import FinishReason
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.run_log import RunLogKind
-from loamz.engine.agents.kernel.types.stream import CompletionEvent
-from loamz.engine.agents.kernel.types.usage import Usage
-from loamz.engine.agents.testing.runtime import ephemeral_runtime
+from loamz.runtime.kernel.agents import ReActAgent
+from loamz.runtime.kernel.errors import AuthError, ContentFilterError, ContextLengthError
+from loamz.runtime.kernel.models import GenerationOptions, ModelCapabilities
+from loamz.runtime.kernel.models.errors import classify_llm_error
+from loamz.runtime.kernel.runtime import ChatPayload, Message, RunRetryPolicy
+from loamz.runtime.kernel.types.content import ChatMessage, ContentBlock, Role, TextBlock
+from loamz.runtime.kernel.types.finish_reason import FinishReason
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.run_log import RunLogKind
+from loamz.runtime.kernel.types.stream import CompletionEvent
+from loamz.runtime.kernel.types.usage import Usage
+from loamz.runtime.testing.runtime import ephemeral_runtime
 from loamz.engine.errors import PermanentError, RateLimitedError
 
 # ---------------------------------------------------------------------------- classification
@@ -108,11 +108,11 @@ def test_a_server_error_stays_transient() -> None:
 
 
 def test_every_vendor_reports_why_the_model_stopped() -> None:
-    from loamz.engine.agents.kernel.types.content import ToolUseBlock
-    from loamz.engine.agents.providers.llm.anthropic.anthropic_client import anthropic_finish_reason
-    from loamz.engine.agents.providers.llm.gemini.gemini_client import gemini_finish_reason
-    from loamz.engine.agents.providers.llm.openai.openai_client import responses_finish_reason
-    from loamz.engine.agents.providers.llm.openai_compatible import chat_finish_reason
+    from loamz.runtime.kernel.types.content import ToolUseBlock
+    from loamz.runtime.providers.llm.anthropic.anthropic_client import anthropic_finish_reason
+    from loamz.runtime.providers.llm.gemini.gemini_client import gemini_finish_reason
+    from loamz.runtime.providers.llm.openai.openai_client import responses_finish_reason
+    from loamz.runtime.providers.llm.openai_compatible import chat_finish_reason
 
     assert chat_finish_reason("stop", has_tool_calls=False) is FinishReason.STOP
     assert chat_finish_reason("length", has_tool_calls=False) is FinishReason.LENGTH
@@ -253,8 +253,8 @@ async def test_i21_a_content_filter_stop_fails_the_run_with_its_own_code() -> No
 
 
 async def test_i21_a_context_overflow_is_retried_once_with_a_smaller_prompt() -> None:
-    from loamz.engine.agents.kernel.tools import Toolbox
-    from loamz.engine.agents.kernel.types.content import ToolUseBlock
+    from loamz.runtime.kernel.tools import Toolbox
+    from loamz.runtime.kernel.types.content import ToolUseBlock
     from tests.invariants._harness.scenarios import ChargeCard
 
     tools = Toolbox()

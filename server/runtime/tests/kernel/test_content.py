@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from loamz.engine.agents.kernel.errors import BlockValidationError
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.errors import BlockValidationError
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     ErrorBlock,
     MediaBlock,

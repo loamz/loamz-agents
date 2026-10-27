@@ -10,8 +10,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from loamz.engine.agents.kernel.runtime import ActorResolver, Message
-from loamz.engine.agents.kernel.types.identity import Actor
+from loamz.runtime.kernel.runtime import ActorResolver, Message
+from loamz.runtime.kernel.types.identity import Actor
 
 
 @dataclass

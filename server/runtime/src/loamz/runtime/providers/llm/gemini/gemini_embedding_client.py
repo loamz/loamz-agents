@@ -4,7 +4,7 @@ Uses the ``google-genai`` SDK's ``embed_content`` endpoint.
 
 Usage::
 
-    from loamz.engine.agents.providers.llm.gemini.gemini_embedding_client import GeminiEmbeddingClient
+    from loamz.runtime.providers.llm.gemini.gemini_embedding_client import GeminiEmbeddingClient
 
     client = GeminiEmbeddingClient(api_key="...")
     result = await client.embed(["Hello world"])
@@ -17,7 +17,7 @@ from typing import Any
 
 from google import genai
 
-from loamz.engine.agents.providers.llm.base import BaseEmbeddingClient, EmbeddingResult
+from loamz.runtime.providers.llm.base import BaseEmbeddingClient, EmbeddingResult
 
 logger = logging.getLogger(__name__)
 

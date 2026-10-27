@@ -15,11 +15,11 @@ import shutil
 import uuid
 from pathlib import Path
 
-from loamz.engine.agents.data import DataGateway, DataTokenMinter
-from loamz.engine.agents.data.relay import DEFAULT_BUDGET_BYTES, Channel
-from loamz.engine.agents.data.tokens import MAX_TOKEN_SECONDS
-from loamz.engine.agents.kernel.types.run import RunScope
-from loamz.engine.agents.toolkit.code.runtimes.base import DataMount
+from loamz.runtime.data import DataGateway, DataTokenMinter
+from loamz.runtime.data.relay import DEFAULT_BUDGET_BYTES, Channel
+from loamz.runtime.data.tokens import MAX_TOKEN_SECONDS
+from loamz.runtime.kernel.types.run import RunScope
+from loamz.runtime.toolkit.code.runtimes.base import DataMount
 
 logger = logging.getLogger(__name__)
 

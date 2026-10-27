@@ -10,7 +10,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from loamz.engine.agents.kernel.runtime.channel import (
+from loamz.runtime.kernel.runtime.channel import (
     EVERYONE,
     EntryKind,
     Member,
@@ -18,7 +18,7 @@ from loamz.engine.agents.kernel.runtime.channel import (
     ParticipantKind,
     WakeReason,
 )
-from loamz.engine.agents.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.identity import Actor
 
 CH = "group/1"
 HUMAN = Actor("user", "ravi")
@@ -256,7 +256,7 @@ class ChannelTests:
         assert await store.channel_wait(CH, 0, 0.1) is False
 
     async def test_erasing_an_actor_removes_its_runs_mail_and_budget_but_not_others(self, store):
-        from loamz.engine.agents.kernel.runtime.store import Commit, NewEntry, Spend
+        from loamz.runtime.kernel.runtime.store import Commit, NewEntry, Spend
 
         await self.open(store)
         await store.channel_append(CH, sender=HUMAN, text="hi")
@@ -287,7 +287,7 @@ class ChannelTests:
             lease_s=30,
             now=datetime(2030, 1, 1, tzinfo=UTC),
         )
-        from loamz.engine.agents.kernel.runtime.store import Commit, NewEntry, Spend
+        from loamz.runtime.kernel.runtime.store import Commit, NewEntry, Spend
 
         await store.commit(
             leases[0],
@@ -571,7 +571,7 @@ class ChannelTests:
     # -- running out of budget is said once, not silently ---------------------------------------------------------------------------------
 
     async def test_a_member_out_of_budget_is_announced_once_and_not_woken(self, store):
-        from loamz.engine.agents.kernel.runtime.store import ExecutionBudget
+        from loamz.runtime.kernel.runtime.store import ExecutionBudget
 
         await self.open_with_person(store)
         await store.account_limit(f"agent:{SCOUT}", ExecutionBudget(max_tokens=0))

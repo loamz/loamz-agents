@@ -9,7 +9,7 @@ needs the least infrastructure the Protocol can possibly need.
 
 Usage::
 
-    from loamz.engine.agents.providers.llm import SentenceTransformersEmbeddingClient
+    from loamz.runtime.providers.llm import SentenceTransformersEmbeddingClient
 
     # Default: all-MiniLM-L6-v2 (384-dim, fast on CPU)
     client = SentenceTransformersEmbeddingClient()
@@ -19,7 +19,7 @@ Usage::
 
 Via factory (for other providers, e.g. a real API-backed embedding model)::
 
-    from loamz.engine.agents.providers.llm import create_embedding_client
+    from loamz.runtime.providers.llm import create_embedding_client
 
     client = create_embedding_client("sentence-transformers/all-MiniLM-L6-v2")
 """
@@ -29,8 +29,8 @@ from __future__ import annotations
 import asyncio
 import logging
 
-from loamz.engine.agents.kernel.models import EmbeddingResult
-from loamz.engine.agents.providers.llm.base import BaseEmbeddingClient
+from loamz.runtime.kernel.models import EmbeddingResult
+from loamz.runtime.providers.llm.base import BaseEmbeddingClient
 
 logger = logging.getLogger(__name__)
 

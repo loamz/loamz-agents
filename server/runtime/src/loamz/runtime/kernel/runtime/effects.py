@@ -43,8 +43,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-from loamz.engine.agents.kernel.types.content import JsonObject
-from loamz.engine.agents.kernel.types.run_status import RunId
+from loamz.runtime.kernel.types.content import JsonObject
+from loamz.runtime.kernel.types.run_status import RunId
 
 
 def _canonical_default(value: Any) -> Any:

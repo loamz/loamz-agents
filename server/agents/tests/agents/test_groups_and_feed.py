@@ -6,9 +6,9 @@ import json
 import httpx
 import pytest
 
-from loamz.engine.agents.kernel.caller import Caller
-from loamz.engine.agents.kernel.runtime.channel import EntryKind, ParticipantKind
-from loamz.engine.agents.kernel.types.identity import Actor
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.kernel.runtime.channel import EntryKind, ParticipantKind
+from loamz.runtime.kernel.types.identity import Actor
 from loamz.engine.errors import NotFoundError
 from loamz.server.agents.bootstrap import Container, Settings
 from loamz.server.agents.bootstrap.http import caller as caller_dependency
@@ -248,7 +248,7 @@ async def test_message_preserves_a2ui_and_shared_runtime_observers(messenger):
 
 
 async def test_hosted_worker_wakes_a_visible_agent_and_pass_stays_silent(messenger, monkeypatch):
-    from loamz.engine.agents.testing.scripted import ScriptedModel
+    from loamz.runtime.testing.scripted import ScriptedModel
     from loamz.server.agents.features.directory.agents.model import AgentIn
     from loamz.server.agents.features.directory.agents.service import agents
 

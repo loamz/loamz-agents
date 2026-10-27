@@ -1,6 +1,6 @@
 import httpx
 
-from loamz.engine.agents.kernel.caller import Caller
+from loamz.runtime.kernel.caller import Caller
 from loamz.engine.errors import NotFoundError
 from loamz.server.agents.bootstrap.settings import NotificationSettings
 from loamz.server.agents.features.people.notifications.service import NotificationService

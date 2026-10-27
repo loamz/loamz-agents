@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.ports.tasks import TaskStatus
+from loamz.runtime.kernel.ports.tasks import TaskStatus
 from tests._stores import fs_tasks
 
 

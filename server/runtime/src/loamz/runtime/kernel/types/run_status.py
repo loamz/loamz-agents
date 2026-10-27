@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from loamz.engine.agents.kernel.types.ids import RunId, new_run_id
+from loamz.runtime.kernel.types.ids import RunId, new_run_id
 
 
 class RunStatus(StrEnum):

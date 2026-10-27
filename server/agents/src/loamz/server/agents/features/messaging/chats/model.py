@@ -7,7 +7,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-from loamz.engine.agents.kernel.runtime.channel import Mode
+from loamz.runtime.kernel.runtime.channel import Mode
 
 
 class MemberIn(BaseModel):

@@ -9,7 +9,7 @@
 A runtime owns a worker that leases runs from the store and executes them. Everything it needs to survive a
 restart is in the store, so a run submitted before a crash is picked up after one.
 
-The store is anything with a ``database`` and ``threads`` (an ``AgentState``: ``loamz.engine.agents.stores.AgentStore``):
+The store is anything with a ``database`` and ``threads`` (an ``AgentState``: ``loamz.runtime.stores.AgentStore``):
 runs and their journal live in its database, and an agent registered without a context of its own keeps its history
 in its threads. ``owns_store=True`` closes the store when the runtime stops; otherwise closing is left to whoever
 opened it. A bare ``RuntimeStore`` works too, for agents that bring their own context.
@@ -26,27 +26,27 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
-from loamz.engine.agents.kernel.errors import ThreadBusyError
-from loamz.engine.agents.kernel.ports.threads import ThreadStore
-from loamz.engine.agents.kernel.runtime.message import ChatPayload, Message
-from loamz.engine.agents.kernel.runtime.resolver import ActorFactory, ActorResolver
-from loamz.engine.agents.kernel.runtime.scheduler import RunRetryPolicy
-from loamz.engine.agents.kernel.runtime.sealing import Sealer
-from loamz.engine.agents.kernel.runtime.store import Delivery, RunRecord, RunSpec, RuntimeStore
-from loamz.engine.agents.kernel.runtime.tail import tail
-from loamz.engine.agents.kernel.runtime.worker import Worker
-from loamz.engine.agents.kernel.tools.approval import ApprovalDecision, approval_signal
-from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
-from loamz.engine.agents.kernel.types.identity import Actor, Topic
-from loamz.engine.agents.kernel.types.ids import new_id
-from loamz.engine.agents.kernel.types.run_log import RunLogEntry, RunLogKind
-from loamz.engine.agents.kernel.types.run_status import RunId, RunStatus
-from loamz.engine.agents.kernel.types.supervision import Priority
-from loamz.engine.agents.kernel.types.trace import TraceContext
+from loamz.runtime.kernel.errors import ThreadBusyError
+from loamz.runtime.kernel.ports.threads import ThreadStore
+from loamz.runtime.kernel.runtime.message import ChatPayload, Message
+from loamz.runtime.kernel.runtime.resolver import ActorFactory, ActorResolver
+from loamz.runtime.kernel.runtime.scheduler import RunRetryPolicy
+from loamz.runtime.kernel.runtime.sealing import Sealer
+from loamz.runtime.kernel.runtime.store import Delivery, RunRecord, RunSpec, RuntimeStore
+from loamz.runtime.kernel.runtime.tail import tail
+from loamz.runtime.kernel.runtime.worker import Worker
+from loamz.runtime.kernel.tools.approval import ApprovalDecision, approval_signal
+from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
+from loamz.runtime.kernel.types.identity import Actor, Topic
+from loamz.runtime.kernel.types.ids import new_id
+from loamz.runtime.kernel.types.run_log import RunLogEntry, RunLogKind
+from loamz.runtime.kernel.types.run_status import RunId, RunStatus
+from loamz.runtime.kernel.types.supervision import Priority
+from loamz.runtime.kernel.types.trace import TraceContext
 from loamz.engine.sql import Database
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.agents.orchestrator import SubAgentConfig
+    from loamz.runtime.kernel.agents.orchestrator import SubAgentConfig
 
 _TERMINAL_KINDS = frozenset(
     {
@@ -117,7 +117,7 @@ class Runtime:
         self._owns_source = owns_store and self._source is not None
         self._threads: ThreadStore | None = None
         if isinstance(store, AgentState):
-            from loamz.engine.agents.kernel.runtime.persistence.store import (
+            from loamz.runtime.kernel.runtime.persistence.store import (
                 RuntimeStore as PersistedRuntimeStore,
             )
 

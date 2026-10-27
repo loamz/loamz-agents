@@ -8,13 +8,13 @@ from pathlib import Path
 
 import pytest
 
-from loamz.engine.agents.kernel.errors import SnapshotConflictError
-from loamz.engine.agents.kernel.ports.files import FileStore as Files
-from loamz.engine.agents.stores.workspace.branching import fork_branch
-from loamz.engine.agents.stores.workspace.cas import BlobCAS
-from loamz.engine.agents.stores.workspace.materialize import commit, materialize
-from loamz.engine.agents.stores.workspace.snapshots import checkout_branch, commit_turn
-from loamz.engine.agents.stores.workspace.tables import Workspaces
+from loamz.runtime.kernel.errors import SnapshotConflictError
+from loamz.runtime.kernel.ports.files import FileStore as Files
+from loamz.runtime.stores.workspace.branching import fork_branch
+from loamz.runtime.stores.workspace.cas import BlobCAS
+from loamz.runtime.stores.workspace.materialize import commit, materialize
+from loamz.runtime.stores.workspace.snapshots import checkout_branch, commit_turn
+from loamz.runtime.stores.workspace.tables import Workspaces
 from tests._stores import agent_store_at
 
 TENANT = "tenant-a"
@@ -36,7 +36,7 @@ async def test_cas_dedups_identical_content(tmp_path: Path) -> None:
     assert ref1.kind == "blob"
 
     # Only one object was ever actually uploaded.
-    from loamz.engine.agents.stores.workspace.layout import blob_key
+    from loamz.runtime.stores.workspace.layout import blob_key
 
     key = blob_key(TENANT, USER, ref1.hash)
     assert await store.exists(key)
@@ -174,7 +174,7 @@ async def test_concurrent_commit_to_same_branch_conflicts_not_silently_lost(
 
     # Two independent commits race against the same (now stale) parent.
     parent = await ws_store.get_branch_snapshot_head("s1", "main")
-    from loamz.engine.agents.stores.workspace.materialize import commit as _commit_dir
+    from loamz.runtime.stores.workspace.materialize import commit as _commit_dir
 
     snap_a = await _commit_dir(cas, root, session_id="s1", branch_id="main", parent=parent)
     snap_b = await _commit_dir(cas, root, session_id="s1", branch_id="main", parent=parent)

@@ -15,8 +15,8 @@ from pathlib import Path
 
 import pytest
 
-from loamz.engine.agents.kernel.runtime import Runtime
-from loamz.engine.agents.stores import AgentStore
+from loamz.runtime.kernel.runtime import Runtime
+from loamz.runtime.stores import AgentStore
 from loamz.engine.errors import SchemaVersionError
 from loamz.engine.sql import migrate
 from tests._stores import agent_store_at, open_runtime
@@ -53,7 +53,7 @@ async def test_a_committed_transaction_survives_the_process_being_killed(
         """
         import asyncio, os, sys
         from pathlib import Path
-        from loamz.engine.agents.stores import AgentStore
+        from loamz.runtime.stores import AgentStore
         from loamz.engine.sql import migrate
 
         async def main():
@@ -173,8 +173,8 @@ async def test_hostile_thread_and_branch_names_are_just_data_and_touch_no_other_
     """Names reach the store from request bodies. They are bound parameters, never paths and never part of a
     statement, so a traversal string or an injection attempt is stored and read back like any other name — and the
     folder gains nothing but the database's own files."""
-    from loamz.engine.agents.kernel.ports.threads import MessageNode
-    from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
+    from loamz.runtime.kernel.ports.threads import MessageNode
+    from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
 
     store = agent_store_at(tmp_path / "state")
     node = MessageNode(
@@ -205,8 +205,8 @@ async def test_a_turn_killed_between_two_appends_leaves_a_thread_that_is_whole(
         """
         import asyncio, os, sys
         from tests._stores import agent_store_at
-        from loamz.engine.agents.kernel.ports.threads import MessageNode
-        from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
+        from loamz.runtime.kernel.ports.threads import MessageNode
+        from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
 
         def msg(parent, text):
             return MessageNode(session_id="s", parent_id=parent, run_id="r", payload=ChatMessage(role=Role.USER, content=[TextBlock(text=text)]))
@@ -251,8 +251,8 @@ def test_a_store_nobody_closed_exits_cleanly_and_keeps_what_was_committed(
         """
         import asyncio, sys
         from tests._stores import agent_store_at
-        from loamz.engine.agents.kernel.ports.threads import MessageNode
-        from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
+        from loamz.runtime.kernel.ports.threads import MessageNode
+        from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
 
         async def main():
             store = agent_store_at(sys.argv[1])

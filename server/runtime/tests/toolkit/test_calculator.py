@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from loamz.engine.agents.toolkit.compute.calculator import CalculatorTool, safe_eval
+from loamz.runtime.toolkit.compute.calculator import CalculatorTool, safe_eval
 
 
 @pytest.mark.parametrize(

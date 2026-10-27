@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.caller import Caller
-from loamz.engine.agents.kernel.context import DefaultHistoryResolver
-from loamz.engine.agents.kernel.ports.files import FileStore
-from loamz.engine.agents.kernel.ports.threads import Branch, HistoryCheckpoint, ThreadStore
-from loamz.engine.agents.kernel.types.scope import Scope
-from loamz.engine.agents.stores import AgentStore, bind_threads, fence_objects
-from loamz.engine.agents.stores.workspace import (
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.kernel.context import DefaultHistoryResolver
+from loamz.runtime.kernel.ports.files import FileStore
+from loamz.runtime.kernel.ports.threads import Branch, HistoryCheckpoint, ThreadStore
+from loamz.runtime.kernel.types.scope import Scope
+from loamz.runtime.stores import AgentStore, bind_threads, fence_objects
+from loamz.runtime.stores.workspace import (
     delete_branch_workspace,
     fork_branch,
     resolve_workspace_snapshot_id,

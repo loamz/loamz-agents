@@ -10,7 +10,7 @@ from typing import Annotated, Any
 from fastapi import Depends, Request
 from starlette.requests import HTTPConnection
 
-from loamz.engine.agents.kernel.caller import Caller
+from loamz.runtime.kernel.caller import Caller
 from loamz.engine.errors import (
     ForbiddenError,
     RateLimitedError,
@@ -18,7 +18,7 @@ from loamz.engine.errors import (
     UnauthenticatedError,
 )
 from loamz.server.agents.bootstrap.container import Container, Provider
-from loamz.server.identity import TokenVerifier
+from loamz.identity.server import TokenVerifier
 
 logger = logging.getLogger(__name__)
 

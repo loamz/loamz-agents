@@ -13,12 +13,12 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING
 
-from loamz.engine.agents.kernel.ports.files import FileStore
-from loamz.engine.agents.kernel.ports.graph import GraphStore
-from loamz.engine.agents.kernel.ports.tasks import TaskStore
-from loamz.engine.agents.kernel.ports.threads import ThreadStore
-from loamz.engine.agents.kernel.types.scope import Scope
-from loamz.engine.agents.stores.scoped import (
+from loamz.runtime.kernel.ports.files import FileStore
+from loamz.runtime.kernel.ports.graph import GraphStore
+from loamz.runtime.kernel.ports.tasks import TaskStore
+from loamz.runtime.kernel.ports.threads import ThreadStore
+from loamz.runtime.kernel.types.scope import Scope
+from loamz.runtime.stores.scoped import (
     _tenant,
     bind_graph,
     bind_session_state,
@@ -29,7 +29,7 @@ from loamz.engine.agents.stores.scoped import (
 from loamz.engine.memory import ShortTermMemory
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.stores.store import AgentStore
+    from loamz.runtime.stores.store import AgentStore
 
 
 @dataclass(frozen=True, slots=True)

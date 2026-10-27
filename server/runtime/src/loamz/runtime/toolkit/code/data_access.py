@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from loamz.engine.agents.kernel.types.run import RunScope
+from loamz.runtime.kernel.types.run import RunScope
 
 from .runtimes.base import DataMount
 

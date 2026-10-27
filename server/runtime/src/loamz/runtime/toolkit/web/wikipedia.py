@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import httpx2 as httpx
 
-from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import TextBlock
+from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import TextBlock
 
 _BASE = "https://en.wikipedia.org/api/rest_v1"
 _MAX_CHARS = 6000
@@ -18,7 +18,7 @@ class WikipediaTool:
 
     Example::
 
-        from loamz.engine.agents.toolkit.web.wikipedia import WikipediaTool
+        from loamz.runtime.toolkit.web.wikipedia import WikipediaTool
         agent = ReActAgent("bot", runtime, model=llm, tools=[WikipediaTool()])
     """
 

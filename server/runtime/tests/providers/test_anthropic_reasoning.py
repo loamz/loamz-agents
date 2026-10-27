@@ -10,13 +10,13 @@ construction. These tests lock in that the encoder now round-trips it.
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     ReasoningBlock,
     TextBlock,
     ToolUseBlock,
 )
-from loamz.engine.agents.providers.llm.encoders.anthropic import encode_messages
+from loamz.runtime.providers.llm.encoders.anthropic import encode_messages
 
 
 def _assistant_blocks(encoded: list[dict]) -> list[dict]:

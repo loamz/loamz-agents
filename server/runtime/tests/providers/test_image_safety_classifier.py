@@ -14,7 +14,7 @@ import io
 
 import pytest
 
-from loamz.engine.agents.kernel.safety import Severity
+from loamz.runtime.kernel.safety import Severity
 
 pytestmark = pytest.mark.heavy
 
@@ -30,7 +30,7 @@ def _solid_png(color: tuple[int, int, int], size: tuple[int, int] = (64, 64)) ->
 
 @pytest.fixture(scope="module")
 def classifier():
-    from loamz.engine.agents.providers.safety.image_classifier import ImageSafetyClassifier
+    from loamz.runtime.providers.safety.image_classifier import ImageSafetyClassifier
 
     return ImageSafetyClassifier()
 
@@ -57,7 +57,7 @@ def test_empty_bytes_fail_open_not_raise(classifier):
 
 
 def test_thresholds_are_configurable():
-    from loamz.engine.agents.providers.safety.image_classifier import ImageSafetyClassifier
+    from loamz.runtime.providers.safety.image_classifier import ImageSafetyClassifier
 
     # An artificially strict threshold (0.0) must flag ANY nonzero NSFW
     # score — proves the threshold param is actually wired through, not

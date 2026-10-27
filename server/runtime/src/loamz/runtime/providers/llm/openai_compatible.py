@@ -28,16 +28,16 @@ from typing import Any
 
 from openai import AsyncOpenAI
 
-from loamz.engine.agents.kernel.models import (
+from loamz.runtime.kernel.models import (
     GenerationOptions,
     LLMResponse,
     ModelCapabilities,
     ReasoningEffort,
 )
-from loamz.engine.agents.kernel.models.modalities import fit_to_capabilities
-from loamz.engine.agents.kernel.models.registry import resolve_capabilities
-from loamz.engine.agents.kernel.models.tool_arguments import parse_tool_arguments
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.models.modalities import fit_to_capabilities
+from loamz.runtime.kernel.models.registry import resolve_capabilities
+from loamz.runtime.kernel.models.tool_arguments import parse_tool_arguments
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     ContentBlock,
     DataBlock,
@@ -48,11 +48,11 @@ from loamz.engine.agents.kernel.types.content import (
     ToolResultBlock,
     ToolUseBlock,
 )
-from loamz.engine.agents.kernel.types.finish_reason import FinishReason
-from loamz.engine.agents.kernel.types.run import RunMeta
-from loamz.engine.agents.kernel.types.stream import CompletionEvent, ReasoningDelta, TextDelta
-from loamz.engine.agents.kernel.types.usage import Usage
-from loamz.engine.agents.providers.llm.base import off_effort
+from loamz.runtime.kernel.types.finish_reason import FinishReason
+from loamz.runtime.kernel.types.run import RunMeta
+from loamz.runtime.kernel.types.stream import CompletionEvent, ReasoningDelta, TextDelta
+from loamz.runtime.kernel.types.usage import Usage
+from loamz.runtime.providers.llm.base import off_effort
 
 logger = logging.getLogger(__name__)
 
@@ -256,7 +256,7 @@ class OpenAICompatibleClient:
             base_url="https://api.deepseek.com/v1",
         )
 
-    Use ``LLMFactory`` from ``loamz.engine.agents.providers.llm`` for auto-wired
+    Use ``LLMFactory`` from ``loamz.runtime.providers.llm`` for auto-wired
     provider detection by model-name prefix.
     """
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import time
 
-from loamz.engine.agents.kernel.types.ids import new_id
+from loamz.runtime.kernel.types.ids import new_id
 from loamz.engine.sql import Database
 
 SCHEMA = [

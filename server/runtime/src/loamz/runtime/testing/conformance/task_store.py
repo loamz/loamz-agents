@@ -11,7 +11,7 @@ import uuid
 
 import pytest
 
-from loamz.engine.agents.kernel.ports.tasks import TaskStatus, TaskStore
+from loamz.runtime.kernel.ports.tasks import TaskStatus, TaskStore
 
 
 class TaskStoreConformance:

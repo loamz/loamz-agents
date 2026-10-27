@@ -7,7 +7,7 @@ import json
 import httpx
 import pytest
 
-from loamz.engine.agents.kernel.runtime.sealing import SealError
+from loamz.runtime.kernel.runtime.sealing import SealError
 from loamz.server.agents.bootstrap import Container, Settings
 from loamz.server.agents.bootstrap.http import caller as caller_dependency
 from loamz.server.agents.bootstrap.sealing import AesSealer, new_key, sealer_from
@@ -72,7 +72,7 @@ async def test_a_chat_is_sealed_in_the_database_and_readable_through_the_api(tmp
             await container.runtime.store.channel_append(
                 f"group/{group['id']}",
                 sender=__import__(
-                    "loamz.engine.agents.kernel.types.identity", fromlist=["Actor"]
+                    "loamz.runtime.kernel.types.identity", fromlist=["Actor"]
                 ).Actor("member", "bot@g"),
                 text="a plan",
                 data={"ui": shown},

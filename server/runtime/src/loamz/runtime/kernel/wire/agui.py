@@ -31,7 +31,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
-from loamz.engine.agents.kernel.types.run_log import RunLogEntry, RunLogKind
+from loamz.runtime.kernel.types.run_log import RunLogEntry, RunLogKind
 
 
 class _Camel(BaseModel):

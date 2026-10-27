@@ -11,7 +11,7 @@ run.  Zero compute is consumed while the human decides.
 Usage::
 
     from loamz.server.agents.console.hitl import ConsoleHumanHandler
-    from loamz.engine.agents.toolkit.human_input import AskHumanTool
+    from loamz.runtime.toolkit.human_input import AskHumanTool
 
     handler = ConsoleHumanHandler()
     ask = AskHumanTool(handler=handler)
@@ -31,7 +31,7 @@ from rich.panel import Panel
 from rich.text import Text
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.toolkit.human_input import InputOption
+    from loamz.runtime.toolkit.human_input import InputOption
 
     from .theme import ConsoleTheme
 

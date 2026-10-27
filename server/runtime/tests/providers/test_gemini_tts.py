@@ -6,7 +6,7 @@ import io
 import wave
 from types import SimpleNamespace
 
-from loamz.engine.agents.providers.llm.gemini.gemini_client import GeminiClient, _as_wav
+from loamz.runtime.providers.llm.gemini.gemini_client import GeminiClient, _as_wav
 
 
 def test_raw_pcm_gets_a_wav_header_with_the_rate_from_the_mime_type():

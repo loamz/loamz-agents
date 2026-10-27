@@ -15,11 +15,11 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, TypeVar
 from uuid import uuid4
 
-from loamz.engine.agents.kernel.ports.tasks import Task, TaskList, TaskStatus
+from loamz.runtime.kernel.ports.tasks import Task, TaskList, TaskStatus
 from loamz.engine.sql import Row, Tx, under
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.stores.store import AgentStore
+    from loamz.runtime.stores.store import AgentStore
 
 T = TypeVar("T")
 

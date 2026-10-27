@@ -4,7 +4,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from loamz.engine.agents.kernel.types.content import JsonObject
+from loamz.runtime.kernel.types.content import JsonObject
 
 
 class BranchOut(BaseModel):

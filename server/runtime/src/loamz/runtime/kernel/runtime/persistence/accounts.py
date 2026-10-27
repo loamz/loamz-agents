@@ -5,9 +5,9 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
-from loamz.engine.agents.kernel.runtime.store import Spend
-from loamz.engine.agents.kernel.types.run_status import RunId
-from loamz.engine.agents.kernel.types.supervision import ExecutionBudget
+from loamz.runtime.kernel.runtime.store import Spend
+from loamz.runtime.kernel.types.run_status import RunId
+from loamz.runtime.kernel.types.supervision import ExecutionBudget
 from loamz.engine.sql import Tx
 
 

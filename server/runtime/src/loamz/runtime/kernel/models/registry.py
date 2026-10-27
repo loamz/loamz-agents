@@ -3,7 +3,7 @@
 Provides ``ModelProfile`` and a pre-populated ``MODEL_REGISTRY`` so the
 framework (and users) can query any model's capabilities:
 
-    from loamz.engine.agents.kernel.models.registry import get_model_profile, estimate_cost
+    from loamz.runtime.kernel.models.registry import get_model_profile, estimate_cost
 
     profile = get_model_profile("claude-sonnet-4-20250514")
     assert profile.context_length == 200_000
@@ -16,8 +16,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from loamz.engine.agents.kernel.models.protocols import Modality, ModelCapabilities
-from loamz.engine.agents.kernel.types.usage import Usage
+from loamz.runtime.kernel.models.protocols import Modality, ModelCapabilities
+from loamz.runtime.kernel.types.usage import Usage
 
 
 @dataclass(frozen=True)

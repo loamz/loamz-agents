@@ -14,9 +14,9 @@ from typing import TYPE_CHECKING, Any
 
 from rich.console import Console as RichConsole
 
-from loamz.engine.agents.kernel.ports.tasks import TaskStore
-from loamz.engine.agents.kernel.types.content import content_blocks_to_str
-from loamz.engine.agents.kernel.types.stream import (
+from loamz.runtime.kernel.ports.tasks import TaskStore
+from loamz.runtime.kernel.types.content import content_blocks_to_str
+from loamz.runtime.kernel.types.stream import (
     CompletionEvent,
     ReasoningDelta,
     StreamDone,
@@ -36,8 +36,8 @@ from .theme import DEFAULT_THEME, ConsoleTheme
 from .widgets import assistant_panel, error_panel, user_markup
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.runtime import Runtime
-    from loamz.engine.agents.toolkit.skills._manager import SkillManager
+    from loamz.runtime.kernel.runtime import Runtime
+    from loamz.runtime.toolkit.skills._manager import SkillManager
 
 
 class Console:

@@ -45,20 +45,20 @@ import logging
 from collections.abc import Awaitable, Callable
 from typing import ClassVar
 
-from loamz.engine.agents.kernel.errors import MiddlewareTermination
-from loamz.engine.agents.kernel.middleware._contracts import MiddlewareContext
-from loamz.engine.agents.kernel.middleware.guardrails.prompt_injection import _INJECTION_PATTERNS
-from loamz.engine.agents.kernel.middleware.stage import MiddlewareStage
-from loamz.engine.agents.kernel.safety.normalize import normalize
-from loamz.engine.agents.kernel.safety.protocols import (
+from loamz.runtime.kernel.errors import MiddlewareTermination
+from loamz.runtime.kernel.middleware._contracts import MiddlewareContext
+from loamz.runtime.kernel.middleware.guardrails.prompt_injection import _INJECTION_PATTERNS
+from loamz.runtime.kernel.middleware.stage import MiddlewareStage
+from loamz.runtime.kernel.safety.normalize import normalize
+from loamz.runtime.kernel.safety.protocols import (
     ImageSafetyClassifier,
     SafetyVerdict,
     Severity,
     TextSafetyClassifier,
     max_severity,
 )
-from loamz.engine.agents.kernel.types.content import MediaBlock, TextBlock
-from loamz.engine.agents.kernel.types.run_log import RunLogKind
+from loamz.runtime.kernel.types.content import MediaBlock, TextBlock
+from loamz.runtime.kernel.types.run_log import RunLogKind
 
 logger = logging.getLogger(__name__)
 

@@ -24,8 +24,8 @@ from typing import Literal
 
 from pydantic import BaseModel, model_validator
 
-from loamz.engine.agents.kernel.runtime.supervisor import RunHandle, RunResult
-from loamz.engine.agents.kernel.types.run_status import RunId, RunStatus
+from loamz.runtime.kernel.runtime.supervisor import RunHandle, RunResult
+from loamz.runtime.kernel.types.run_status import RunId, RunStatus
 
 
 class AskOutcome(BaseModel):

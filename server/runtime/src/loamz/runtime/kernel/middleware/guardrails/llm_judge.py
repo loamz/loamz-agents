@@ -6,12 +6,12 @@ import re
 from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from loamz.engine.agents.kernel.errors import MiddlewareTermination
-from loamz.engine.agents.kernel.middleware._contracts import MiddlewareContext
-from loamz.engine.agents.kernel.middleware.stage import MiddlewareStage
+from loamz.runtime.kernel.errors import MiddlewareTermination
+from loamz.runtime.kernel.middleware._contracts import MiddlewareContext
+from loamz.runtime.kernel.middleware.stage import MiddlewareStage
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.models.protocols import ChatModel
+    from loamz.runtime.kernel.models.protocols import ChatModel
 
 logger = logging.getLogger(__name__)
 
@@ -52,11 +52,11 @@ class LLMJudgeMiddleware:
         logger.debug("[LLMJudge] checking %r (agent=%s)", text[:80], context.agent_name)
 
         try:
-            from loamz.engine.agents.kernel.types.content import ChatMessage, TextBlock
+            from loamz.runtime.kernel.types.content import ChatMessage, TextBlock
 
             classify_request = f'Classify this message:\n"""\n{text}\n"""'
             messages = [ChatMessage(role="user", content=[TextBlock(text=classify_request)])]
-            from loamz.engine.agents.kernel.models.protocols import GenerationOptions
+            from loamz.runtime.kernel.models.protocols import GenerationOptions
 
             resp = await self._model_client.generate(
                 messages,

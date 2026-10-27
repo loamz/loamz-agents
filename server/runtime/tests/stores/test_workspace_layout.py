@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from loamz.engine.agents.stores.workspace.layout import (
+from loamz.runtime.stores.workspace.layout import (
     conversation_documents_prefix,
     conversation_shared_key,
     conversation_workspace_prefix,

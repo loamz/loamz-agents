@@ -11,9 +11,9 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-from loamz.engine.agents.kernel.caller import Caller
-from loamz.engine.agents.kernel.context.history import project_messages
-from loamz.engine.agents.kernel.types.content import Role
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.kernel.context.history import project_messages
+from loamz.runtime.kernel.types.content import Role
 from loamz.engine.errors import RateLimitedError
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.people.memory.service import memory

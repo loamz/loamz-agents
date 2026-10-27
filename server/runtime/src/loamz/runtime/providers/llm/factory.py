@@ -11,7 +11,7 @@ System instructions are NOT passed through this layer.  They travel as an
 explicit ``system_instructions=`` kwarg on every ``generate()`` call (see
 ``ChatModel.generate``).  The factory only handles connection wiring.
 
-Provider / model / cost table lives in ``loamz.engine.agents.kernel.models.models``.
+Provider / model / cost table lives in ``loamz.runtime.kernel.models.models``.
 
 OpenAI-compatible providers
 ----------------------------
@@ -61,7 +61,7 @@ from __future__ import annotations
 import logging
 from typing import Any, ClassVar
 
-from loamz.engine.agents.kernel.models import (
+from loamz.runtime.kernel.models import (
     ChatModel,
     EmbeddingModel,
     ModelProfile,
@@ -280,7 +280,7 @@ class LLMFactory:
             )
 
         if self._provider == "openai":
-            from loamz.engine.agents.providers.llm.openai.openai_client import OpenAIClient
+            from loamz.runtime.providers.llm.openai.openai_client import OpenAIClient
 
             return OpenAIClient(
                 model=self._bare_model,
@@ -289,7 +289,7 @@ class LLMFactory:
             )
 
         if self._provider in _CHAT_COMPLETIONS_PROVIDERS:
-            from loamz.engine.agents.providers.llm.openai_compatible import OpenAICompatibleClient
+            from loamz.runtime.providers.llm.openai_compatible import OpenAICompatibleClient
 
             client = OpenAICompatibleClient(
                 model=self._bare_model,
@@ -302,7 +302,7 @@ class LLMFactory:
             return client
 
         if self._provider == "anthropic":
-            from loamz.engine.agents.providers.llm.anthropic.anthropic_client import AnthropicClient
+            from loamz.runtime.providers.llm.anthropic.anthropic_client import AnthropicClient
 
             return AnthropicClient(
                 model=self._bare_model,
@@ -311,7 +311,7 @@ class LLMFactory:
             )
 
         if self._provider == "gemini":
-            from loamz.engine.agents.providers.llm.gemini.gemini_client import GeminiClient
+            from loamz.runtime.providers.llm.gemini.gemini_client import GeminiClient
 
             return GeminiClient(
                 model=self._bare_model,
@@ -493,7 +493,7 @@ def create_model_client(
         base_url = LLMFactory._BASE_URLS.get(provider)
 
     if provider == "openrouter" and (openrouter_site_url or openrouter_app_name):
-        from loamz.engine.agents.providers.llm.openai_compatible import OpenAICompatibleClient
+        from loamz.runtime.providers.llm.openai_compatible import OpenAICompatibleClient
 
         bare = strip_provider_prefix(model)
         extra_headers = {
@@ -544,7 +544,7 @@ def create_embedding_client(
     resolved_key = api_key or _pick_api_key(provider, api_keys or {})
 
     if provider == "openai":
-        from loamz.engine.agents.providers.llm.openai.openai_embedding_client import (
+        from loamz.runtime.providers.llm.openai.openai_embedding_client import (
             OpenAIEmbeddingClient,
         )
 
@@ -556,7 +556,7 @@ def create_embedding_client(
         )
 
     if provider == "gemini":
-        from loamz.engine.agents.providers.llm.gemini.gemini_embedding_client import (
+        from loamz.runtime.providers.llm.gemini.gemini_embedding_client import (
             GeminiEmbeddingClient,
         )
 
@@ -567,7 +567,7 @@ def create_embedding_client(
         )
 
     if provider == "sentence_transformers":
-        from loamz.engine.agents.providers.llm.local_embeddings import (
+        from loamz.runtime.providers.llm.local_embeddings import (
             SentenceTransformersEmbeddingClient,
         )
 
@@ -591,7 +591,7 @@ def create_embedding_client(
         # llama-server/sglang/vLLM VL endpoint), embeddings could not,
         # short of smuggling it through provider="openai" + an explicit
         # base_url=.
-        from loamz.engine.agents.providers.llm.openai.openai_embedding_client import (
+        from loamz.runtime.providers.llm.openai.openai_embedding_client import (
             OpenAIEmbeddingClient,
         )
 

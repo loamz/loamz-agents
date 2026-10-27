@@ -1,6 +1,6 @@
 import asyncio
 
-from loamz.engine.agents.kernel.caller import Caller
+from loamz.runtime.kernel.caller import Caller
 from loamz.server.agents.bootstrap.container import Container
 
 

@@ -25,7 +25,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable
 
-from loamz.engine.agents.kernel.errors import CancellationError
+from loamz.runtime.kernel.errors import CancellationError
 
 
 class CancellationToken:

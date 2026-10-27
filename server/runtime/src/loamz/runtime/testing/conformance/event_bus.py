@@ -9,14 +9,14 @@ import asyncio
 
 import pytest
 
-from loamz.engine.agents.kernel.events import (
+from loamz.runtime.kernel.events import (
     EventBus,
     EventEnvelope,
     RunCompleted,
     ThreadCreated,
     parse_event,
 )
-from loamz.engine.agents.kernel.types.ids import new_id
+from loamz.runtime.kernel.types.ids import new_id
 
 
 async def _take(bus: EventBus, event_type: str, group: str, n: int) -> list[EventEnvelope]:

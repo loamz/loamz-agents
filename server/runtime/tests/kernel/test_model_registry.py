@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pytest
 
-from loamz.engine.agents.kernel.models import (
+from loamz.runtime.kernel.models import (
     ModelProfile,
     estimate_cost,
     get_model_profile,
@@ -127,7 +127,7 @@ def test_no_duplicate_names() -> None:
 
 def test_a_model_a_host_serves_under_its_vendors_name_is_the_same_model() -> None:
     """NVIDIA NIM and OpenRouter name models ``vendor/model``; the registry knows the model, not the host."""
-    from loamz.engine.agents.providers.llm import LLMFactory
+    from loamz.runtime.providers.llm import LLMFactory
 
     assert LLMFactory.profile_for("openrouter/openai/gpt-4o-mini") is get_model_profile(
         "gpt-4o-mini"
@@ -137,7 +137,7 @@ def test_a_model_a_host_serves_under_its_vendors_name_is_the_same_model() -> Non
 
 
 def test_kimi_k2_6_reads_images_as_the_model_picker_says() -> None:
-    from loamz.engine.agents.providers.llm import LLMFactory, model_supports_vision
+    from loamz.runtime.providers.llm import LLMFactory, model_supports_vision
 
     for name in ("nvidia/moonshotai/kimi-k2.6", "moonshotai/kimi-k2.6", "kimi-k2.6"):
         profile = LLMFactory.profile_for(name)

@@ -14,7 +14,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     DataBlock,
     ErrorBlock,
@@ -24,7 +24,7 @@ from loamz.engine.agents.kernel.types.content import (
     ToolResultBlock,
     ToolUseBlock,
 )
-from loamz.engine.agents.providers.llm.encoders._media import bytes_to_base64
+from loamz.runtime.providers.llm.encoders._media import bytes_to_base64
 
 # ── Content encoding helpers ─────────────────────────────────────────────────
 

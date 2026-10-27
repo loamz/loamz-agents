@@ -7,7 +7,7 @@ start. `export` dumps the JSON Schema the UI's TypeScript types are generated fr
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.wire.events import (
+from loamz.runtime.kernel.wire.events import (
     ApprovalRequestedEvent,
     Attachment,
     ErrorEvent,
@@ -27,14 +27,14 @@ from loamz.engine.agents.kernel.wire.events import (
     UIResourceEvent,
     WireEvent,
 )
-from loamz.engine.agents.kernel.wire.from_log import STREAMING_KINDS, wire_from_log
-from loamz.engine.agents.kernel.wire.requests import (
+from loamz.runtime.kernel.wire.from_log import STREAMING_KINDS, wire_from_log
+from loamz.runtime.kernel.wire.requests import (
     ApprovalResponse,
     CancelRequest,
     ChatRequest,
     InputResponse,
 )
-from loamz.engine.agents.kernel.wire.version import PROTOCOL_VERSION
+from loamz.runtime.kernel.wire.version import PROTOCOL_VERSION
 
 __all__ = [
     "PROTOCOL_VERSION",

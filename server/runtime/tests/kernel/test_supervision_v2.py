@@ -11,11 +11,11 @@ from __future__ import annotations
 
 import asyncio
 
-from loamz.engine.agents.kernel.context import project_messages
-from loamz.engine.agents.kernel.runtime import DataPayload, Message
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.supervision import HistoryRetention
-from loamz.engine.agents.testing.runtime import ephemeral_runtime
+from loamz.runtime.kernel.context import project_messages
+from loamz.runtime.kernel.runtime import DataPayload, Message
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.supervision import HistoryRetention
+from loamz.runtime.testing.runtime import ephemeral_runtime
 from tests._stores import fs_history
 
 
@@ -62,7 +62,7 @@ async def test_crash_records_agent_crashed_status() -> None:
 
 async def test_guardrail_trip_records_guardrail_tripped_status() -> None:
     """MiddlewareTermination is recorded as guardrail_tripped, not agent_crashed."""
-    from loamz.engine.agents.kernel.errors import MiddlewareTermination
+    from loamz.runtime.kernel.errors import MiddlewareTermination
 
     class GuardrailAgent:
         id = _agent_id("guardrail")
@@ -84,7 +84,7 @@ async def test_guardrail_trip_records_guardrail_tripped_status() -> None:
 
 async def test_budget_exhausted_records_budget_exhausted_status() -> None:
     """BudgetExhaustedError is recorded as budget_exhausted."""
-    from loamz.engine.agents.kernel.errors import BudgetExhaustedError
+    from loamz.runtime.kernel.errors import BudgetExhaustedError
 
     class BudgetAgent:
         id = _agent_id("budgeter")
@@ -111,9 +111,9 @@ async def test_budget_exhausted_records_budget_exhausted_status() -> None:
 
 async def test_history_retention_run_clears_after_completion() -> None:
     """Agents with HistoryRetention.RUN have run-scoped history cleared on completion."""
-    from loamz.engine.agents.kernel.agents.base import persist_turns
-    from loamz.engine.agents.kernel.context import ContextConfig
-    from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
+    from loamz.runtime.kernel.agents.base import persist_turns
+    from loamz.runtime.kernel.context import ContextConfig
+    from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
 
     history = fs_history()
     ctx_cfg = ContextConfig(history, retention=HistoryRetention.RUN)
@@ -163,9 +163,9 @@ async def test_history_retention_run_clears_after_completion() -> None:
 
 async def test_history_retention_permanent_survives_completion() -> None:
     """Agents with HistoryRetention.PERMANENT (default) keep history after run ends."""
-    from loamz.engine.agents.kernel.agents.base import persist_turns
-    from loamz.engine.agents.kernel.context import ContextConfig
-    from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
+    from loamz.runtime.kernel.agents.base import persist_turns
+    from loamz.runtime.kernel.context import ContextConfig
+    from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
 
     history = fs_history()
     ctx_cfg = ContextConfig(history, retention=HistoryRetention.PERMANENT)

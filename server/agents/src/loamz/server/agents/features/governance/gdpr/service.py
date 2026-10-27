@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from loamz.engine.agents.stores.workspace.layout import tenant_prefix, user_prefix
+from loamz.runtime.stores.workspace.layout import tenant_prefix, user_prefix
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.governance.gdpr.model import ErasureSummary
 

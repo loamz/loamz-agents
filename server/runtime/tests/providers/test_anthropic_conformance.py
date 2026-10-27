@@ -8,9 +8,9 @@ import httpx
 import pytest
 from anthropic import AsyncAnthropic
 
-from loamz.engine.agents.kernel.models import ModelCapabilities
-from loamz.engine.agents.providers.llm.anthropic.anthropic_client import AnthropicClient
-from loamz.engine.agents.testing.conformance.chat_model import ChatModelConformance
+from loamz.runtime.kernel.models import ModelCapabilities
+from loamz.runtime.providers.llm.anthropic.anthropic_client import AnthropicClient
+from loamz.runtime.testing.conformance.chat_model import ChatModelConformance
 
 CAPS = ModelCapabilities(
     model_id="conformance-claude", input_modalities=frozenset({"text", "image"})

@@ -20,9 +20,9 @@ from typing import Any, Protocol
 import httpx
 import pytest
 
-from loamz.engine.agents.kernel.errors import UnsupportedContentError
-from loamz.engine.agents.kernel.models.protocols import EmbeddingModel, Modality
-from loamz.engine.agents.kernel.types.content import MediaBlock, TextBlock
+from loamz.runtime.kernel.errors import UnsupportedContentError
+from loamz.runtime.kernel.models.protocols import EmbeddingModel, Modality
+from loamz.runtime.kernel.types.content import MediaBlock, TextBlock
 
 WIDTH = 4
 

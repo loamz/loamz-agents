@@ -15,17 +15,17 @@ from __future__ import annotations
 from typing import Any
 from urllib.parse import quote
 
-from loamz.engine.agents.kernel.errors import DAGIntegrityError
-from loamz.engine.agents.kernel.ports.files import FileStore
-from loamz.engine.agents.kernel.ports.graph import Entity, GraphStore, Relationship, SubGraph
-from loamz.engine.agents.kernel.ports.tasks import Task, TaskList, TaskStatus, TaskStore
-from loamz.engine.agents.kernel.ports.threads import (
+from loamz.runtime.kernel.errors import DAGIntegrityError
+from loamz.runtime.kernel.ports.files import FileStore
+from loamz.runtime.kernel.ports.graph import Entity, GraphStore, Relationship, SubGraph
+from loamz.runtime.kernel.ports.tasks import Task, TaskList, TaskStatus, TaskStore
+from loamz.runtime.kernel.ports.threads import (
     Branch,
     HistoryCheckpoint,
     MessageNode,
     ThreadStore,
 )
-from loamz.engine.agents.kernel.types.scope import Scope
+from loamz.runtime.kernel.types.scope import Scope
 from loamz.engine.errors import InvalidRequestError
 from loamz.engine.memory import ShortTermMemory
 

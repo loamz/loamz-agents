@@ -1,5 +1,5 @@
 """Channels over the runtime's SQL tables: the sequencing, cursors and attention of
-``loamz.engine.agents.kernel.runtime.channel``, in the same transactions as the inbox they wake."""
+``loamz.runtime.kernel.runtime.channel``, in the same transactions as the inbox they wake."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from collections.abc import Awaitable, Callable, Sequence
 from datetime import UTC, datetime
 from typing import Any
 
-from loamz.engine.agents.kernel.runtime.channel import (
+from loamz.runtime.kernel.runtime.channel import (
     EVERYONE,
     AppendResult,
     ChannelChange,
@@ -23,13 +23,13 @@ from loamz.engine.agents.kernel.runtime.channel import (
     ParticipantKind,
     WakeReason,
 )
-from loamz.engine.agents.kernel.runtime.message import DataPayload, Message
-from loamz.engine.agents.kernel.runtime.persistence.accounts import exhausted
-from loamz.engine.agents.kernel.runtime.sealing import PlainSealer, Sealer
-from loamz.engine.agents.kernel.runtime.store import Delivery
-from loamz.engine.agents.kernel.types.content import JsonObject
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.ids import new_id
+from loamz.runtime.kernel.runtime.message import DataPayload, Message
+from loamz.runtime.kernel.runtime.persistence.accounts import exhausted
+from loamz.runtime.kernel.runtime.sealing import PlainSealer, Sealer
+from loamz.runtime.kernel.runtime.store import Delivery
+from loamz.runtime.kernel.types.content import JsonObject
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.ids import new_id
 from loamz.engine.sql import Database, Row, Tx
 
 logger = logging.getLogger(__name__)

@@ -1,8 +1,8 @@
-"""loamz.engine.agents.kernel.tools — Tools: the Tool contracts, approval, chaining policy, skills, and the Toolbox."""
+"""loamz.runtime.kernel.tools — Tools: the Tool contracts, approval, chaining policy, skills, and the Toolbox."""
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.tools.approval import (
+from loamz.runtime.kernel.tools.approval import (
     ApprovalDecision,
     ApprovalHandler,
     ApprovalRequest,
@@ -11,15 +11,15 @@ from loamz.engine.agents.kernel.tools.approval import (
     DurableApproval,
     approval_signal,
 )
-from loamz.engine.agents.kernel.tools.chain import (
+from loamz.runtime.kernel.tools.chain import (
     ChainCallRecord,
     ChainFile,
     ChainPolicy,
     ChainRunResult,
     InvocationResult,
 )
-from loamz.engine.agents.kernel.tools.function import FunctionTool, tool
-from loamz.engine.agents.kernel.tools.protocols import (
+from loamz.runtime.kernel.tools.function import FunctionTool, tool
+from loamz.runtime.kernel.tools.protocols import (
     AnyTool,
     HostedTool,
     PayloadBase,
@@ -35,8 +35,8 @@ from loamz.engine.agents.kernel.tools.protocols import (
     is_hosted_tool,
     is_provider_defined_tool,
 )
-from loamz.engine.agents.kernel.tools.skills import Skill
-from loamz.engine.agents.kernel.tools.toolbox import Toolbox
+from loamz.runtime.kernel.tools.skills import Skill
+from loamz.runtime.kernel.tools.toolbox import Toolbox
 
 __all__ = [
     "AnyTool",

@@ -1,4 +1,4 @@
-"""loamz.engine.agents.providers.llm.openai — OpenAI Responses API adapter.
+"""loamz.runtime.providers.llm.openai — OpenAI Responses API adapter.
 
 ``OpenAIClient``
     Uses the OpenAI **Responses API** (``/v1/responses``).
@@ -9,13 +9,13 @@
     OpenAI text-embedding models.
 
 For the universal OpenAI-compatible client (Groq, Ollama, vLLM, Together, …)
-see ``loamz.engine.agents.kernel.models.OpenAICompatibleClient``.
+see ``loamz.runtime.kernel.models.OpenAICompatibleClient``.
 """
 
 from __future__ import annotations
 
-from loamz.engine.agents.providers.llm.openai.openai_client import OpenAIClient
-from loamz.engine.agents.providers.llm.openai.openai_embedding_client import OpenAIEmbeddingClient
+from loamz.runtime.providers.llm.openai.openai_client import OpenAIClient
+from loamz.runtime.providers.llm.openai.openai_embedding_client import OpenAIEmbeddingClient
 
 __all__ = [
     "OpenAIClient",

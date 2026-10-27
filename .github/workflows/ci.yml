@@ -41,8 +41,8 @@ jobs:
           filters: |
             # Anything in `shared` affects every Python package.
             python:
-              - 'server/engine/**'
-              - 'server/server/**'
+              - 'server/runtime/**'
+              - 'server/agents/**'
               - 'meta/**'
               - 'specs/**'
               - 'pyproject.toml'
@@ -52,7 +52,7 @@ jobs:
               - '.github/workflows/ci.yml'
             reader:
               - 'server/reader/**'
-              - 'server/engine/**'
+              - 'server/runtime/**'
               - '.github/workflows/ci.yml'
             server:
               - 'server/**'
@@ -118,8 +118,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { name: loamz-engine, dir: server/engine }
-          - { name: loamz-server, dir: server/server }
+          - { name: loamz-runtime, dir: server/runtime }
+          - { name: loamz-agents-server, dir: server/agents }
     services:
       postgres:
         image: pgvector/pgvector:pg16
@@ -215,7 +215,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dir: [apps/agents-console, apps/data-workspace, sdk/js/oidc-bff]
+        dir: [apps/agents-console, sdk/js/oidc-bff]
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4 # pnpm version comes from "packageManager" in the root package.json

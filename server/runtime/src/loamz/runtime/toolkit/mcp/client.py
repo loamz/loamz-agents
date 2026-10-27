@@ -6,7 +6,7 @@ from contextlib import AsyncExitStack
 from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.toolkit.mcp.tool import MCPTool
+    from loamz.runtime.toolkit.mcp.tool import MCPTool
 
 try:
     from mcp import ClientSession, StdioServerParameters
@@ -222,7 +222,7 @@ class MCPClient:
 
     async def discover_tools(self) -> list[MCPTool]:
         """Discover all tools from the connected MCP server as MCPTool instances."""
-        from loamz.engine.agents.toolkit.mcp.tool import (
+        from loamz.runtime.toolkit.mcp.tool import (
             MCPTool,  # lazy: tool.py imports this module
         )
 

@@ -7,7 +7,7 @@ with another):
 * a day counter (`add_day` / `release_day` / `used_day`): how much so far today (UTC), for daily plan quotas.
 
 The in-memory adapter is exact within one process; the Redis adapter shares the numbers between processes
-(``loamz.engine.agents.testing.conformance`` style tests cover both).
+(``loamz.runtime.testing.conformance`` style tests cover both).
 """
 
 from __future__ import annotations

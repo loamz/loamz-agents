@@ -21,7 +21,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Literal
 
-_LOGGER_NAMESPACE = "loamz.engine.agents"
+_LOGGER_NAMESPACE = "loamz.runtime"
 _CONFIG_LOCK = threading.Lock()
 _CONFIGURED = False
 
@@ -140,14 +140,14 @@ def setup_logging(
     max_bytes: int = 10 * 1024 * 1024,
     backup_count: int = 5,
 ) -> logging.Logger:
-    """Configure ``loamz.engine.agents`` logger namespace and return a module logger.
+    """Configure ``loamz.runtime`` logger namespace and return a module logger.
 
     Safe to call from every module at import time::
 
         from loamz.server.agents.bootstrap.logging import setup_logging
         logger = setup_logging()
 
-    The first call configures the ``loamz.engine.agents`` namespace. Subsequent calls are
+    The first call configures the ``loamz.runtime`` namespace. Subsequent calls are
     constant-time and return a logger bound to the caller module.
 
     Parameters
@@ -155,7 +155,7 @@ def setup_logging(
     name:
         Explicit logger name. If omitted, inferred from caller module.
     level:
-        Minimum log level for the ``loamz.engine.agents`` namespace.
+        Minimum log level for the ``loamz.runtime`` namespace.
     mode:
         ``"json"``   — structured JSON (server / production).
         ``"pretty"`` — concise coloured lines (CLI / notebook).

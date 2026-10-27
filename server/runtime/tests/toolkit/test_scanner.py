@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from loamz.engine.agents.toolkit.discovery import CapabilityDiscovery
+from loamz.runtime.toolkit.discovery import CapabilityDiscovery
 
 
 def test_catalog_scanner_discovery(tmp_path, monkeypatch):

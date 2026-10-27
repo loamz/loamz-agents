@@ -10,10 +10,10 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from typing import Any
 
-from loamz.engine.agents.kernel.models import GenerationOptions, ModelCapabilities
-from loamz.engine.agents.kernel.types.content import ChatMessage, ContentBlock, TextBlock
-from loamz.engine.agents.kernel.types.stream import CompletionEvent, TextDelta
-from loamz.engine.agents.kernel.types.usage import Usage
+from loamz.runtime.kernel.models import GenerationOptions, ModelCapabilities
+from loamz.runtime.kernel.types.content import ChatMessage, ContentBlock, TextBlock
+from loamz.runtime.kernel.types.stream import CompletionEvent, TextDelta
+from loamz.runtime.kernel.types.usage import Usage
 
 
 class ScriptedLLM:

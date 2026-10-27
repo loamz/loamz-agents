@@ -16,7 +16,7 @@ from typing import Any
 
 import pytest
 
-from loamz.engine.agents.testing.runtime import ephemeral_runtime
+from loamz.runtime.testing.runtime import ephemeral_runtime
 from tests._stores import fs_history
 
 pytest.importorskip("opentelemetry.sdk")
@@ -26,12 +26,12 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 
-from loamz.engine.agents.kernel.agents import ReActAgent
-from loamz.engine.agents.kernel.context import ContextConfig
-from loamz.engine.agents.kernel.runtime import ChatPayload, Message
-from loamz.engine.agents.kernel.tools import Toolbox
-from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock, ToolUseBlock
-from loamz.engine.agents.kernel.types.identity import Actor
+from loamz.runtime.kernel.agents import ReActAgent
+from loamz.runtime.kernel.context import ContextConfig
+from loamz.runtime.kernel.runtime import ChatPayload, Message
+from loamz.runtime.kernel.tools import Toolbox
+from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock, ToolUseBlock
+from loamz.runtime.kernel.types.identity import Actor
 from tests.invariants._harness.doubles import ScriptedLLM
 from tests.invariants._harness.scenarios import ChargeCard
 

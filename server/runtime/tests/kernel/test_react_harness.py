@@ -6,12 +6,12 @@ from __future__ import annotations
 import asyncio
 from collections.abc import AsyncIterator
 
-from loamz.engine.agents.kernel.agents import ReActAgent
-from loamz.engine.agents.kernel.context import ContextConfig
-from loamz.engine.agents.kernel.models import GenerationOptions, ModelCapabilities
-from loamz.engine.agents.kernel.runtime import ChatPayload, Message, RunRetryPolicy, Runtime
-from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.agents import ReActAgent
+from loamz.runtime.kernel.context import ContextConfig
+from loamz.runtime.kernel.models import GenerationOptions, ModelCapabilities
+from loamz.runtime.kernel.runtime import ChatPayload, Message, RunRetryPolicy, Runtime
+from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     ContentBlock,
     Role,
@@ -19,11 +19,11 @@ from loamz.engine.agents.kernel.types.content import (
     ToolResultBlock,
     ToolUseBlock,
 )
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.stream import CompletionEvent
-from loamz.engine.agents.kernel.types.supervision import ExecutionBudget
-from loamz.engine.agents.kernel.types.usage import Usage
-from loamz.engine.agents.testing.runtime import ephemeral_runtime
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.stream import CompletionEvent
+from loamz.runtime.kernel.types.supervision import ExecutionBudget
+from loamz.runtime.kernel.types.usage import Usage
+from loamz.runtime.testing.runtime import ephemeral_runtime
 from tests._stores import fs_history
 
 
@@ -300,7 +300,7 @@ async def test_every_tool_returned_image_reaches_the_model_not_only_the_inline_o
     """Regression: an image referenced by URL or file_id (no bytes) used to be
     dropped between the tool and the model, and every image left a
     "[Image: ...]" placeholder in the text on top of the real thing."""
-    from loamz.engine.agents.kernel.types.content import MediaBlock
+    from loamz.runtime.kernel.types.content import MediaBlock
 
     class GalleryTool:
         risk = ToolRisk.SAFE
@@ -344,8 +344,8 @@ async def test_every_tool_returned_image_reaches_the_model_not_only_the_inline_o
 async def test_the_reply_is_the_answer_text_not_the_reasoning_trace():
     """Regression: the final answer used to be the last assistant turn
     stringified whole, so a reasoning block came back as "[Reasoning] ..."."""
-    from loamz.engine.agents.kernel.middleware import MiddlewarePipeline, MiddlewareStage
-    from loamz.engine.agents.kernel.types.content import ReasoningBlock
+    from loamz.runtime.kernel.middleware import MiddlewarePipeline, MiddlewareStage
+    from loamz.runtime.kernel.types.content import ReasoningBlock
 
     outputs: list[str] = []
 
@@ -374,7 +374,7 @@ async def test_the_reply_is_the_answer_text_not_the_reasoning_trace():
 async def test_a_budget_stop_keeps_the_turn_in_history():
     """Regression: a budget error mid-turn skipped persistence, so the user's
     message and every tool result vanished from the conversation."""
-    from loamz.engine.agents.kernel.context import project_messages
+    from loamz.runtime.kernel.context import project_messages
 
     history = fs_history()
     llm = ScriptedLLM(
@@ -415,13 +415,13 @@ async def test_an_agent_can_make_more_than_fifty_tool_calls_in_one_run():
 
 
 async def test_direct_tool_calls_are_not_cut_off_at_the_chain_default_of_60s():
-    from loamz.engine.agents.kernel.runtime.tool_invoker import DIRECT_CALL_POLICY
+    from loamz.runtime.kernel.runtime.tool_invoker import DIRECT_CALL_POLICY
 
     assert DIRECT_CALL_POLICY.call_timeout_s >= 300  # the code interpreter's own max
 
 
 async def test_an_agent_can_set_its_own_tool_policy():
-    from loamz.engine.agents.kernel.tools import ChainPolicy
+    from loamz.runtime.kernel.tools import ChainPolicy
 
     class SlowTool:
         risk = ToolRisk.SAFE

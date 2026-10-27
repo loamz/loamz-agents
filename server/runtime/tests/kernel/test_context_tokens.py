@@ -3,9 +3,9 @@ returned beyond its text."""
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.context import ToolResultCompactionStrategy, TruncationStrategy
-from loamz.engine.agents.kernel.context.tokens import estimate_message_tokens, estimate_tokens
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.context import ToolResultCompactionStrategy, TruncationStrategy
+from loamz.runtime.kernel.context.tokens import estimate_message_tokens, estimate_tokens
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     DataBlock,
     MediaBlock,
@@ -122,7 +122,7 @@ def _history_with_tool_calls() -> list[ChatMessage]:
 async def test_sliding_window_never_starts_on_a_tool_result_without_its_call():
     """Regression: slicing the last N messages could leave a tool result at the
     head with its call cut off, which every provider rejects with a 400."""
-    from loamz.engine.agents.kernel.context import SlidingWindowCompaction
+    from loamz.runtime.kernel.context import SlidingWindowCompaction
 
     history = _history_with_tool_calls()
     window = await SlidingWindowCompaction(max_messages=2).compact(history)

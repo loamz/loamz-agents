@@ -23,10 +23,10 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
-from loamz.engine.agents.kernel.types.content import ContentBlock
-from loamz.engine.agents.kernel.types.finish_reason import FinishReason
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.usage import Usage
+from loamz.runtime.kernel.types.content import ContentBlock
+from loamz.runtime.kernel.types.finish_reason import FinishReason
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.usage import Usage
 
 # ---------------------------------------------------------------------------
 # Token stream events  (LLM output, token by token)

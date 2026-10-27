@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from loamz.engine.agents.kernel.types.ids import new_id
+from loamz.runtime.kernel.types.ids import new_id
 
 
 @dataclass(frozen=True, slots=True)

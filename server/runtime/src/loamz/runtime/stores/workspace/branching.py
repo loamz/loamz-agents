@@ -18,9 +18,9 @@ removed, not fixed.)
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.ports.files import FileStore
-from loamz.engine.agents.kernel.ports.threads import ThreadStore
-from loamz.engine.agents.kernel.ports.workspace import WorkspaceSnapshot, WorkspaceStore
+from loamz.runtime.kernel.ports.files import FileStore
+from loamz.runtime.kernel.ports.threads import ThreadStore
+from loamz.runtime.kernel.ports.workspace import WorkspaceSnapshot, WorkspaceStore
 
 from .layout import conversation_workspace_prefix
 

@@ -1,6 +1,6 @@
 """The event bus port.
 
-Semantics every adapter keeps (``loamz.engine.agents.testing.conformance.EventBusConformance``):
+Semantics every adapter keeps (``loamz.runtime.testing.conformance.EventBusConformance``):
 
 * ``publish`` appends to the event type's stream and returns the event's position in it;
 * ``subscribe(event_type, group)`` delivers each event of that type once to the group (several consumers of one group
@@ -12,7 +12,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from typing import Protocol, runtime_checkable
 
-from loamz.engine.agents.kernel.events.envelope import EventEnvelope
+from loamz.runtime.kernel.events.envelope import EventEnvelope
 
 
 @runtime_checkable

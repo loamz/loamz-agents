@@ -5,16 +5,16 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from loamz.engine.agents.kernel.context.tokens import (
+from loamz.runtime.kernel.context.tokens import (
     DEFAULT_CHARS_PER_TOKEN,
     estimate_message_tokens,
     estimate_tokens,
 )
-from loamz.engine.agents.kernel.models.protocols import GenerationOptions
-from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
+from loamz.runtime.kernel.models.protocols import GenerationOptions
+from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.models.protocols import ChatModel
+    from loamz.runtime.kernel.models.protocols import ChatModel
 
 logger = logging.getLogger(__name__)
 

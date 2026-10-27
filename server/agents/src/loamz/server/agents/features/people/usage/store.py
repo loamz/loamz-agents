@@ -12,7 +12,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 
-from loamz.engine.agents.stores import AgentStore
+from loamz.runtime.stores import AgentStore
 from loamz.engine.sql import Tx
 
 MAX_THREADS = 500

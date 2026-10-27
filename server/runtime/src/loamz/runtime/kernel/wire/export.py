@@ -2,7 +2,7 @@
 
 Run::
 
-    uv run python -m loamz.engine.agents.kernel.wire.export
+    uv run python -m loamz.runtime.kernel.wire.export
 
 Writes ``protocol.schema.json`` next to this file. The UI's ``pnpm gen:protocol``
 reads that file and generates ``src/protocol/protocol.gen.ts``. Re-run both
@@ -20,14 +20,14 @@ from pathlib import Path
 
 from pydantic import TypeAdapter
 
-from loamz.engine.agents.kernel.wire.events import WireEvent
-from loamz.engine.agents.kernel.wire.requests import (
+from loamz.runtime.kernel.wire.events import WireEvent
+from loamz.runtime.kernel.wire.requests import (
     ApprovalResponse,
     CancelRequest,
     ChatRequest,
     InputResponse,
 )
-from loamz.engine.agents.kernel.wire.version import PROTOCOL_VERSION
+from loamz.runtime.kernel.wire.version import PROTOCOL_VERSION
 
 _SCHEMA_PATH = Path(__file__).parent / "protocol.schema.json"
 

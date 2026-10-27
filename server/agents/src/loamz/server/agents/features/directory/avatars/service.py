@@ -10,9 +10,9 @@ from __future__ import annotations
 import hashlib
 import io
 
-from loamz.engine.agents.kernel.caller import Caller
-from loamz.engine.agents.kernel.ports.files import FileStore
-from loamz.engine.agents.stores.workspace.layout import workspace_avatar_key
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.kernel.ports.files import FileStore
+from loamz.runtime.stores.workspace.layout import workspace_avatar_key
 from loamz.engine.errors import InvalidRequestError, QuotaExceededError
 from loamz.server.agents.bootstrap.container import Container
 

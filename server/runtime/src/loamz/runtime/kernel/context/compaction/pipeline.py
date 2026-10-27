@@ -14,8 +14,8 @@ When only one strategy is needed, pass it directly — no need to wrap it.
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.context.protocols import CompactionStrategy
-from loamz.engine.agents.kernel.types.content import ChatMessage
+from loamz.runtime.kernel.context.protocols import CompactionStrategy
+from loamz.runtime.kernel.types.content import ChatMessage
 
 
 class CompactionPipeline:

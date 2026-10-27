@@ -6,7 +6,7 @@ OpenAI-compatible endpoint (vLLM, Ollama, etc.) via ``base_url``.
 
 Usage::
 
-    from loamz.engine.agents.providers.llm.openai.openai_embedding_client import OpenAIEmbeddingClient
+    from loamz.runtime.providers.llm.openai.openai_embedding_client import OpenAIEmbeddingClient
 
     client = OpenAIEmbeddingClient(api_key="sk-...")
     result = await client.embed(["Hello world"])
@@ -19,7 +19,7 @@ from typing import Any
 
 from openai import AsyncOpenAI
 
-from loamz.engine.agents.providers.llm.base import BaseEmbeddingClient, EmbeddingResult
+from loamz.runtime.providers.llm.base import BaseEmbeddingClient, EmbeddingResult
 
 logger = logging.getLogger(__name__)
 

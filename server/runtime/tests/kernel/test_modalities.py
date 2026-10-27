@@ -5,11 +5,11 @@ from __future__ import annotations
 
 import pytest
 
-from loamz.engine.agents.kernel.models import Modality, ModelCapabilities, estimate_cost
-from loamz.engine.agents.kernel.models.modalities import fit_to_capabilities
-from loamz.engine.agents.kernel.models.registry import resolve_capabilities
-from loamz.engine.agents.kernel.models.tool_arguments import parse_tool_arguments
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.models import Modality, ModelCapabilities, estimate_cost
+from loamz.runtime.kernel.models.modalities import fit_to_capabilities
+from loamz.runtime.kernel.models.registry import resolve_capabilities
+from loamz.runtime.kernel.models.tool_arguments import parse_tool_arguments
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     MediaBlock,
     Role,
@@ -17,8 +17,8 @@ from loamz.engine.agents.kernel.types.content import (
     ToolResultBlock,
     ToolUseBlock,
 )
-from loamz.engine.agents.kernel.types.usage import Usage
-from loamz.engine.agents.providers.llm import OpenAICompatibleClient
+from loamz.runtime.kernel.types.usage import Usage
+from loamz.runtime.providers.llm import OpenAICompatibleClient
 
 PNG = b"\x89PNG" + b"\x00" * 16
 

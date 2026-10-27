@@ -19,10 +19,10 @@ import json
 import logging
 import re
 
-from loamz.engine.agents.evals.criteria import EvalCriterion
-from loamz.engine.agents.evals.models import EvalScore
-from loamz.engine.agents.kernel.models import ChatModel
-from loamz.engine.agents.kernel.types.content import ChatMessage
+from loamz.runtime.evals.criteria import EvalCriterion
+from loamz.runtime.evals.models import EvalScore
+from loamz.runtime.kernel.models import ChatModel
+from loamz.runtime.kernel.types.content import ChatMessage
 
 logger = logging.getLogger(__name__)
 
@@ -142,8 +142,8 @@ class LLMJudge:
         # Call judge LLM with retries
         for attempt in range(self.max_retries + 1):
             try:
-                from loamz.engine.agents.kernel.models import GenerationOptions
-                from loamz.engine.agents.kernel.types.content import TextBlock
+                from loamz.runtime.kernel.models import GenerationOptions
+                from loamz.runtime.kernel.types.content import TextBlock
 
                 response = await self.model_client.generate(
                     messages=[

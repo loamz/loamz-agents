@@ -21,14 +21,14 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, SerializeAsAny, field_validator
 
-from loamz.engine.agents.kernel.tools.protocols import (
+from loamz.runtime.kernel.tools.protocols import (
     PayloadBase,
     ToolCallRequest,
     ToolExecutionResult,
 )
-from loamz.engine.agents.kernel.types.content import ChatMessage, JsonObject
-from loamz.engine.agents.kernel.types.identity import Actor, Topic
-from loamz.engine.agents.kernel.types.ids import new_id
+from loamz.runtime.kernel.types.content import ChatMessage, JsonObject
+from loamz.runtime.kernel.types.identity import Actor, Topic
+from loamz.runtime.kernel.types.ids import new_id
 
 # ---------------------------------------------------------------------------
 # Built-in payload types  (all inherit PayloadBase)

@@ -5,8 +5,8 @@ from __future__ import annotations
 import asyncio
 from functools import partial
 
-from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import TextBlock
+from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import TextBlock
 
 
 class WebSearchTool:

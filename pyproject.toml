@@ -1,15 +1,11 @@
 # Virtual workspace root: no package of its own. One lockfile (uv.lock) pins every Python package here
 # so they are always tested together. `uv sync --all-packages` installs them; `uv run --package X ...` runs one.
 #
-# document-intelligence is NOT a member: PaddlePaddle publishes no Python 3.14 wheel, so that service stays on
-# 3.13 with its own lock (data/document-intelligence/uv.lock) and image.
 [tool.uv.workspace]
 members = [
-    "server/engine",
-    "server/server",
+    "server/runtime",
+    "server/agents",
 ]
-# loamz-reader runs on Python 3.13 (PaddlePaddle has no 3.14 wheels yet) with its own lock.
-exclude = ["server/reader"]
 
 # Indexes are read from the workspace root only.
 [[tool.uv.index]]
@@ -19,8 +15,10 @@ explicit = true
 
 [tool.uv.sources]
 torch = { index = "pytorch-cpu" }
-loamz-engine = { workspace = true }
-loamz-server = { workspace = true }
+loamz-runtime = { workspace = true }
+loamz-agents-server = { workspace = true }
+# The storage engines come from the Loamz Data repository (until they are on PyPI).
+loamz-engine = { git = "https://github.com/loamz/loamz-data", subdirectory = "server/engine" }
 # The client libraries live in loamz-python; until they are on PyPI the server builds against its main branch.
 loamz-core = { git = "https://github.com/loamz/loamz-python", subdirectory = "sdk/python/core" }
 loamz-identity = { git = "https://github.com/loamz/loamz-python", subdirectory = "sdk/python/identity" }

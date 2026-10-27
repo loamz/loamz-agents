@@ -19,8 +19,8 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
-from loamz.engine.agents.kernel.ports.files import FileStore
-from loamz.engine.agents.kernel.ports.workspace import ContentRef
+from loamz.runtime.kernel.ports.files import FileStore
+from loamz.runtime.kernel.ports.workspace import ContentRef
 
 from .layout import blob_key
 

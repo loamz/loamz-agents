@@ -12,8 +12,8 @@ import uuid
 
 import pytest
 
-from loamz.engine.agents.kernel.errors import SnapshotConflictError
-from loamz.engine.agents.kernel.ports.workspace import WorkspaceSnapshot, WorkspaceStore
+from loamz.runtime.kernel.errors import SnapshotConflictError
+from loamz.runtime.kernel.ports.workspace import WorkspaceSnapshot, WorkspaceStore
 
 
 def snapshot(

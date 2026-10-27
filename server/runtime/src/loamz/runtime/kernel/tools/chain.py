@@ -33,8 +33,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from loamz.engine.agents.kernel.tools.protocols import ToolRisk
-from loamz.engine.agents.kernel.types.content import MediaBlock
+from loamz.runtime.kernel.tools.protocols import ToolRisk
+from loamz.runtime.kernel.types.content import MediaBlock
 
 # ---------------------------------------------------------------------------
 # ChainPolicy — per-chain execution limits

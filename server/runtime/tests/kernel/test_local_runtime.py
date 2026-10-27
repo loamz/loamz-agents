@@ -11,15 +11,15 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 
-from loamz.engine.agents.kernel.agents import ReActAgent
-from loamz.engine.agents.kernel.models import ModelCapabilities
-from loamz.engine.agents.kernel.runtime import ChatPayload, Delivery, Message, Runtime
-from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.run_log import RunLogKind
-from loamz.engine.agents.kernel.types.stream import CompletionEvent
-from loamz.engine.agents.kernel.types.usage import Usage
-from loamz.engine.agents.testing.runtime import runtime_store
+from loamz.runtime.kernel.agents import ReActAgent
+from loamz.runtime.kernel.models import ModelCapabilities
+from loamz.runtime.kernel.runtime import ChatPayload, Delivery, Message, Runtime
+from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.run_log import RunLogKind
+from loamz.runtime.kernel.types.stream import CompletionEvent
+from loamz.runtime.kernel.types.usage import Usage
+from loamz.runtime.testing.runtime import runtime_store
 from tests._stores import open_runtime
 
 TERMINAL = (RunLogKind.RUN_COMPLETED, RunLogKind.RUN_FAILED, RunLogKind.RUN_CANCELLED)
@@ -78,7 +78,7 @@ async def test_a_run_submitted_before_a_restart_is_picked_up_after_it(
     path = tmp_path / "rt.db"
     agent = ReActAgent("LocalBot", model=MockChatModel(), max_iterations=3)
 
-    from loamz.engine.agents.kernel.runtime import RunSpec
+    from loamz.runtime.kernel.runtime import RunSpec
 
     store = runtime_store(path)
     await store.start()

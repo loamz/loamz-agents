@@ -1,7 +1,7 @@
 import httpx
 import pytest
 
-from loamz.engine.agents.kernel.caller import Caller
+from loamz.runtime.kernel.caller import Caller
 from loamz.server.agents.bootstrap import Container, Settings
 from loamz.server.agents.bootstrap.http import caller as caller_dependency
 from loamz.server.agents.http import create_app

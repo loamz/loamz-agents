@@ -3,8 +3,8 @@
 Role-split deployments talk only through these events and the shared database.
 """
 
-from loamz.engine.agents.kernel.events.bus import EventBus
-from loamz.engine.agents.kernel.events.catalog import (
+from loamz.runtime.kernel.events.bus import EventBus
+from loamz.runtime.kernel.events.catalog import (
     AUDITED,
     CATALOG,
     CancelRequested,
@@ -17,8 +17,8 @@ from loamz.engine.agents.kernel.events.catalog import (
     ThreadDeleted,
     parse_event,
 )
-from loamz.engine.agents.kernel.events.envelope import EventEnvelope
-from loamz.engine.agents.kernel.events.memory import InMemoryEventBus
+from loamz.runtime.kernel.events.envelope import EventEnvelope
+from loamz.runtime.kernel.events.memory import InMemoryEventBus
 
 __all__ = [
     "AUDITED",

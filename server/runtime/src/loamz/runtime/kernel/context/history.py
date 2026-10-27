@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from loamz.engine.agents.kernel.errors import DAGIntegrityError
-from loamz.engine.agents.kernel.ports.threads import HistoryCheckpoint, MessageNode, ThreadStore
-from loamz.engine.agents.kernel.types.content import ChatMessage
+from loamz.runtime.kernel.errors import DAGIntegrityError
+from loamz.runtime.kernel.ports.threads import HistoryCheckpoint, MessageNode, ThreadStore
+from loamz.runtime.kernel.types.content import ChatMessage
 
 _UNSET: Any = object()
 
@@ -121,7 +121,7 @@ async def project_messages(
         branch.head_message_id
     )
     if builder is None:
-        from loamz.engine.agents.kernel.context.builder import DefaultContextBuilder
+        from loamz.runtime.kernel.context.builder import DefaultContextBuilder
 
         builder = DefaultContextBuilder()
     window = await builder.build(nodes, checkpoint=checkpoint)

@@ -12,14 +12,14 @@ from __future__ import annotations
 
 import pytest
 
-from loamz.engine.agents.kernel.errors import MiddlewareTermination
-from loamz.engine.agents.kernel.middleware import (
+from loamz.runtime.kernel.errors import MiddlewareTermination
+from loamz.runtime.kernel.middleware import (
     MiddlewareContext,
     MiddlewareStage,
     MultimodalSafetyMiddleware,
 )
-from loamz.engine.agents.kernel.safety import SafetyVerdict, Severity
-from loamz.engine.agents.kernel.types.content import ChatMessage, MediaBlock, TextBlock
+from loamz.runtime.kernel.safety import SafetyVerdict, Severity
+from loamz.runtime.kernel.types.content import ChatMessage, MediaBlock, TextBlock
 
 
 class _FakeTextClassifier:

@@ -31,20 +31,20 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import TYPE_CHECKING
 
-from loamz.engine.agents.kernel.agents.routed import RoutedAgent, handle
-from loamz.engine.agents.kernel.runtime.communication import AskOutcome
-from loamz.engine.agents.kernel.runtime.message import ChatPayload, DataPayload, Message
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.agents.routed import RoutedAgent, handle
+from loamz.runtime.kernel.runtime.communication import AskOutcome
+from loamz.runtime.kernel.runtime.message import ChatPayload, DataPayload, Message
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     Role,
     TextBlock,
     content_blocks_to_str,
 )
-from loamz.engine.agents.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.identity import Actor
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.runtime.context import Agent, RunContext
-    from loamz.engine.agents.kernel.runtime.supervisor import RunHandle
+    from loamz.runtime.kernel.runtime.context import Agent, RunContext
+    from loamz.runtime.kernel.runtime.supervisor import RunHandle
 
 logger = logging.getLogger(__name__)
 

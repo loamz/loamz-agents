@@ -2,8 +2,8 @@
 
 import httpx
 
-from loamz.engine.agents.data import DataFileStore
-from loamz.engine.agents.providers.files import LocalFileStore
+from loamz.runtime.data import DataFileStore
+from loamz.runtime.providers.files import LocalFileStore
 from loamz.server.agents.bootstrap import Container, Settings
 from loamz.server.agents.http import create_app
 
@@ -63,7 +63,7 @@ def test_a_minted_token_carries_every_claim_the_data_service_requires(tmp_path):
 def test_times_from_the_data_service_become_epoch_seconds():
     from datetime import UTC, datetime
 
-    from loamz.engine.agents.data.files import _epoch
+    from loamz.runtime.data.files import _epoch
 
     assert _epoch(None) == 0.0
     assert _epoch("2026-10-22T10:00:00+00:00") == datetime(2026, 10, 22, 10, tzinfo=UTC).timestamp()

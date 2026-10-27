@@ -8,7 +8,7 @@ from typing import Protocol, runtime_checkable
 
 from pydantic import Field
 
-from loamz.engine.agents.kernel.types.content import KernelModel
+from loamz.runtime.kernel.types.content import KernelModel
 
 
 class TaskStatus(StrEnum):

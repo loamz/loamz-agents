@@ -24,10 +24,10 @@ import logging
 import shlex
 from typing import Any
 
-from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.run import scope_of
-from loamz.engine.agents.stores.workspace.layout import is_persistent_workspace
-from loamz.engine.agents.stores.workspace.scope import WorkspaceScope, workspace_scope
+from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.run import scope_of
+from loamz.runtime.stores.workspace.layout import is_persistent_workspace
+from loamz.runtime.stores.workspace.scope import WorkspaceScope, workspace_scope
 
 from .code_risk import classify_and_summarize
 from .data_access import DATA_GUIDANCE, DataAccess

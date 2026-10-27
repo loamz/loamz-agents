@@ -23,18 +23,18 @@ from collections.abc import Awaitable, Callable
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, TypeVar
 
-from loamz.engine.agents.kernel.errors import (
+from loamz.runtime.kernel.errors import (
     BranchAlreadyExistsError,
     BranchHeadConflictError,
     BranchNotFoundError,
     DAGIntegrityError,
 )
-from loamz.engine.agents.kernel.ports.threads import Branch, HistoryCheckpoint, MessageNode
-from loamz.engine.agents.kernel.types.content import ChatMessage
+from loamz.runtime.kernel.ports.threads import Branch, HistoryCheckpoint, MessageNode
+from loamz.runtime.kernel.types.content import ChatMessage
 from loamz.engine.sql import Row, Tx, under
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.stores.store import AgentStore
+    from loamz.runtime.stores.store import AgentStore
 
 T = TypeVar("T")
 

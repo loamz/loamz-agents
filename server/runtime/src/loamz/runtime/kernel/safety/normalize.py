@@ -32,7 +32,7 @@ except ImportError:  # pragma: no cover - optional `safety` extra
     # fails open... so not core" for a missing confusable_homoglyphs, but
     # this was an unconditional top-level import with no fallback -- a
     # bare `loamz-agents` install (no `safety` extra) couldn't even
-    # `import loamz.engine.agents` at all, let alone degrade gracefully.
+    # `import loamz.runtime` at all, let alone degrade gracefully.
     confusables = None  # type: ignore[assignment]
 
 # ── Character classes that are invisible or near-invisible to a human but

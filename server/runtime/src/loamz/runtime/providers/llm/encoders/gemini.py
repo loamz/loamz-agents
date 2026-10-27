@@ -17,7 +17,7 @@ from typing import Any, cast
 
 from google.genai import types as genai_types
 
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     DataBlock,
     ErrorBlock,

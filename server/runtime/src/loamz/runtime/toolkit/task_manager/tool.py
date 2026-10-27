@@ -22,12 +22,12 @@ import logging
 from collections.abc import Awaitable, Callable
 from typing import Any
 
-from loamz.engine.agents.kernel.ports.tasks import TaskStatus
-from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk, ToolUI
-from loamz.engine.agents.kernel.types.content import TextBlock
-from loamz.engine.agents.kernel.types.run import RunMeta, scope_of
-from loamz.engine.agents.kernel.types.scope import Scope
-from loamz.engine.agents.stores.scoped import bind_tasks
+from loamz.runtime.kernel.ports.tasks import TaskStatus
+from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk, ToolUI
+from loamz.runtime.kernel.types.content import TextBlock
+from loamz.runtime.kernel.types.run import RunMeta, scope_of
+from loamz.runtime.kernel.types.scope import Scope
+from loamz.runtime.stores.scoped import bind_tasks
 
 logger = logging.getLogger(__name__)
 

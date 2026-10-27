@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Sequence
 
-from loamz.engine.agents.kernel.middleware._contracts import Middleware, MiddlewareContext
-from loamz.engine.agents.kernel.middleware.stage import MiddlewareStage
+from loamz.runtime.kernel.middleware._contracts import Middleware, MiddlewareContext
+from loamz.runtime.kernel.middleware.stage import MiddlewareStage
 
 _ALL_STAGES = frozenset(MiddlewareStage)
 

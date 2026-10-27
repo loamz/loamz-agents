@@ -1,8 +1,8 @@
-"""loamz.engine.agents.kernel.types — Value types every part of the engine shares: content blocks, messages, ids, usage, errors, run scope."""
+"""loamz.runtime.kernel.types — Value types every part of the engine shares: content blocks, messages, ids, usage, errors, run scope."""
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.errors import (
+from loamz.runtime.kernel.errors import (
     AgentCrashError,
     AuthError,
     BlockValidationError,
@@ -26,7 +26,7 @@ from loamz.engine.agents.kernel.errors import (
     ThreadBusyError,
     UnsupportedContentError,
 )
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     ContentBlock,
     ContentBlockAdapter,
@@ -44,9 +44,9 @@ from loamz.engine.agents.kernel.types.content import (
     content_blocks_to_str,
     parse_content_block,
 )
-from loamz.engine.agents.kernel.types.error_info import ErrorInfo
-from loamz.engine.agents.kernel.types.identity import Actor, Topic
-from loamz.engine.agents.kernel.types.ids import (
+from loamz.runtime.kernel.types.error_info import ErrorInfo
+from loamz.runtime.kernel.types.identity import Actor, Topic
+from loamz.runtime.kernel.types.ids import (
     BranchId,
     MessageId,
     TenantId,
@@ -54,16 +54,16 @@ from loamz.engine.agents.kernel.types.ids import (
     UserId,
     new_id,
 )
-from loamz.engine.agents.kernel.types.run import (
+from loamz.runtime.kernel.types.run import (
     CancellationTokenProtocol,
     RunMeta,
     RunScope,
     scope_of,
 )
-from loamz.engine.agents.kernel.types.run_log import RunLogEntry, RunLogKind
-from loamz.engine.agents.kernel.types.run_status import RunId, RunStatus, new_run_id
-from loamz.engine.agents.kernel.types.scope import Scope
-from loamz.engine.agents.kernel.types.stream import (
+from loamz.runtime.kernel.types.run_log import RunLogEntry, RunLogKind
+from loamz.runtime.kernel.types.run_status import RunId, RunStatus, new_run_id
+from loamz.runtime.kernel.types.scope import Scope
+from loamz.runtime.kernel.types.stream import (
     AgentProgress,
     AgentStep,
     CompletionEvent,
@@ -71,16 +71,16 @@ from loamz.engine.agents.kernel.types.stream import (
     StreamDone,
     TextDelta,
 )
-from loamz.engine.agents.kernel.types.supervision import (
+from loamz.runtime.kernel.types.supervision import (
     ExecutionBudget,
     HistoryRetention,
     Priority,
     SpawnBudget,
     Supervision,
 )
-from loamz.engine.agents.kernel.types.trace import TraceContext
-from loamz.engine.agents.kernel.types.usage import Usage
-from loamz.engine.agents.kernel.types.wakeup import Wakeup
+from loamz.runtime.kernel.types.trace import TraceContext
+from loamz.runtime.kernel.types.usage import Usage
+from loamz.runtime.kernel.types.wakeup import Wakeup
 from loamz.engine.errors import (
     LoamzError,
     NotFoundError,

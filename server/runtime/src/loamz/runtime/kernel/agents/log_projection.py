@@ -13,17 +13,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     ContentBlock,
     TextBlock,
     ToolResultBlock,
     ToolUseBlock,
 )
-from loamz.engine.agents.kernel.types.run_log import RunLogKind
+from loamz.runtime.kernel.types.run_log import RunLogKind
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.runtime.store import RuntimeStore
+    from loamz.runtime.kernel.runtime.store import RuntimeStore
 
 
 async def rebuild_messages_from_steps(

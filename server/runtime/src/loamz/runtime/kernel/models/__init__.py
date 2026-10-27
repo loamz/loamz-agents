@@ -1,9 +1,9 @@
-"""loamz.engine.agents.kernel.models — Chat and embedding models: their contracts, the capability registry, modality fitting, error classification."""
+"""loamz.runtime.kernel.models — Chat and embedding models: their contracts, the capability registry, modality fitting, error classification."""
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.models.client import ChatModel, EmbeddingModel, Reranker
-from loamz.engine.agents.kernel.models.protocols import (
+from loamz.runtime.kernel.models.client import ChatModel, EmbeddingModel, Reranker
+from loamz.runtime.kernel.models.protocols import (
     EmbeddingResult,
     FinishReason,
     GenerationOptions,
@@ -12,7 +12,7 @@ from loamz.engine.agents.kernel.models.protocols import (
     ModelCapabilities,
     ReasoningEffort,
 )
-from loamz.engine.agents.kernel.models.registry import (
+from loamz.runtime.kernel.models.registry import (
     MODEL_REGISTRY,
     ModelProfile,
     estimate_cost,

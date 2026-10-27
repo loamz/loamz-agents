@@ -3,15 +3,15 @@
 import pytest
 from pydantic import ValidationError
 
-from loamz.engine.agents.kernel.context import (
+from loamz.runtime.kernel.context import (
     CompactionContext,
     CompactionPhase,
     CompactionResult,
     DefaultCompactionCoordinator,
 )
-from loamz.engine.agents.kernel.errors import BudgetExhaustedError
-from loamz.engine.agents.kernel.ports.threads import HistoryCheckpoint
-from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
+from loamz.runtime.kernel.errors import BudgetExhaustedError
+from loamz.runtime.kernel.ports.threads import HistoryCheckpoint
+from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
 
 
 def _msg(text: str, role: Role = Role.USER) -> ChatMessage:

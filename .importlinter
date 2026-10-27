@@ -1,10 +1,11 @@
-# Loamz dependency rules. Run: uv run lint-imports --config .importlinter
+# Loamz Agents dependency rules. Run: uv run lint-imports --config .importlinter
 #
 #   loamz.core, loamz.identity, loamz.data   the client libraries (loamz-python repo; HTTP only)
-#   loamz.engine                             the embeddable engines (sql, files, vectors, documents, agent runtime)
-#   loamz.server                             the open platform (data, agents hosting, identity)
+#   loamz.engine                             the storage engines (loamz-data repo: sql, files, vectors, documents, memory)
+#   loamz.runtime                            the agent runtime (this repo)
+#   loamz.server.agents                      agent hosting (this repo)
 #
-# The engines import no server. The data platform never imports the agent runtime.
+# The runtime imports no server. It reaches Loamz Data only through the client libraries (the data adapters).
 [importlinter]
 root_packages =
     loamz
@@ -12,51 +13,17 @@ include_external_packages = False
 # An import made only for type checking never runs, so it cannot drag a layer along.
 exclude_type_checking_imports = True
 
-[importlinter:contract:engine-is-self-contained]
-name = the engines import no server and no client (only the data adapters, behind the data extra, use the client)
+[importlinter:contract:runtime-imports-no-server]
+name = the runtime imports no server (only the data adapters, behind the data extra, use the client)
 type = forbidden
 source_modules =
-    loamz.engine
+    loamz.runtime
 forbidden_modules =
     loamz.server
-    loamz.data
 ignore_imports =
-    loamz.engine.agents.data.** -> loamz.data
-    loamz.engine.agents.data.** -> loamz.data.**
-    loamz.engine.agents.data.** -> loamz.core.**
-
-[importlinter:contract:storage-engine-never-imports-the-agent-runtime]
-name = the storage engines (sql, files, memory, vectors, documents) never import the agent runtime
-type = forbidden
-source_modules =
-    loamz.engine.sql
-    loamz.engine.files
-    loamz.engine.memory
-    loamz.engine.vectors
-    loamz.engine.documents
-    loamz.engine.models
-    loamz.engine.testing
-forbidden_modules =
-    loamz.engine.agents
-
-[importlinter:contract:identity-stands-alone]
-name = loamz.server.identity imports no feature of the servers
-type = forbidden
-source_modules =
-    loamz.server.identity
-forbidden_modules =
-    loamz.server.agents
-    loamz.server.data
-    loamz.engine.agents
-
-[importlinter:contract:data-never-imports-agents]
-name = Loamz Data never imports Loamz Agents (agents are built on data, never the reverse)
-type = forbidden
-source_modules =
-    loamz.server.data
-forbidden_modules =
-    loamz.server.agents
-    loamz.engine.agents
+    loamz.runtime.data.** -> loamz.data
+    loamz.runtime.data.** -> loamz.data.**
+    loamz.runtime.data.** -> loamz.core.**
 
 [importlinter:contract:agents-layers]
 name = the agent runtime and its hosting layers point downward
@@ -67,46 +34,37 @@ layers =
     loamz.server.agents.http
     loamz.server.agents.features
     loamz.server.agents.bootstrap
-    loamz.engine.agents.data | loamz.engine.agents.toolkit | loamz.engine.agents.providers
-    loamz.engine.agents.stores
-    loamz.engine.agents.kernel
+    loamz.runtime.data | loamz.runtime.toolkit | loamz.runtime.providers
+    loamz.runtime.stores
+    loamz.runtime.kernel
 
 [importlinter:contract:kernel-concepts]
 name = the kernel's concepts only import downward
 type = layers
 layers =
-    loamz.engine.agents.kernel.wire | loamz.engine.agents.kernel.events
-    loamz.engine.agents.kernel.agents
-    loamz.engine.agents.kernel.runtime
-    loamz.engine.agents.kernel.middleware
-    loamz.engine.agents.kernel.context
-    loamz.engine.agents.kernel.safety
-    loamz.engine.agents.kernel.ports
-    loamz.engine.agents.kernel.models
-    loamz.engine.agents.kernel.tools
-    loamz.engine.agents.kernel.telemetry
-    loamz.engine.agents.kernel.types
-    loamz.engine.agents.kernel.errors | loamz.engine.agents.kernel.version | loamz.engine.agents.kernel.caller
+    loamz.runtime.kernel.wire | loamz.runtime.kernel.events
+    loamz.runtime.kernel.agents
+    loamz.runtime.kernel.runtime
+    loamz.runtime.kernel.middleware
+    loamz.runtime.kernel.context
+    loamz.runtime.kernel.safety
+    loamz.runtime.kernel.ports
+    loamz.runtime.kernel.models
+    loamz.runtime.kernel.tools
+    loamz.runtime.kernel.telemetry
+    loamz.runtime.kernel.types
+    loamz.runtime.kernel.errors | loamz.runtime.kernel.version | loamz.runtime.kernel.caller
 
 [importlinter:contract:kernel-is-the-engine]
 name = the kernel imports nothing of the agent runtime outside it, and no vendor
 type = forbidden
 source_modules =
-    loamz.engine.agents.kernel
+    loamz.runtime.kernel
 forbidden_modules =
-    loamz.engine.agents.stores
-    loamz.engine.agents.providers
-    loamz.engine.agents.toolkit
-    loamz.engine.agents.testing
-    loamz.engine.agents.evals
+    loamz.runtime.stores
+    loamz.runtime.providers
+    loamz.runtime.toolkit
+    loamz.runtime.testing
+    loamz.runtime.evals
     loamz.server
     loamz.data
-
-[importlinter:contract:data-server-layers]
-name = loamz.server.data layers point downward (the kernel knows no feature)
-type = layers
-layers =
-    loamz.server.data.cli
-    loamz.server.data.app
-    loamz.server.data.features
-    loamz.server.data.kernel

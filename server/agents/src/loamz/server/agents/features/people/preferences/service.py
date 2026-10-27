@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.caller import Caller
+from loamz.runtime.kernel.caller import Caller
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.people.preferences.model import Preferences
 from loamz.server.agents.features.people.preferences.store import PreferencesStore

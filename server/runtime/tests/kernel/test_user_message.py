@@ -5,14 +5,14 @@ history, replacing the old steps-table write path)."""
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.agents import ReActAgent
-from loamz.engine.agents.kernel.models import ModelCapabilities
-from loamz.engine.agents.kernel.runtime import ChatPayload, Message, Runtime
-from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.stream import CompletionEvent, TextDelta
-from loamz.engine.agents.kernel.types.usage import Usage
-from loamz.engine.agents.testing.runtime import ephemeral_runtime
+from loamz.runtime.kernel.agents import ReActAgent
+from loamz.runtime.kernel.models import ModelCapabilities
+from loamz.runtime.kernel.runtime import ChatPayload, Message, Runtime
+from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.stream import CompletionEvent, TextDelta
+from loamz.runtime.kernel.types.usage import Usage
+from loamz.runtime.testing.runtime import ephemeral_runtime
 
 
 class _StubLLM:
@@ -79,7 +79,7 @@ async def test_user_message_prefers_display_text_metadata() -> None:
 async def test_orchestrator_also_logs_user_message() -> None:
     """OrchestratorAgent gets the same treatment as ReActAgent — both are
     top-level agent types users interact with directly."""
-    from loamz.engine.agents.kernel.agents import OrchestratorAgent
+    from loamz.runtime.kernel.agents import OrchestratorAgent
 
     agent = OrchestratorAgent("coordinator", model=_StubLLM())
     async with ephemeral_runtime() as rt:
