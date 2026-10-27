@@ -1,10 +1,12 @@
 import httpx
+import pytest
 
+from loamz.engine.errors import NotFoundError
 from loamz.runtime.kernel.caller import Caller
 from loamz.server.agents.bootstrap import Container, Settings
 from loamz.server.agents.bootstrap.http import caller as caller_dependency
 from loamz.server.agents.features.people.marketplace.catalog import CATALOG
-from loamz.server.agents.features.people.marketplace.model import InstallBody
+from loamz.server.agents.features.people.marketplace.model import InstallBody, InstallPatch
 from loamz.server.agents.features.people.marketplace.service import MarketplaceService
 from loamz.server.agents.features.people.marketplace.store import InstallStore
 from loamz.server.agents.http import create_app
@@ -65,10 +67,31 @@ async def test_switched_on_skills_reach_the_assistant_and_nothing_else_does(db):
     service = MarketplaceService(InstallStore(db))
     assert await service.skills_text(ALICE) == ""
     await service.install(ALICE, "summarize", InstallBody())
-    await service.install(ALICE, "documents", InstallBody(permissions={"read": "block", "write": "block", "delete": "block"}))
+    await service.install(
+        ALICE,
+        "documents",
+        InstallBody(permissions={"read": "block", "write": "block", "delete": "block"}),
+    )
     await service.install(ALICE, "code-interpreter", InstallBody())
     text = await service.skills_text(ALICE)
     assert "Summarize" in text and "Code interpreter" not in text
     assert await service.skills_text(BOB) == ""
     # A tool whose every group is blocked is not offered.
     assert set(await service.tools_on(ALICE)) == {"code-interpreter"}
+
+
+async def test_an_added_item_can_be_switched_off_and_its_permissions_changed(db):
+    service = MarketplaceService(InstallStore(db))
+    await service.install(ALICE, "summarize", InstallBody())
+    await service.install(ALICE, "code-interpreter", InstallBody())
+    off = await service.change(ALICE, "summarize", InstallPatch(enabled=False))
+    assert off.enabled is False
+    assert await service.skills_text(ALICE) == ""
+    await service.change(ALICE, "code-interpreter", InstallPatch(enabled=False))
+    assert await service.tools_on(ALICE) == {}
+    await service.change(
+        ALICE, "code-interpreter", InstallPatch(enabled=True, permissions={"write": "allow"})
+    )
+    assert (await service.tools_on(ALICE))["code-interpreter"]["write"] == "allow"
+    with pytest.raises(NotFoundError):
+        await service.change(BOB, "summarize", InstallPatch(enabled=True))

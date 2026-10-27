@@ -45,11 +45,17 @@ class Catalog(BaseModel):
 class Install(BaseModel):
     id: str
     permissions: dict[Group, Choice] = Field(default_factory=dict)
+    enabled: bool = True
     installed_at: float = 0
 
 
 class InstallBody(BaseModel):
     permissions: dict[Group, Choice] = Field(default_factory=dict)
+
+
+class InstallPatch(BaseModel):
+    enabled: bool | None = None
+    permissions: dict[Group, Choice] | None = None
 
 
 class InstallList(BaseModel):
