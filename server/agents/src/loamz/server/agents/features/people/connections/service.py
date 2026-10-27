@@ -33,6 +33,35 @@ LISTING_TTL = 600.0  # how long a connector's tool list is reused
 MAX_RESULT_CHARS = 20_000  # what the model reads from one tool call
 
 
+# JSON Schema words that model providers refuse in a tool's parameters (OpenAI answers 400 for the whole request when one
+# tool uses them), so a connector's tools are shown to the model without them. The server still validates real input.
+_UNSUPPORTED = frozenset(
+    {
+        "propertyNames",
+        "$schema",
+        "unevaluatedProperties",
+        "unevaluatedItems",
+        "patternProperties",
+        "if",
+        "then",
+        "else",
+        "not",
+        "contentEncoding",
+        "contentMediaType",
+        "$comment",
+    }
+)
+
+
+def model_safe(schema: object) -> object:
+    """A copy of a tool's parameter schema without the keywords model providers reject."""
+    if isinstance(schema, dict):
+        return {k: model_safe(v) for k, v in schema.items() if k not in _UNSUPPORTED}
+    if isinstance(schema, list):
+        return [model_safe(v) for v in schema]
+    return schema
+
+
 class NeedsReconnect(Exception):  # noqa: N818 - reads as a state, not an error class
     """The saved sign-in no longer works and a person must connect again."""
 
