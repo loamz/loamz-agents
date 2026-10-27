@@ -317,7 +317,7 @@ class ConnectionsService:
                         remote,
                         exposed(install.id, remote),
                         str(tool.get("description") or ""),
-                        tool.get("inputSchema") or {},
+                        model_safe(tool.get("inputSchema") or {}),  # type: ignore[arg-type]
                         risk,  # type: ignore[arg-type]
                     )
                 )
