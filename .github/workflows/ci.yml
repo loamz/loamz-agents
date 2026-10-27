@@ -27,7 +27,6 @@ jobs:
       pull-requests: read
     outputs:
       python: ${{ steps.plan.outputs.python }}
-      reader: ${{ steps.plan.outputs.reader }}
       js: ${{ steps.plan.outputs.js }}
       deploy: ${{ steps.plan.outputs.deploy }}
       server: ${{ steps.plan.outputs.server }}
@@ -50,10 +49,6 @@ jobs:
               - '.importlinter'
               - 'Makefile'
               - '.github/workflows/ci.yml'
-            reader:
-              - 'server/reader/**'
-              - 'server/runtime/**'
-              - '.github/workflows/ci.yml'
             server:
               - 'server/**'
               - 'specs/**'
@@ -75,14 +70,12 @@ jobs:
         env:
           EVENT: ${{ github.event_name }}
           PYTHON: ${{ steps.filter.outputs.python }}
-          READER: ${{ steps.filter.outputs.reader }}
           SERVER: ${{ steps.filter.outputs.server }}
           JS: ${{ steps.filter.outputs.js }}
           DEPLOY: ${{ steps.filter.outputs.deploy }}
         run: |
           flag() { if [ "$EVENT" != "pull_request" ]; then echo true; else echo "${1:-false}"; fi; }
           echo "python=$(flag "$PYTHON")" >> "$GITHUB_OUTPUT"
-          echo "reader=$(flag "$READER")" >> "$GITHUB_OUTPUT"
           echo "server=$(flag "$SERVER")" >> "$GITHUB_OUTPUT"
           echo "js=$(flag "$JS")" >> "$GITHUB_OUTPUT"
           echo "deploy=$(flag "$DEPLOY")" >> "$GITHUB_OUTPUT"
@@ -100,7 +93,7 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
-      - run: uv sync --frozen --all-packages --all-extras --all-groups
+      - run: uv sync --frozen --all-packages --all-groups --extra openai --extra anthropic --extra gemini --extra web --extra mcp --extra code --extra tools --extra testing --extra models --extra console
       # ruff comes from uv.lock, so the version used here is the locked one.
       - run: uv run --frozen ruff check .
       - run: uv run --frozen ruff format --check .
@@ -151,10 +144,10 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
-      - run: uv sync --frozen --all-packages --all-extras --all-groups
+      - run: uv sync --frozen --all-packages --all-groups --extra openai --extra anthropic --extra gemini --extra web --extra mcp --extra code --extra tools --extra testing --extra models --extra console
       - name: Tests
         working-directory: ${{ matrix.dir }}
-        run: uv run --frozen --package ${{ matrix.name }} pytest -q -n 4 --timeout=120 --junitxml=test-results.xml
+        run: uv run --frozen --no-sync --package ${{ matrix.name }} pytest -q -n 4 --timeout=120 --junitxml=test-results.xml
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -179,31 +172,9 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
-      - run: uv sync --frozen --all-packages --all-extras --all-groups
+      - run: uv sync --frozen --all-packages --all-groups --extra openai --extra anthropic --extra gemini --extra web --extra mcp --extra code --extra tools --extra testing --extra models --extra console
       - name: Integration tests
         run: make test-slow
-
-  # ── loamz-reader: Python 3.13, its own project and lock, not in the workspace ─
-  reader:
-    name: Python / loamz-reader
-    needs: changes
-    if: needs.changes.outputs.reader == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    defaults:
-      run:
-        working-directory: server/reader
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: true
-          cache-dependency-glob: server/reader/uv.lock
-          python-version: "3.13"
-      - run: uv sync --frozen --extra test
-      - run: uvx ruff@0.15.15 check .
-      - run: uvx ruff@0.15.15 format --check .
-      - run: uv run --frozen python -m pytest --tb=short -q
 
   # ── JavaScript packages (pnpm workspace) ──────────────────────────────────
   js:
@@ -239,77 +210,32 @@ jobs:
           NEXT_PUBLIC_API_URL: ""
         run: pnpm --filter "./${{ matrix.dir }}" build
 
-  # ── Deployment artifacts: Dockerfiles, compose, Helm chart, Terraform ──────
+  # Validate the standalone Agents deployment artifacts.
   deploy:
-    name: Deploy / ${{ matrix.check }}
+    name: Agents deployment configuration
     needs: changes
     if: needs.changes.outputs.deploy == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        check: [hadolint, compose, helm, terraform, realm-drift]
     steps:
       - uses: actions/checkout@v4
-      - name: hadolint
-        if: matrix.check == 'hadolint'
+      - name: Check Dockerfiles
         uses: hadolint/hadolint-action@v3.1.0
         with:
           recursive: true
           dockerfile: "deploy/docker/*.Dockerfile"
           failure-threshold: error
-      - name: docker compose config
-        if: matrix.check == 'compose'
+      - name: Check compose
         working-directory: deploy/compose
         run: |
           ./gen-env.sh
-          docker compose config -q
           docker compose --profile agents config -q
-          docker compose --profile microservices config -q
-          docker compose --profile agents --profile ml config -q
-      - uses: azure/setup-helm@v4
-        if: matrix.check == 'helm'
-      - name: helm lint and template
-        if: matrix.check == 'helm'
-        run: |
-          for mode in monolith microservices; do
-            helm lint deploy/helm/loamz-cell --set mode=$mode
-            helm template cell deploy/helm/loamz-cell --set mode=$mode > /tmp/$mode.yaml
-          done
-          helm template cell deploy/helm/loamz-cell --set agents.enabled=false > /tmp/data-only.yaml
-          helm template cell deploy/helm/loamz-cell \
-            --set postgres.bundled.enabled=false,postgres.external.host=db.example.com \
-            --set s3.bundled.enabled=false,s3.external.endpoint=https://s3.example.com,s3.external.icebergCatalogUrl=https://iceberg.example.com \
-            --set secrets.existingSecret=mine,data.ticketKeys.existingSecret=tk > /tmp/external.yaml
-      - name: kubeconform
-        if: matrix.check == 'helm'
-        run: |
-          curl -sSL https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz | tar xz
-          ./kubeconform -strict -summary /tmp/monolith.yaml /tmp/microservices.yaml /tmp/data-only.yaml /tmp/external.yaml
-      - uses: hashicorp/setup-terraform@v3
-        if: matrix.check == 'terraform'
-        with:
-          terraform_version: "1.9.8"
-      - name: terraform fmt and validate
-        if: matrix.check == 'terraform'
-        run: |
-          terraform fmt -check -recursive deploy/terraform deploy/keycloak/terraform
-          for d in deploy/terraform/aws deploy/terraform/gcp deploy/terraform/azure deploy/keycloak/terraform; do
-            terraform -chdir=$d init -backend=false -input=false
-            terraform -chdir=$d validate
-          done
-      - name: the chart's realm and theme copies equal deploy/keycloak
-        if: matrix.check == 'realm-drift'
-        run: |
-          diff deploy/keycloak/realm-loamz.json deploy/helm/loamz-cell/files/realm-loamz.json
-          diff -r deploy/keycloak/themes/loamz deploy/helm/loamz-cell/files/theme/loamz
+          docker compose --profile agents --profile with-data config -q
 
   # ── The only required status check ─────────────────────────────────────────
   ci-ok:
     name: ci-ok
     if: always()
-    needs: [changes, lint, python, integration, reader, js, deploy]
+    needs: [changes, lint, python, integration, js, deploy]
     runs-on: ubuntu-latest
     steps:
       - name: Fail if any needed job failed or was cancelled (skipped is fine)

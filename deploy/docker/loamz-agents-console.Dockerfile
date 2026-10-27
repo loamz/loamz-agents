@@ -12,8 +12,6 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/agents-console/package.json ./apps/agents-console/
 COPY apps/agents-console/prisma ./apps/agents-console/prisma/
 COPY sdk/js/oidc-bff/package.json ./sdk/js/oidc-bff/
-COPY apps/data-workspace/package.json ./apps/data-workspace/
-COPY apps/data-workspace/scripts ./apps/data-workspace/scripts/
 
 RUN pnpm install --frozen-lockfile --filter ./apps/agents-console...
 

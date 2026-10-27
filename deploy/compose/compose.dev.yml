@@ -17,10 +17,10 @@ services:
     entrypoint:
       - sh
       - -c
-      - mount -o remount,rw /sys/fs/cgroup 2>/dev/null || true; exec loamz-server agents serve --reload --host 0.0.0.0 --port 8000
+      - mount -o remount,rw /sys/fs/cgroup 2>/dev/null || true; exec loamz-agents-server serve --reload --host 0.0.0.0 --port 8000
     volumes:
-      - ../../server/engine/src/loamz/engine:/app/.venv/lib/python3.14/site-packages/loamz/engine:ro
-      - ../../server/server/src/loamz/server:/app/.venv/lib/python3.14/site-packages/loamz/server:ro
+      - ../../server/runtime/src/loamz/runtime:/app/.venv/lib/python3.14/site-packages/loamz/runtime:ro
+      - ../../server/agents/src/loamz/server/agents:/app/.venv/lib/python3.14/site-packages/loamz/server/agents:ro
       - ${LOAMZ_PYTHON_DIR:-../../../loamz-python}/sdk/python/core/src/loamz/core:/app/.venv/lib/python3.14/site-packages/loamz/core:ro
       - ${LOAMZ_PYTHON_DIR:-../../../loamz-python}/sdk/python/identity/src/loamz/identity:/app/.venv/lib/python3.14/site-packages/loamz/identity:ro
       - ${LOAMZ_PYTHON_DIR:-../../../loamz-python}/sdk/python/data/src/loamz/data:/app/.venv/lib/python3.14/site-packages/loamz/data:ro

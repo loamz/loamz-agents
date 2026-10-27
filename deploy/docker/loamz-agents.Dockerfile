@@ -21,17 +21,17 @@ ENV UV_LINK_MODE=copy UV_COMPILE_BYTECODE=1 UV_PYTHON_DOWNLOADS=never
 WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
-COPY server/engine/pyproject.toml server/engine/
-COPY server/server/pyproject.toml server/server/
+COPY server/runtime/pyproject.toml server/runtime/
+COPY server/agents/pyproject.toml server/agents/
 
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --no-install-workspace --package loamz-server --extra agents
+    uv sync --frozen --no-dev --no-install-workspace --package loamz-agents-server --extra models
 
-COPY server/engine server/engine
-COPY server/server server/server
+COPY server/runtime server/runtime
+COPY server/agents server/agents
 
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --no-editable --package loamz-server --extra agents
+    uv sync --frozen --no-dev --no-editable --package loamz-agents-server --extra models
 
 FROM python:3.14-slim-bookworm AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends libprotobuf32 libnl-route-3-200 \
