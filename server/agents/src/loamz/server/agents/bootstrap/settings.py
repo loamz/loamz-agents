@@ -46,6 +46,10 @@ class OidcSettings(BaseModel):
     insecure_http: bool = Field(
         default=False, description="Allow plain http to the issuer (a private network)."
     )
+    personal_tenant: str = Field(
+        default="",
+        description="Tenant for tokens that name no organization (personal accounts, as in Loamz Chat); empty refuses them.",
+    )
 
     @model_validator(mode="before")
     @classmethod

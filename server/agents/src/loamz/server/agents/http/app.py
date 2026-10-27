@@ -20,7 +20,9 @@ def _verifier(container: Container) -> TokenVerifier | None:
     if not oidc.issuer:
         return None
     return TokenVerifier(
-        PrimaryIssuer(issuer=oidc.issuer, audience=oidc.audience), insecure_http=oidc.insecure_http
+        PrimaryIssuer(issuer=oidc.issuer, audience=oidc.audience),
+        insecure_http=oidc.insecure_http,
+        require_organization=not oidc.personal_tenant,
     )
 
 
