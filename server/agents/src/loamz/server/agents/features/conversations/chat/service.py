@@ -115,6 +115,10 @@ class ChatService:
         skills = await market.skills_text(caller)
         if "code-interpreter" in await market.tools_on(caller) and self._c.code_tool:
             tools = [*tools, self._c.code_tool]
+        # Tools of the connectors this person signed in to (Notion, Todoist, ...), each called with their own token.
+        from loamz.server.agents.features.people.connections.service import connections
+
+        tools = [*tools, *await self._c.get(connections).tools(caller)]
         agent = create_assistant_agent(
             model_client=self._c.model_client(req.model or (profile.model if profile else None)),
             history=self._c.agent_store.threads,

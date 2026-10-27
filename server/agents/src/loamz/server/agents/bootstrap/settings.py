@@ -150,6 +150,11 @@ class HttpSettings(BaseModel):
         default="http://127.0.0.1:3000",
         description="Where links in notifications and e-mails point.",
     )
+    public_url: str = Field(
+        default="http://127.0.0.1:8010",
+        description="This server's public address, with any path prefix (for example https://chat.loamz.com/agents-api). "
+        "Connector sign-in sends people back to `<public_url>/api/v1/connections/callback`.",
+    )
 
     @model_validator(mode="before")
     @classmethod
