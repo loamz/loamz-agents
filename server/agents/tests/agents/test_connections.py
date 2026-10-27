@@ -141,3 +141,31 @@ async def test_erasing_a_person_removes_their_connections(service):
     await sign_in(service, ALICE)
     assert await service.erase("acme", "alice") == 1
     assert await service.status(ALICE) == []
+
+
+def test_a_tool_schema_loses_the_keywords_model_providers_reject():
+    from loamz.server.agents.features.people.connections.service import model_safe
+
+    schema = {
+        "type": "object",
+        "properties": {
+            "pages": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "properties": {
+                            "type": "object",
+                            "propertyNames": {"pattern": "^a"},
+                            "additionalProperties": {"type": "string"},
+                        }
+                    },
+                },
+            }
+        },
+        "$schema": "x",
+    }
+    cleaned = model_safe(schema)
+    assert "$schema" not in cleaned
+    inner = cleaned["properties"]["pages"]["items"]["properties"]["properties"]
+    assert "propertyNames" not in inner and inner["additionalProperties"] == {"type": "string"}
