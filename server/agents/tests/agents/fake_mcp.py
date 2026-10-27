@@ -6,6 +6,7 @@ import secrets
 import socket
 import threading
 import time
+from typing import Annotated
 
 import uvicorn
 from mcp.server.auth.provider import (
@@ -18,6 +19,7 @@ from mcp.server.auth.provider import (
 from mcp.server.auth.settings import AuthSettings, ClientRegistrationOptions
 from mcp.server.fastmcp import FastMCP
 from mcp.shared.auth import OAuthClientInformationFull, OAuthToken
+from pydantic import Field
 
 
 class _Provider:
@@ -127,6 +129,11 @@ class FakeConnector:
             """Make a new item."""
             self.calls.append(("create_item", {"title": title}))
             return f"created {title}"
+
+        @mcp.tool()
+        def fill(values: dict[Annotated[str, Field(pattern="^[a-z]+$")], str]) -> str:
+            """Takes a map whose keys must match a pattern (the schema says so with propertyNames)."""
+            return "ok"
 
         self._server = uvicorn.Server(
             uvicorn.Config(

@@ -1,3 +1,4 @@
+import json
 from types import SimpleNamespace
 from urllib.parse import parse_qs, urlparse
 
@@ -89,7 +90,10 @@ async def test_a_person_signs_in_and_the_assistant_gets_their_tools_shaped_by_th
     assert [(c["id"], c["status"]) for c in await service.status(ALICE)] == [("fake", "connected")]
 
     tools = {t.name: t for t in await service.tools(ALICE)}
-    assert set(tools) == {"fake__search", "fake__create_item"}
+    assert set(tools) == {"fake__search", "fake__create_item", "fake__fill"}
+    assert "propertyNames" not in json.dumps(
+        tools["fake__fill"].input_schema
+    )  # what the model sees is accepted by every provider
     assert tools["fake__search"].risk == ToolRisk.SAFE  # reads on "allow" run without asking
     assert tools["fake__create_item"].risk == ToolRisk.HIGH  # writes ask each time
 
@@ -102,7 +106,7 @@ async def test_blocked_groups_are_never_offered_and_off_switches_everything_off(
     await sign_in(service, ALICE)
     market = service._market  # noqa: SLF001
     await market.change(ALICE, "fake", InstallPatch(permissions={"write": "block"}))
-    assert [t.name for t in await service.tools(ALICE)] == ["fake__search"]
+    assert sorted(t.name for t in await service.tools(ALICE)) == ["fake__search"]
     await market.change(ALICE, "fake", InstallPatch(enabled=False))
     assert await service.tools(ALICE) == []
 
