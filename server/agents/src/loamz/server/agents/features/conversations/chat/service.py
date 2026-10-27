@@ -108,12 +108,20 @@ class ChatService:
 
         profile = await self._profile(caller, agent_id)
         tools = self._tool_server_tools(profile)
+        # What this person switched on in the marketplace: skills become instructions; tools are offered only when on.
+        from loamz.server.agents.features.people.marketplace.service import marketplace
+
+        market = self._c.get(marketplace)
+        skills = await market.skills_text(caller)
+        if "code-interpreter" in await market.tools_on(caller) and self._c.code_tool:
+            tools = [*tools, self._c.code_tool]
         agent = create_assistant_agent(
             model_client=self._c.model_client(req.model or (profile.model if profile else None)),
             history=self._c.agent_store.threads,
             tools=tools or None,
             system_instructions=(req.system_instructions or "")
-            + (instructions_block(profile) if profile else ""),
+            + (instructions_block(profile) if profile else "")
+            + skills,
             # One actor per conversation (the activity tracker looks for `assistant/<thread id>`). Sharing one actor
             # between conversations would fold a message sent while another run is going into that run.
             session_id=req.thread_id,

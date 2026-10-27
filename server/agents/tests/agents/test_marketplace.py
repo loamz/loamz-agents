@@ -59,3 +59,16 @@ async def test_the_api_lists_installs_and_removes(tmp_path):
             assert (await client.put("/api/v1/me/installs/nope", json={})).status_code == 404
             assert (await client.delete("/api/v1/me/installs/summarize")).status_code == 204
             assert (await client.get("/api/v1/me/installs")).json()["items"] == []
+
+
+async def test_switched_on_skills_reach_the_assistant_and_nothing_else_does(db):
+    service = MarketplaceService(InstallStore(db))
+    assert await service.skills_text(ALICE) == ""
+    await service.install(ALICE, "summarize", InstallBody())
+    await service.install(ALICE, "documents", InstallBody(permissions={"read": "block", "write": "block", "delete": "block"}))
+    await service.install(ALICE, "code-interpreter", InstallBody())
+    text = await service.skills_text(ALICE)
+    assert "Summarize" in text and "Code interpreter" not in text
+    assert await service.skills_text(BOB) == ""
+    # A tool whose every group is blocked is not offered.
+    assert set(await service.tools_on(ALICE)) == {"code-interpreter"}

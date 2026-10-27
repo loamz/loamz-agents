@@ -72,6 +72,28 @@ class MarketplaceService:
         await self._store.put(caller.tenant_id, caller.user_id, record)
         return record
 
+    async def skills_text(self, caller: Caller) -> str:
+        """What the assistant is told about the skills this person switched on (nothing when none): a short instruction per skill."""
+        on = {i.id for i in (await self._store.list(caller.tenant_id, caller.user_id))}
+        skills = [i for i in CATALOG if i.kind == "skill" and i.id in on]
+        if not skills:
+            return ""
+        lines = "\n".join(f"- {i.name}: {i.description}" for i in skills)
+        return (
+            f"\n\nThe person turned on these skills. Use them when they fit what is asked:\n{lines}"
+        )
+
+    async def tools_on(self, caller: Caller) -> dict[str, dict[str, str]]:
+        """The tools this person switched on (not blocked entirely), with the choice for each group."""
+        out: dict[str, dict[str, str]] = {}
+        kinds = {i.id: i.kind for i in CATALOG}
+        for record in await self._store.list(caller.tenant_id, caller.user_id):
+            if kinds.get(record.id) == "tool" and any(
+                c != "block" for c in record.permissions.values()
+            ):
+                out[record.id] = dict(record.permissions)
+        return out
+
     async def remove(self, caller: Caller, item_id: str) -> None:
         await self._store.remove(caller.tenant_id, caller.user_id, item_id)
 
