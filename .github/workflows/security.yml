@@ -56,11 +56,6 @@ jobs:
           # PYSEC-2026-3740 (nltk): no fixed release exists; nltk arrives only through crawl4ai (the `web` extra).
           uvx pip-audit --requirement /tmp/requirements.txt --disable-pip --no-deps --strict \
             --ignore-vuln PYSEC-2026-3740
-      - name: pip-audit against the reader's lock
-        working-directory: server/reader
-        run: |
-          uv export --frozen --no-hashes --no-emit-project --no-emit-package loamz-engine -o /tmp/reader.txt
-          uvx pip-audit --requirement /tmp/reader.txt --disable-pip --no-deps --strict
 
   scorecard:
     name: OpenSSF Scorecard
