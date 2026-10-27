@@ -49,10 +49,7 @@ jobs:
       matrix:
         include:
           - { image: loamz-agents, file: deploy/docker/loamz-agents.Dockerfile }
-          - { image: loamz-data, file: deploy/docker/loamz-data.Dockerfile }
           - { image: loamz-agents-console, file: deploy/docker/loamz-agents-console.Dockerfile }
-          - { image: loamz-data-workspace, file: deploy/docker/loamz-data-workspace.Dockerfile }
-          - { image: llama-server, file: deploy/docker/llama-server.Dockerfile }
     permissions:
       contents: read
       packages: write
@@ -65,26 +62,3 @@ jobs:
       version: ${{ needs.plan.outputs.version }}
       context: .
       file: ${{ matrix.file }}
-
-  chart:
-    name: Chart / loamz-cell
-    needs: [plan, image]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.plan.outputs.ref }}
-      - uses: azure/setup-helm@v4
-      - name: Package and push the chart (OCI) with the images' version
-        env:
-          VERSION: ${{ needs.plan.outputs.version }}
-          ACTOR: ${{ github.actor }}
-          TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          owner="${GITHUB_REPOSITORY_OWNER,,}"
-          echo "$TOKEN" | helm registry login ghcr.io -u "$ACTOR" --password-stdin
-          helm package deploy/helm/loamz-cell --version "$VERSION" --app-version "$VERSION"
-          helm push "loamz-cell-${VERSION}.tgz" "oci://ghcr.io/${owner}/charts"

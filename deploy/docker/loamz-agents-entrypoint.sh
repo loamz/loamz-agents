@@ -15,5 +15,5 @@ if [ "$(id -u)" = "0" ] && [ "${LOAMZ_AGENTS_SANDBOX__RUNTIME:-nsjail}" = "nsjai
   mount -o remount,rw /sys/fs/cgroup 2>/dev/null || true
 fi
 
-exec loamz-server agents serve ${ROLES_ARG} --host 0.0.0.0 --port "${PORT:-8000}"
+exec loamz-agents-server serve ${ROLES_ARG} --host 0.0.0.0 --port "${PORT:-8000}"
 

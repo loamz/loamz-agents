@@ -1,7 +1,7 @@
 # Root entry points. Python: one uv workspace (uv.lock); JavaScript: one pnpm workspace.
 # The fast tier (`make test`) needs no infrastructure and finishes in a few minutes. PostgreSQL and Redis tests run when
 # LOAMZ_TEST_POSTGRES_URL / LOAMZ_TEST_REDIS_URL point at a server, and skip otherwise.
-.PHONY: cell cell-dev sync lint format imports test test-sdk test-runtime test-server test-reader test-slow js-check check e2e help
+.PHONY: cell cell-dev sync lint format imports test test-sdk test-runtime test-server test-slow js-check check e2e help
 
 PY_DIRS := server/runtime server/agents
 PYTEST := -q -n 4 --timeout=120
@@ -10,7 +10,7 @@ help:
 	@echo "make sync         install every Python package (uv) and the JS workspace (pnpm)"
 	@echo "make lint         ruff check + format --check"
 	@echo "make imports      import-linter architecture contracts (.importlinter)"
-	@echo "make test         the fast tier: sdk, engine, server, reader"
+	@echo "make test         the fast tier: runtime and server"
 	@echo "make test-slow    the Docker/model-backed tests"
 	@echo "make e2e          the cell end-to-end test (needs the compose cell up: deploy/compose)"
 	@echo "make check        lint + imports + test"
@@ -40,20 +40,16 @@ imports:
 	uv run lint-imports --config .importlinter
 
 test-runtime:
-	cd server/runtime && uv run --package loamz-runtime pytest $(PYTEST)
+	cd server/runtime && uv run --package loamz-runtime --extra openai --extra anthropic --extra gemini --extra web --extra mcp --extra code --extra tools --extra testing --all-groups pytest $(PYTEST)
 
 test-server:
-	cd server/agents && uv run --package loamz-agents-server pytest $(PYTEST)
-
-# loamz-reader runs on Python 3.13 with its own lock, outside the workspace.
-test-reader:
-	cd server/reader && uv run --python 3.13 --frozen --extra test python -m pytest -q
+	cd server/agents && uv run --package loamz-agents-server --extra models --extra console --all-groups pytest $(PYTEST)
 
 test: test-runtime test-server
 
 test-slow:
-	cd server/agents && uv run --package loamz-agents-server pytest -q -m "slow or integration" --timeout=300
-	cd server/runtime && uv run --package loamz-runtime pytest -q -m "slow" --timeout=300
+	cd server/agents && uv run --package loamz-agents-server --all-extras --all-groups pytest -q -m "slow or integration" --timeout=300
+	cd server/runtime && uv run --package loamz-runtime --all-extras --all-groups pytest -q -m "slow" --timeout=300
 
 js-check:
 	pnpm -r typecheck
