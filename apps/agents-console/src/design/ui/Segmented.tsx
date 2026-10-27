@@ -22,7 +22,8 @@ export function Segmented<T extends string>({ value, onChange, options, label, c
         if (!step) return;
         e.preventDefault();
         const at = options.findIndex((o) => o.value === value);
-        onChange(options[(at + step + options.length) % options.length].value);
+        const next = options[(at + step + options.length) % options.length];
+        if (next) onChange(next.value);
       }}
     >
       {options.map((o) => {
