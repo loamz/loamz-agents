@@ -33,33 +33,85 @@ LISTING_TTL = 600.0  # how long a connector's tool list is reused
 MAX_RESULT_CHARS = 20_000  # what the model reads from one tool call
 
 
-# JSON Schema words that model providers refuse in a tool's parameters (OpenAI answers 400 for the whole request when one
-# tool uses them), so a connector's tools are shown to the model without them. The server still validates real input.
-_UNSUPPORTED = frozenset(
+# What a model provider accepts in a tool's parameters is a small part of JSON Schema (OpenAI answers 400 for the whole request when one
+# tool uses anything else). A connector's own server validates real input, so the model is shown only this part.
+_KEEP = frozenset(
     {
-        "propertyNames",
-        "$schema",
-        "unevaluatedProperties",
-        "unevaluatedItems",
-        "patternProperties",
-        "if",
-        "then",
-        "else",
-        "not",
-        "contentEncoding",
-        "contentMediaType",
-        "$comment",
+        "type",
+        "properties",
+        "required",
+        "items",
+        "enum",
+        "const",
+        "description",
+        "title",
+        "default",
+        "additionalProperties",
+        "anyOf",
+        "format",
+        "minimum",
+        "maximum",
+        "exclusiveMinimum",
+        "exclusiveMaximum",
+        "minLength",
+        "maxLength",
+        "pattern",
+        "minItems",
+        "maxItems",
+        "multipleOf",
+        "$ref",
+        "$defs",
+        "definitions",
     }
 )
+_TYPES = frozenset({"string", "number", "integer", "boolean", "array", "object", "null"})
 
 
 def model_safe(schema: object) -> object:
-    """A copy of a tool's parameter schema without the keywords model providers reject."""
-    if isinstance(schema, dict):
-        return {k: model_safe(v) for k, v in schema.items() if k not in _UNSUPPORTED}
+    """A copy of a tool's parameter schema reduced to the part every model provider accepts.
+
+    `allOf` is merged into its parent, `oneOf` becomes `anyOf`, a malformed `type` is dropped, and every other keyword is removed.
+    """
     if isinstance(schema, list):
         return [model_safe(v) for v in schema]
-    return schema
+    if not isinstance(schema, dict):
+        return schema
+    node = dict(schema)
+    for part in node.pop("allOf", None) or []:
+        if isinstance(part, dict):
+            merged = model_safe(part)
+            if isinstance(merged, dict):
+                for key, value in merged.items():
+                    if key == "properties" and isinstance(value, dict):
+                        node["properties"] = {**(node.get("properties") or {}), **value}
+                    elif key == "required" and isinstance(value, list):
+                        node["required"] = [*dict.fromkeys([*(node.get("required") or []), *value])]
+                    else:
+                        node.setdefault(key, value)
+    if "oneOf" in node and "anyOf" not in node:
+        node["anyOf"] = node.pop("oneOf")
+    kind = node.get("type")
+    if isinstance(kind, list):
+        kind = [k for k in kind if isinstance(k, str) and k in _TYPES]
+        if kind:
+            node["type"] = kind if len(kind) > 1 else kind[0]
+        else:
+            node.pop("type")
+    elif kind is not None and kind not in _TYPES:
+        node.pop("type")
+    out: dict[str, object] = {}
+    for key, value in node.items():
+        if key not in _KEEP:
+            continue
+        if key in {"properties", "$defs", "definitions"} and isinstance(value, dict):
+            out[key] = {
+                k: model_safe(v) for k, v in value.items()
+            }  # property names are data, not keywords
+        elif key in {"items", "additionalProperties", "anyOf"}:
+            out[key] = model_safe(value)
+        else:
+            out[key] = value
+    return out
 
 
 class NeedsReconnect(Exception):  # noqa: N818 - reads as a state, not an error class
@@ -283,7 +335,8 @@ class ConnectionsService:
         """The tools of every connector this person connected and switched on, shaped by their choices.
 
         Blocked groups are left out. A tool whose group is on `allow` and reads only runs without asking; anything else asks
-        each time. A tool the catalog does not list counts as writing: what a server says about itself is never trusted.
+        each time. When the catalog lists tools, only those are offered; otherwise every tool counts as writing, because what a server says
+        about itself is never trusted.
         """
         out: list[MCPTool] = []
         connected = {
@@ -304,6 +357,8 @@ class ConnectionsService:
                 continue
             for tool in listed:
                 remote = str(tool["name"])
+                if listing.tools and remote not in listing.tools:
+                    continue  # a curated entry offers only the tools we chose; a server cannot add its own
                 group = listing.tools.get(remote, "write")
                 choice = install.permissions.get(group, "ask")
                 if choice == "block":
