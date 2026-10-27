@@ -225,8 +225,5 @@ def internal_tls() -> None:
 
 
 if __name__ == "__main__":
-    s3_identities()
-    internal_tls()
-    ticket_keys()
     postgres_tls()
     print("cell-init: done")

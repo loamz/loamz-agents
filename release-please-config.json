@@ -7,20 +7,15 @@
   "bump-minor-pre-major": true,
   "bump-patch-for-minor-pre-major": true,
   "packages": {
-    "server/engine": {
+    "server/runtime": {
       "release-type": "python",
-      "package-name": "loamz-engine",
-      "component": "loamz-engine"
+      "package-name": "loamz-runtime",
+      "component": "loamz-runtime"
     },
-    "server/server": {
+    "server/agents": {
       "release-type": "python",
-      "package-name": "loamz-server",
-      "component": "loamz-server"
-    },
-    "server/reader": {
-      "release-type": "python",
-      "package-name": "loamz-reader",
-      "component": "loamz-reader"
+      "package-name": "loamz-agents-server",
+      "component": "loamz-agents-server"
     }
   }
 }

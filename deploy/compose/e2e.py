@@ -3,6 +3,7 @@
 Run after `docker compose --profile agents up -d`:  uv run --package loamz-core python deploy/compose/e2e.py deploy/compose/.env
 """
 
+import os
 import sys
 import time
 from pathlib import Path
@@ -120,6 +121,31 @@ def user_token(scope):
     )
     return {"Authorization": f"Bearer {r.json()['access_token']}"}
 
+
+# Agents can run with local files when no Data URL is configured.
+user = user_token(f"openid organization:{alias}")
+r = http.get(f"{AGENT}/threads", headers=user)
+step("agent: list threads", r.status_code == 200, str(r.status_code) + r.text[:300])
+data_url = os.environ.get("AGENTS_DATA_URL") or ENV.get("AGENTS_DATA_URL", "")
+if not data_url:
+    r = http.post(
+        f"{AGENT}/files/upload",
+        headers=user,
+        files={"file": ("notes.txt", b"Agents local file test", "text/plain")},
+    )
+    step(
+        "agent: upload a local file", r.status_code in (200, 201), str(r.status_code) + r.text[:300]
+    )
+    file_id = r.json().get("file_id") or r.json().get("id")
+    r = http.get(f"{AGENT}/files/{file_id}/download", headers=user)
+    step(
+        "agent: download the local file",
+        r.status_code == 200 and b"Agents local file test" in r.content,
+        str(r.status_code),
+    )
+    print("Data checks skipped: AGENTS_DATA_URL is not set (with-data profile).")
+    sys.exit(0)
+DATA = data_url.rstrip("/") + "/api/v1"
 
 # 2. provision the tenant in loamz-data (as the platform would, with cell-admin)
 r = http.post(
