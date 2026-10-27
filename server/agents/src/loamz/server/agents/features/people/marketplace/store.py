@@ -18,6 +18,7 @@ SCRIPTS = [
         PRIMARY KEY (tenant_id, user_id, item_id)
     )
     """,
+    "ALTER TABLE people_installs ADD COLUMN enabled INTEGER NOT NULL DEFAULT 1",
 ]
 
 
@@ -37,7 +38,7 @@ class InstallStore:
         await self._ensure()
         async with self._db.transaction() as tx:
             rows = await tx.fetchall(
-                "SELECT item_id, permissions, installed_at FROM people_installs WHERE tenant_id = ? AND user_id = ? ORDER BY installed_at",
+                "SELECT item_id, permissions, enabled, installed_at FROM people_installs WHERE tenant_id = ? AND user_id = ? ORDER BY installed_at",
                 tenant_id,
                 user_id,
             )
@@ -45,6 +46,7 @@ class InstallStore:
             Install(
                 id=r["item_id"],
                 permissions=json.loads(r["permissions"]),
+                enabled=bool(r["enabled"]),
                 installed_at=r["installed_at"],
             )
             for r in rows
@@ -54,12 +56,13 @@ class InstallStore:
         await self._ensure()
         async with self._db.transaction() as tx:
             await tx.execute(
-                "INSERT INTO people_installs (tenant_id, user_id, item_id, permissions, installed_at) VALUES (?, ?, ?, ?, ?) "
-                "ON CONFLICT (tenant_id, user_id, item_id) DO UPDATE SET permissions = excluded.permissions",
+                "INSERT INTO people_installs (tenant_id, user_id, item_id, permissions, enabled, installed_at) VALUES (?, ?, ?, ?, ?, ?) "
+                "ON CONFLICT (tenant_id, user_id, item_id) DO UPDATE SET permissions = excluded.permissions, enabled = excluded.enabled",
                 tenant_id,
                 user_id,
                 item.id,
                 json.dumps(item.permissions),
+                int(item.enabled),
                 time.time(),
             )
 

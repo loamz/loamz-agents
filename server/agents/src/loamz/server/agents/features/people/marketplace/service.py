@@ -9,6 +9,7 @@ from loamz.server.agents.features.people.marketplace.model import (
     Install,
     InstallBody,
     InstallList,
+    InstallPatch,
     Listing,
 )
 from loamz.server.agents.features.people.marketplace.store import InstallStore
@@ -74,7 +75,7 @@ class MarketplaceService:
 
     async def skills_text(self, caller: Caller) -> str:
         """What the assistant is told about the skills this person switched on (nothing when none): a short instruction per skill."""
-        on = {i.id for i in (await self._store.list(caller.tenant_id, caller.user_id))}
+        on = {i.id for i in (await self._store.list(caller.tenant_id, caller.user_id)) if i.enabled}
         skills = [i for i in CATALOG if i.kind == "skill" and i.id in on]
         if not skills:
             return ""
@@ -88,11 +89,30 @@ class MarketplaceService:
         out: dict[str, dict[str, str]] = {}
         kinds = {i.id: i.kind for i in CATALOG}
         for record in await self._store.list(caller.tenant_id, caller.user_id):
-            if kinds.get(record.id) == "tool" and any(
-                c != "block" for c in record.permissions.values()
+            if (
+                record.enabled
+                and kinds.get(record.id) == "tool"
+                and any(c != "block" for c in record.permissions.values())
             ):
                 out[record.id] = dict(record.permissions)
         return out
+
+    async def change(self, caller: Caller, item_id: str, body: InstallPatch) -> Install:
+        """Switch an added item on or off, or change what it may do, without adding it again."""
+        current = {i.id: i for i in await self._store.list(caller.tenant_id, caller.user_id)}.get(
+            item_id
+        )
+        if current is None:
+            raise NotFoundError("That item has not been added.")
+        if body.enabled is not None:
+            current.enabled = body.enabled
+        if body.permissions is not None:
+            allowed = {p.group for p in self.listing(item_id).permissions}
+            current.permissions = {g: c for g, c in body.permissions.items() if g in allowed} | {
+                g: c for g, c in current.permissions.items() if g not in body.permissions
+            }
+        await self._store.put(caller.tenant_id, caller.user_id, current)
+        return current
 
     async def remove(self, caller: Caller, item_id: str) -> None:
         await self._store.remove(caller.tenant_id, caller.user_id, item_id)

@@ -10,6 +10,7 @@ from loamz.server.agents.features.people.marketplace.model import (
     Install,
     InstallBody,
     InstallList,
+    InstallPatch,
     Listing,
 )
 from loamz.server.agents.features.people.marketplace.service import MarketplaceService, marketplace
@@ -44,6 +45,11 @@ async def my_installs(caller: CallerDep, service: Service) -> InstallList:
 @router.put("/me/installs/{item_id}", response_model=Install)
 async def install(item_id: str, body: InstallBody, caller: CallerDep, service: Service) -> Install:
     return await service.install(caller, item_id, body)
+
+
+@router.patch("/me/installs/{item_id}", response_model=Install)
+async def change(item_id: str, body: InstallPatch, caller: CallerDep, service: Service) -> Install:
+    return await service.change(caller, item_id, body)
 
 
 @router.delete("/me/installs/{item_id}", status_code=204)
