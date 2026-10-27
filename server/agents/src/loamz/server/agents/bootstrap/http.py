@@ -38,10 +38,12 @@ async def _verified(request: Request) -> Caller:
             "Sign-in is not configured on this server (LOAMZ_AGENTS_OIDC__ISSUER)."
         )
     who = await verifier.averify(request.headers.get("authorization"))
-    if not who.tenant_id:
+    personal = request.app.state.container.settings.oidc.personal_tenant
+    tenant_id = who.tenant_id or personal
+    if not tenant_id:
         raise ForbiddenError("This token names no organization; choose one when signing in.")
     request.state.caller = Caller(
-        tenant_id=who.tenant_id,
+        tenant_id=tenant_id,
         user_id=who.subject,
         kind=who.kind,
         roles=who.roles,
