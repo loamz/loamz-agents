@@ -31,6 +31,8 @@ logger = logging.getLogger(__name__)
 SIGN_IN_WAIT = 300.0  # how long a person has to finish signing in on the vendor's page
 LISTING_TTL = 600.0  # how long a connector's tool list is reused
 MAX_RESULT_CHARS = 20_000  # what the model reads from one tool call
+MAX_PARAM_TEXT = 240  # the longest description of one parameter shown to the model
+MAX_TOOL_TEXT = 600  # the longest description of one tool shown to the model
 
 
 # What a model provider accepts in a tool's parameters is a small part of JSON Schema (OpenAI answers 400 for the whole request when one
@@ -109,6 +111,10 @@ def model_safe(schema: object) -> object:
             }  # property names are data, not keywords
         elif key in {"items", "additionalProperties", "anyOf"}:
             out[key] = model_safe(value)
+        elif key == "description" and isinstance(value, str):
+            out[key] = value[
+                :MAX_PARAM_TEXT
+            ]  # a long description is paid for in tokens on every message
         else:
             out[key] = value
     return out
@@ -371,7 +377,7 @@ class ConnectionsService:
                         install.id,
                         remote,
                         exposed(install.id, remote),
-                        str(tool.get("description") or ""),
+                        str(tool.get("description") or "")[:MAX_TOOL_TEXT],
                         model_safe(tool.get("inputSchema") or {}),  # type: ignore[arg-type]
                         risk,  # type: ignore[arg-type]
                     )
