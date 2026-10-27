@@ -6,7 +6,7 @@ from __future__ import annotations
 import time
 from datetime import UTC, datetime
 
-from loamz.engine.agents.kernel.caller import Caller
+from loamz.runtime.kernel.caller import Caller
 from loamz.engine.errors import ConflictError
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.directory.pins.store import PinsStore

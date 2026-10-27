@@ -18,7 +18,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Protocol, runtime_checkable
 
-from loamz.engine.agents.stores.workspace.scope import WorkspaceScope
+from loamz.runtime.stores.workspace.scope import WorkspaceScope
 
 
 def is_display_artifact(mime_type: str) -> bool:

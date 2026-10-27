@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import AsyncIterator
 
-from loamz.engine.agents.kernel.events.envelope import EventEnvelope
+from loamz.runtime.kernel.events.envelope import EventEnvelope
 
 
 class InMemoryEventBus:

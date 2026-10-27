@@ -13,21 +13,21 @@ from collections.abc import Awaitable, Callable
 from functools import cached_property
 from typing import TYPE_CHECKING
 
-from loamz.engine.agents.kernel.events import EventBus, InMemoryEventBus
-from loamz.engine.agents.kernel.models import ChatModel
-from loamz.engine.agents.kernel.ports.counters import Counters
-from loamz.engine.agents.kernel.ports.files import FileStore
-from loamz.engine.agents.kernel.runtime import Runtime
-from loamz.engine.agents.kernel.runtime.sealing import Sealer
-from loamz.engine.agents.kernel.telemetry import set_capture_content
-from loamz.engine.agents.stores import AgentStore
+from loamz.runtime.kernel.events import EventBus, InMemoryEventBus
+from loamz.runtime.kernel.models import ChatModel
+from loamz.runtime.kernel.ports.counters import Counters
+from loamz.runtime.kernel.ports.files import FileStore
+from loamz.runtime.kernel.runtime import Runtime
+from loamz.runtime.kernel.runtime.sealing import Sealer
+from loamz.runtime.kernel.telemetry import set_capture_content
+from loamz.runtime.stores import AgentStore
 from loamz.engine.sql import Database, postgres, sqlite
 from loamz.server.agents.bootstrap.data_access import GatewayDataAccess
 from loamz.server.agents.bootstrap.settings import Settings
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.data import DataServiceConnection, DataTokenMinter
-    from loamz.engine.agents.toolkit.mcp.servers import McpToolServers
+    from loamz.runtime.data import DataServiceConnection, DataTokenMinter
+    from loamz.runtime.toolkit.mcp.servers import McpToolServers
 
 type Provider[T] = Callable[["Container"], T]
 
@@ -53,7 +53,7 @@ class Container:
     def directory(self):
         """Only a configured service account may resolve or invite organization members."""
         from loamz.engine.errors import ServiceUnavailableError
-        from loamz.server.identity.directory import Directory
+        from loamz.identity.server.directory import Directory
 
         settings = self.settings.directory
         if not settings.url or not settings.client_secret:
@@ -89,7 +89,7 @@ class Container:
             return None
         from pathlib import Path
 
-        from loamz.engine.agents.data import DataTokenMinter
+        from loamz.runtime.data import DataTokenMinter
 
         return DataTokenMinter(
             Path(data.token_key_file), issuer=data.files_issuer, audience=data.audience
@@ -103,7 +103,7 @@ class Container:
             return None
         from pathlib import Path
 
-        from loamz.engine.agents.data import DataTokenMinter
+        from loamz.runtime.data import DataTokenMinter
 
         return DataTokenMinter(
             Path(data.token_key_file), issuer=data.read_issuer, audience=data.audience
@@ -115,7 +115,7 @@ class Container:
         minter, connection = self.data_read_tokens, self.data_connection
         if minter is None or connection is None:
             return {}
-        from loamz.engine.agents.data import data_tools
+        from loamz.runtime.data import data_tools
 
         return {tool.name: tool for tool in data_tools(connection, minter)}
 
@@ -130,9 +130,9 @@ class Container:
         log = logging.getLogger(__name__)
         sandbox = self.settings.sandbox
         try:
-            from loamz.engine.agents.data import DataGateway
-            from loamz.engine.agents.toolkit.code import CodeInterpreterTool
-            from loamz.engine.agents.toolkit.code.runtimes.factory import (
+            from loamz.runtime.data import DataGateway
+            from loamz.runtime.toolkit.code import CodeInterpreterTool
+            from loamz.runtime.toolkit.code.runtimes.factory import (
                 build_runtime,
                 network_policy,
             )
@@ -152,7 +152,7 @@ class Container:
         if sandbox.runtime != "k8s":
             # A run works on a local copy of the workspace: checked out before, committed as a snapshot after, so what the code
             # makes is saved and shows in the chat (k8s keeps files in the pod's own volume instead).
-            from loamz.engine.agents.toolkit.code.runtimes.staged import StagedSandboxRuntime
+            from loamz.runtime.toolkit.code.runtimes.staged import StagedSandboxRuntime
 
             runtime = StagedSandboxRuntime(
                 runtime,
@@ -187,7 +187,7 @@ class Container:
         data = self.settings.data
         if not data.url:
             return None
-        from loamz.engine.agents.data import DataServiceConnection
+        from loamz.runtime.data import DataServiceConnection
 
         connection = DataServiceConnection(data.url)
         self.on_close(connection.aclose)
@@ -198,13 +198,13 @@ class Container:
         """File bytes: Loamz Data's governed Files domain when `data.url` is set, otherwise a local folder."""
         minter, connection = self.data_tokens, self.data_connection
         if minter is not None and connection is not None:
-            from loamz.engine.agents.data import DataFileStore
+            from loamz.runtime.data import DataFileStore
 
             def token(tenant: str, user: str | None) -> str:
                 return minter.mint(tenant, user, scopes={"files:read", "files:write"})
 
             return DataFileStore(connection, token)
-        from loamz.engine.agents.providers.files import LocalFileStore
+        from loamz.runtime.providers.files import LocalFileStore
 
         return LocalFileStore(self.settings.files.path)
 
@@ -217,12 +217,12 @@ class Container:
     def counters(self) -> Counters:
         """Rate-limit windows and daily quotas: shared through Redis when configured, otherwise this process's."""
         if not self.settings.redis.url:
-            from loamz.engine.agents.providers.limits.memory import MemoryCounters
+            from loamz.runtime.providers.limits.memory import MemoryCounters
 
             return MemoryCounters()
         import redis.asyncio as aioredis
 
-        from loamz.engine.agents.providers.limits.redis import RedisCounters
+        from loamz.runtime.providers.limits.redis import RedisCounters
 
         client = aioredis.from_url(self.settings.redis.url, decode_responses=True)
         self.on_close(client.aclose)
@@ -233,7 +233,7 @@ class Container:
         """Redis when `redis.url` is set (role-split deployments), otherwise one process's in-memory bus."""
         if not self.settings.redis.url:
             return InMemoryEventBus()
-        from loamz.engine.agents.providers.redis.bus import RedisEventBus
+        from loamz.runtime.providers.redis.bus import RedisEventBus
 
         bus = RedisEventBus(self.settings.redis.url)
         self.on_close(bus.disconnect)
@@ -241,7 +241,7 @@ class Container:
 
     def chat_model(self, model: str | None = None) -> ChatModel:
         """A client for `model` (the configured default when omitted), with the configured provider keys."""
-        from loamz.engine.agents.providers.llm import create_model_client
+        from loamz.runtime.providers.llm import create_model_client
 
         llm = self.settings.llm
         return create_model_client(
@@ -271,7 +271,7 @@ class Container:
     @cached_property
     def tool_servers(self) -> McpToolServers:
         """The operator's tool servers (MCP). Empty unless `tools.servers` is configured."""
-        from loamz.engine.agents.toolkit.mcp.servers import McpServerSpec, McpToolServers
+        from loamz.runtime.toolkit.mcp.servers import McpServerSpec, McpToolServers
 
         servers = McpToolServers(
             [

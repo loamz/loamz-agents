@@ -17,14 +17,14 @@ from typing import Any
 
 def cmd_chat(args: argparse.Namespace) -> None:
     """An interactive chat with a ReAct agent whose history lives in the agent store."""
-    from loamz.engine.agents.kernel.agents import ReActAgent
-    from loamz.engine.agents.kernel.context import (
+    from loamz.runtime.kernel.agents import ReActAgent
+    from loamz.runtime.kernel.context import (
         CompactionPipeline,
         ContextConfig,
         SlidingWindowCompaction,
     )
-    from loamz.engine.agents.kernel.runtime import Runtime
-    from loamz.engine.agents.kernel.tools import Toolbox
+    from loamz.runtime.kernel.runtime import Runtime
+    from loamz.runtime.kernel.tools import Toolbox
     from loamz.server.agents.bootstrap import Container, Settings
     from loamz.server.agents.console import Console
 
@@ -61,7 +61,7 @@ async def _mcp_tools(server_urls: list[str]) -> list[Any]:
     """The tools of each MCP server (an SSE endpoint such as ``http://localhost:3000/sse``)."""
     if not server_urls:
         return []
-    from loamz.engine.agents.toolkit.mcp import MCPClient, MCPTool
+    from loamz.runtime.toolkit.mcp import MCPClient, MCPTool
 
     tools: list[Any] = []
     for url in server_urls:

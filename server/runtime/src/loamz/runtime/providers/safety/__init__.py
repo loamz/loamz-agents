@@ -14,6 +14,6 @@ reverse). Re-exported here for convenience since callers reaching into
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.safety import NormalizedText, normalize
+from loamz.runtime.kernel.safety import NormalizedText, normalize
 
 __all__ = ["NormalizedText", "normalize"]

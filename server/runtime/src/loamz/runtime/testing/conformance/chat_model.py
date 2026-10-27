@@ -24,12 +24,12 @@ from typing import Any, Protocol
 import httpx
 import pytest
 
-from loamz.engine.agents.kernel.errors import AuthError, ContentFilterError, ContextLengthError
-from loamz.engine.agents.kernel.models.errors import classify_llm_error
-from loamz.engine.agents.kernel.models.protocols import ChatModel, ModelCapabilities
-from loamz.engine.agents.kernel.types.content import ChatMessage, MediaBlock, Role, TextBlock
-from loamz.engine.agents.kernel.types.finish_reason import FinishReason
-from loamz.engine.agents.kernel.types.stream import CompletionEvent, TextDelta
+from loamz.runtime.kernel.errors import AuthError, ContentFilterError, ContextLengthError
+from loamz.runtime.kernel.models.errors import classify_llm_error
+from loamz.runtime.kernel.models.protocols import ChatModel, ModelCapabilities
+from loamz.runtime.kernel.types.content import ChatMessage, MediaBlock, Role, TextBlock
+from loamz.runtime.kernel.types.finish_reason import FinishReason
+from loamz.runtime.kernel.types.stream import CompletionEvent, TextDelta
 from loamz.engine.errors import RateLimitedError
 
 Handler = Callable[[httpx.Request], httpx.Response]

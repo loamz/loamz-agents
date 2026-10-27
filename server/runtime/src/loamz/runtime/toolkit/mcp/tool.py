@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import base64
 
-from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk, ToolType
-from loamz.engine.agents.kernel.types.content import MediaBlock, TextBlock
-from loamz.engine.agents.toolkit.mcp.client import MCPClient
+from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk, ToolType
+from loamz.runtime.kernel.types.content import MediaBlock, TextBlock
+from loamz.runtime.toolkit.mcp.client import MCPClient
 
 
 class MCPTool:

@@ -14,9 +14,9 @@ from collections.abc import Callable
 
 from pydantic import BaseModel, ValidationError
 
-from loamz.engine.agents.kernel.models import ChatModel, GenerationOptions
-from loamz.engine.agents.kernel.ports.counters import Counters
-from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
+from loamz.runtime.kernel.models import ChatModel, GenerationOptions
+from loamz.runtime.kernel.ports.counters import Counters
+from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.bootstrap.settings import DocumentSettings
 from loamz.server.agents.features.knowledge.documents.library import DocumentLibrary

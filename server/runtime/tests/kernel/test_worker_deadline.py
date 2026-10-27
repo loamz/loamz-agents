@@ -10,11 +10,11 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from loamz.engine.agents.kernel.runtime import ActorResolver, Lease, Worker
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.run_status import RunId, new_run_id
-from loamz.engine.agents.kernel.types.supervision import ExecutionBudget, Supervision
-from loamz.engine.agents.testing.runtime import runtime_store
+from loamz.runtime.kernel.runtime import ActorResolver, Lease, Worker
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.run_status import RunId, new_run_id
+from loamz.runtime.kernel.types.supervision import ExecutionBudget, Supervision
+from loamz.runtime.testing.runtime import runtime_store
 
 _AGENT = Actor(type="agent", key="a")
 
@@ -79,8 +79,8 @@ def test_the_earlier_of_the_run_deadline_and_the_budget_wins() -> None:
 
 async def test_run_meta_check_raises_past_deadline() -> None:
     """The other half of the contract: RunMeta.check() enforces the resolved deadline."""
-    from loamz.engine.agents.kernel.errors import CancellationError
-    from loamz.engine.agents.kernel.types.run import RunMeta
+    from loamz.runtime.kernel.errors import CancellationError
+    from loamz.runtime.kernel.types.run import RunMeta
 
     class _NeverCancelledToken:
         is_cancelled = False

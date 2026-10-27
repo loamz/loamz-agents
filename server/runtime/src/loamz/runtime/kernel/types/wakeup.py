@@ -29,8 +29,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-from loamz.engine.agents.kernel.types.content import JsonObject
-from loamz.engine.agents.kernel.types.run_status import RunId
+from loamz.runtime.kernel.types.content import JsonObject
+from loamz.runtime.kernel.types.run_status import RunId
 
 
 class Wakeup(BaseModel):

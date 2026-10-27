@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from loamz.engine.agents.kernel.caller import Caller
+from loamz.runtime.kernel.caller import Caller
 from loamz.engine.errors import ConflictError, InvalidRequestError
 from loamz.server.agents.features.conversations.chat.model import ChatRequest
 from loamz.server.agents.features.conversations.chat.service import ChatService
@@ -66,7 +66,7 @@ async def test_an_empty_or_locked_conversation_is_refused_up_front():
 
 
 # ── rejoining a run that waited while the console was away ───────────────────
-from loamz.engine.agents.kernel.types.run_log import RunLogKind  # noqa: E402
+from loamz.runtime.kernel.types.run_log import RunLogKind  # noqa: E402
 from loamz.engine.errors import NotFoundError  # noqa: E402
 
 

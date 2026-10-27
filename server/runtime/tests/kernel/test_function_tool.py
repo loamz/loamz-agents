@@ -9,8 +9,8 @@ from typing import Literal
 import pytest
 from pydantic import BaseModel
 
-from loamz.engine.agents.kernel.tools import Tool, ToolExecutionResult, ToolRisk, tool
-from loamz.engine.agents.kernel.types.content import TextBlock
+from loamz.runtime.kernel.tools import Tool, ToolExecutionResult, ToolRisk, tool
+from loamz.runtime.kernel.types.content import TextBlock
 
 
 @tool(risk=ToolRisk.SAFE, idempotent=True)

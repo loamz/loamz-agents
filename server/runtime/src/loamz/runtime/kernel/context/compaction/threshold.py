@@ -5,9 +5,9 @@ from __future__ import annotations
 from collections.abc import Callable
 from uuid import uuid4
 
-from loamz.engine.agents.kernel.context.protocols import CompactionContext
-from loamz.engine.agents.kernel.context.tokens import estimate_tokens
-from loamz.engine.agents.kernel.ports.threads import HistoryCheckpoint
+from loamz.runtime.kernel.context.protocols import CompactionContext
+from loamz.runtime.kernel.context.tokens import estimate_tokens
+from loamz.runtime.kernel.ports.threads import HistoryCheckpoint
 
 
 class ThresholdCheckpointStrategy:

@@ -17,10 +17,10 @@ from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 from opentelemetry.trace import StatusCode
 
-from loamz.engine.agents.kernel.errors import SuspendInterrupt
-from loamz.engine.agents.kernel.telemetry import semconv, set_capture_content, span
-from loamz.engine.agents.kernel.types.trace import TraceContext
-from loamz.engine.agents.kernel.types.wakeup import Wakeup
+from loamz.runtime.kernel.errors import SuspendInterrupt
+from loamz.runtime.kernel.telemetry import semconv, set_capture_content, span
+from loamz.runtime.kernel.types.trace import TraceContext
+from loamz.runtime.kernel.types.wakeup import Wakeup
 from loamz.engine.errors import RateLimitedError
 
 

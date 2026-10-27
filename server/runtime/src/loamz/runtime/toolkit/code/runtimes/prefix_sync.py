@@ -23,8 +23,8 @@ import stat
 import tempfile
 from pathlib import Path, PurePosixPath
 
-from loamz.engine.agents.kernel.ports.files import FileStore
-from loamz.engine.agents.stores.workspace.materialize import regular_files
+from loamz.runtime.kernel.ports.files import FileStore
+from loamz.runtime.stores.workspace.materialize import regular_files
 from loamz.engine.errors import QuotaExceededError
 
 logger = logging.getLogger(__name__)

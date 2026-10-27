@@ -10,9 +10,9 @@ import pytest
 from google import genai
 from google.genai import types as genai_types
 
-from loamz.engine.agents.kernel.models import ModelCapabilities
-from loamz.engine.agents.providers.llm.gemini.gemini_client import GeminiClient
-from loamz.engine.agents.testing.conformance.chat_model import ChatModelConformance
+from loamz.runtime.kernel.models import ModelCapabilities
+from loamz.runtime.providers.llm.gemini.gemini_client import GeminiClient
+from loamz.runtime.testing.conformance.chat_model import ChatModelConformance
 
 CAPS = ModelCapabilities(
     model_id="conformance-gemini", input_modalities=frozenset({"text", "image"})

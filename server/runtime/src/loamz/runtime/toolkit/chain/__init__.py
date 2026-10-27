@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from loamz.engine.agents.toolkit.chain.tool import ToolChainTool
+from loamz.runtime.toolkit.chain.tool import ToolChainTool
 
 __all__ = ["ToolChainTool"]

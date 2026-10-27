@@ -9,9 +9,9 @@ import httpx
 import pytest
 from openai import AsyncOpenAI
 
-from loamz.engine.agents.kernel.models import ModelCapabilities
-from loamz.engine.agents.providers.llm.openai.openai_client import OpenAIClient
-from loamz.engine.agents.testing.conformance.chat_model import ChatModelConformance
+from loamz.runtime.kernel.models import ModelCapabilities
+from loamz.runtime.providers.llm.openai.openai_client import OpenAIClient
+from loamz.runtime.testing.conformance.chat_model import ChatModelConformance
 
 CAPS = ModelCapabilities(model_id="conformance-gpt", input_modalities=frozenset({"text", "image"}))
 

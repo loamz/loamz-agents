@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import json
 
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     MediaBlock,
     Role,
@@ -13,10 +13,10 @@ from loamz.engine.agents.kernel.types.content import (
     ToolResultBlock,
     ToolUseBlock,
 )
-from loamz.engine.agents.providers.llm.anthropic.anthropic_client import AnthropicClient
-from loamz.engine.agents.providers.llm.encoders import openai as openai_enc
-from loamz.engine.agents.providers.llm.gemini.gemini_client import GeminiClient
-from loamz.engine.agents.providers.llm.openai.openai_client import OpenAIClient
+from loamz.runtime.providers.llm.anthropic.anthropic_client import AnthropicClient
+from loamz.runtime.providers.llm.encoders import openai as openai_enc
+from loamz.runtime.providers.llm.gemini.gemini_client import GeminiClient
+from loamz.runtime.providers.llm.openai.openai_client import OpenAIClient
 
 PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
 

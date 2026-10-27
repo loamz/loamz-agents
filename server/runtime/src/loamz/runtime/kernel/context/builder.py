@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from loamz.engine.agents.kernel.context.protocols import ContextBuilder, ContextWindow
-from loamz.engine.agents.kernel.context.tokens import DEFAULT_CHARS_PER_TOKEN, estimate_tokens
-from loamz.engine.agents.kernel.ports.threads import HistoryCheckpoint, MessageNode
-from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
+from loamz.runtime.kernel.context.protocols import ContextBuilder, ContextWindow
+from loamz.runtime.kernel.context.tokens import DEFAULT_CHARS_PER_TOKEN, estimate_tokens
+from loamz.runtime.kernel.ports.threads import HistoryCheckpoint, MessageNode
+from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
 from loamz.engine.memory import ContextMemoryInjection
 
 

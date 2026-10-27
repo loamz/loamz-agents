@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from rich.text import Text
 from rich.tree import Tree
 
-from loamz.engine.agents.kernel.types.stream import AgentProgress, AgentStep
+from loamz.runtime.kernel.types.stream import AgentProgress, AgentStep
 
 from .theme import ConsoleTheme
 

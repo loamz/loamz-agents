@@ -18,10 +18,10 @@ import logging
 import posixpath
 from typing import TYPE_CHECKING
 
-from loamz.engine.agents.kernel.tools import ToolRisk
+from loamz.runtime.kernel.tools import ToolRisk
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.models import ChatModel
+    from loamz.runtime.kernel.models import ChatModel
 
 logger = logging.getLogger(__name__)
 
@@ -198,8 +198,8 @@ def templated_summary(reasons: list[str]) -> str:
 
 async def _llm_summary(code: str, model_client: ChatModel) -> str:
     """One-sentence natural-language summary of what dangerous code does."""
-    from loamz.engine.agents.kernel.models import GenerationOptions
-    from loamz.engine.agents.kernel.types.content import ChatMessage, TextBlock
+    from loamz.runtime.kernel.models import GenerationOptions
+    from loamz.runtime.kernel.types.content import ChatMessage, TextBlock
 
     messages = [ChatMessage(role="user", content=[TextBlock(text=f"```python\n{code}\n```")])]
     resp = await model_client.generate(

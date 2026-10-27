@@ -1,4 +1,4 @@
-"""loamz.engine.agents.toolkit — built-in tools for ReActAgent + protocol bridges.
+"""loamz.runtime.toolkit — built-in tools for ReActAgent + protocol bridges.
 
 Tools are grouped by domain:
   mcp/          — Model Context Protocol client/tool bridge
@@ -16,8 +16,8 @@ Tools are grouped by domain:
 
 Quick-start::
 
-    from loamz.engine.agents.toolkit.compute.calculator import CalculatorTool
-    from loamz.engine.agents.toolkit.web.search import WebSearchTool
+    from loamz.runtime.toolkit.compute.calculator import CalculatorTool
+    from loamz.runtime.toolkit.web.search import WebSearchTool
     agent = ReActAgent("bot", model=llm, tools=[CalculatorTool(), WebSearchTool()])
 """
 
@@ -29,44 +29,44 @@ from typing import TYPE_CHECKING
 # A tool is imported when it is asked for, not when the package is: each one needs its own extra (``mcp``, ``web``,
 # ``code``…), and using the calculator must not require the web-search stack to be installed.
 _LAZY: dict[str, str] = {
-    "MCPClient": "loamz.engine.agents.toolkit.mcp",
-    "MCPTool": "loamz.engine.agents.toolkit.mcp",
-    "CalculatorTool": "loamz.engine.agents.toolkit.compute.calculator",
-    "CurrentTimeTool": "loamz.engine.agents.toolkit.utils.current_time",
-    "WebSearchTool": "loamz.engine.agents.toolkit.web.search",
-    "ReadUrlTool": "loamz.engine.agents.toolkit.web.read_url",
-    "WikipediaTool": "loamz.engine.agents.toolkit.web.wikipedia",
-    "WebSurferTool": "loamz.engine.agents.toolkit.web.surfer",
-    "ToolChainTool": "loamz.engine.agents.toolkit.chain",
-    "EmailSenderTool": "loamz.engine.agents.toolkit.communication.email_sender",
-    "HttpRequestTool": "loamz.engine.agents.toolkit.communication.http_request",
-    "AskHumanTool": "loamz.engine.agents.toolkit.human_input",
-    "ImageGeneratorTool": "loamz.engine.agents.toolkit.ai.image_generator",
-    "MemoryTool": "loamz.engine.agents.toolkit.memory",
-    "TaskManagerTool": "loamz.engine.agents.toolkit.task_manager.tool",
-    "ToolSearchTool": "loamz.engine.agents.toolkit.utils.tool_search",
+    "MCPClient": "loamz.runtime.toolkit.mcp",
+    "MCPTool": "loamz.runtime.toolkit.mcp",
+    "CalculatorTool": "loamz.runtime.toolkit.compute.calculator",
+    "CurrentTimeTool": "loamz.runtime.toolkit.utils.current_time",
+    "WebSearchTool": "loamz.runtime.toolkit.web.search",
+    "ReadUrlTool": "loamz.runtime.toolkit.web.read_url",
+    "WikipediaTool": "loamz.runtime.toolkit.web.wikipedia",
+    "WebSurferTool": "loamz.runtime.toolkit.web.surfer",
+    "ToolChainTool": "loamz.runtime.toolkit.chain",
+    "EmailSenderTool": "loamz.runtime.toolkit.communication.email_sender",
+    "HttpRequestTool": "loamz.runtime.toolkit.communication.http_request",
+    "AskHumanTool": "loamz.runtime.toolkit.human_input",
+    "ImageGeneratorTool": "loamz.runtime.toolkit.ai.image_generator",
+    "MemoryTool": "loamz.runtime.toolkit.memory",
+    "TaskManagerTool": "loamz.runtime.toolkit.task_manager.tool",
+    "ToolSearchTool": "loamz.runtime.toolkit.utils.tool_search",
 }
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.toolkit.ai.image_generator import ImageGeneratorTool
-    from loamz.engine.agents.toolkit.chain import ToolChainTool
-    from loamz.engine.agents.toolkit.communication.email_sender import EmailSenderTool
-    from loamz.engine.agents.toolkit.communication.http_request import HttpRequestTool
-    from loamz.engine.agents.toolkit.compute.calculator import CalculatorTool
-    from loamz.engine.agents.toolkit.human_input import AskHumanTool
-    from loamz.engine.agents.toolkit.mcp import MCPClient, MCPTool
-    from loamz.engine.agents.toolkit.memory import MemoryTool
-    from loamz.engine.agents.toolkit.task_manager.tool import TaskManagerTool
-    from loamz.engine.agents.toolkit.utils.current_time import CurrentTimeTool
-    from loamz.engine.agents.toolkit.utils.tool_search import ToolSearchTool
-    from loamz.engine.agents.toolkit.web.read_url import ReadUrlTool
-    from loamz.engine.agents.toolkit.web.search import WebSearchTool
-    from loamz.engine.agents.toolkit.web.surfer import WebSurferTool
-    from loamz.engine.agents.toolkit.web.wikipedia import WikipediaTool
+    from loamz.runtime.toolkit.ai.image_generator import ImageGeneratorTool
+    from loamz.runtime.toolkit.chain import ToolChainTool
+    from loamz.runtime.toolkit.communication.email_sender import EmailSenderTool
+    from loamz.runtime.toolkit.communication.http_request import HttpRequestTool
+    from loamz.runtime.toolkit.compute.calculator import CalculatorTool
+    from loamz.runtime.toolkit.human_input import AskHumanTool
+    from loamz.runtime.toolkit.mcp import MCPClient, MCPTool
+    from loamz.runtime.toolkit.memory import MemoryTool
+    from loamz.runtime.toolkit.task_manager.tool import TaskManagerTool
+    from loamz.runtime.toolkit.utils.current_time import CurrentTimeTool
+    from loamz.runtime.toolkit.utils.tool_search import ToolSearchTool
+    from loamz.runtime.toolkit.web.read_url import ReadUrlTool
+    from loamz.runtime.toolkit.web.search import WebSearchTool
+    from loamz.runtime.toolkit.web.surfer import WebSurferTool
+    from loamz.runtime.toolkit.web.wikipedia import WikipediaTool
 
 # CodeInterpreterTool is intentionally NOT exported here.
 # It executes arbitrary code in a sandboxed VM and requires explicit opt-in
-# by the caller: from loamz.engine.agents.toolkit.code.tool import CodeInterpreterTool
+# by the caller: from loamz.runtime.toolkit.code.tool import CodeInterpreterTool
 
 __all__ = [
     "MCPClient",

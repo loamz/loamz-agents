@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from loamz.engine.agents.providers.redis.short_term import RedisSessionStore
-from loamz.engine.agents.testing.conformance.short_term_memory import ShortTermMemoryConformance
+from loamz.runtime.providers.redis.short_term import RedisSessionStore
+from loamz.runtime.testing.conformance.short_term_memory import ShortTermMemoryConformance
 
 pytestmark = [pytest.mark.requires_redis]
 

@@ -4,8 +4,8 @@ import tempfile
 
 import pytest
 
-from loamz.engine.agents.providers.redis.cache import CachedShortTermMemory
-from loamz.engine.agents.providers.redis.short_term import RedisSessionStore
+from loamz.runtime.providers.redis.cache import CachedShortTermMemory
+from loamz.runtime.providers.redis.short_term import RedisSessionStore
 from tests._stores import agent_store_at
 
 pytestmark = [pytest.mark.requires_redis]

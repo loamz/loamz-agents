@@ -13,8 +13,8 @@ import time
 from dataclasses import asdict, dataclass
 from pathlib import PurePosixPath
 
-from loamz.engine.agents.kernel.ports.files import FileStore
-from loamz.engine.agents.stores.workspace.layout import conversation_version_key
+from loamz.runtime.kernel.ports.files import FileStore
+from loamz.runtime.stores.workspace.layout import conversation_version_key
 from loamz.engine.errors import NotFoundError
 from loamz.server.agents.features.workspace.keys import VERSIONS_DIR
 

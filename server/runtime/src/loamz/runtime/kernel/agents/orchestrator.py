@@ -11,29 +11,29 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from loamz.engine.agents.kernel.agents.base import BaseAgent
-from loamz.engine.agents.kernel.agents.routed import handle
-from loamz.engine.agents.kernel.agents.spawn import SpawnTracker
-from loamz.engine.agents.kernel.context.context import ContextConfig
-from loamz.engine.agents.kernel.models.protocols import GenerationOptions
-from loamz.engine.agents.kernel.runtime.message import ChatPayload, DataPayload, Message
-from loamz.engine.agents.kernel.tools.protocols import AnyTool, ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.agents.base import BaseAgent
+from loamz.runtime.kernel.agents.routed import handle
+from loamz.runtime.kernel.agents.spawn import SpawnTracker
+from loamz.runtime.kernel.context.context import ContextConfig
+from loamz.runtime.kernel.models.protocols import GenerationOptions
+from loamz.runtime.kernel.runtime.message import ChatPayload, DataPayload, Message
+from loamz.runtime.kernel.tools.protocols import AnyTool, ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     Role,
     TextBlock,
     ToolResultBlock,
     ToolUseBlock,
 )
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.run import RunScope
-from loamz.engine.agents.kernel.types.run_log import RunLogKind
-from loamz.engine.agents.kernel.types.supervision import Priority, SpawnBudget
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.run import RunScope
+from loamz.runtime.kernel.types.run_log import RunLogKind
+from loamz.runtime.kernel.types.supervision import Priority, SpawnBudget
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.models.protocols import ChatModel
-    from loamz.engine.agents.kernel.ports.threads import ThreadStore
-    from loamz.engine.agents.kernel.runtime.context import Agent, RunContext
+    from loamz.runtime.kernel.models.protocols import ChatModel
+    from loamz.runtime.kernel.ports.threads import ThreadStore
+    from loamz.runtime.kernel.runtime.context import Agent, RunContext
 
 
 @dataclass
@@ -228,7 +228,7 @@ class OrchestratorAgent(BaseAgent):
 
             messages.append(ChatMessage(role=Role.TOOL, content=results))  # type: ignore[arg-type]
         else:
-            from loamz.engine.agents.kernel.errors import BudgetExhaustedError
+            from loamz.runtime.kernel.errors import BudgetExhaustedError
 
             raise BudgetExhaustedError(
                 f"Agent reached max iterations limit ({self._max_iterations})"

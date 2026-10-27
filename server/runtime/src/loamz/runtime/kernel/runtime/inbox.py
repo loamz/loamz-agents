@@ -36,8 +36,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel
 
-from loamz.engine.agents.kernel.runtime.message import Message
-from loamz.engine.agents.kernel.types.identity import Actor
+from loamz.runtime.kernel.runtime.message import Message
+from loamz.runtime.kernel.types.identity import Actor
 
 
 class DeadLetterReason(StrEnum):

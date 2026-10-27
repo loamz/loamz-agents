@@ -3,14 +3,14 @@ spawned sub-agent inherits it."""
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.agents import OrchestratorAgent, ReActAgent, SubAgentConfig
-from loamz.engine.agents.kernel.context import ContextConfig
-from loamz.engine.agents.kernel.runtime import ChatPayload, Message, Runtime
-from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock, ToolUseBlock
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.run import RunScope, scope_of
-from loamz.engine.agents.testing.runtime import ephemeral_runtime
+from loamz.runtime.kernel.agents import OrchestratorAgent, ReActAgent, SubAgentConfig
+from loamz.runtime.kernel.context import ContextConfig
+from loamz.runtime.kernel.runtime import ChatPayload, Message, Runtime
+from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock, ToolUseBlock
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.run import RunScope, scope_of
+from loamz.runtime.testing.runtime import ephemeral_runtime
 from tests._stores import fs_history
 from tests.kernel.test_react_harness import ScriptedLLM  # noqa: E402
 

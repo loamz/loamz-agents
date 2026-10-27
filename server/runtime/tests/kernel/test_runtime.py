@@ -13,15 +13,15 @@ from __future__ import annotations
 
 import asyncio
 
-from loamz.engine.agents.kernel.runtime import (
+from loamz.runtime.kernel.runtime import (
     AskOutcome,
     DataPayload,
     Message,
     RunContext,
     RunRetryPolicy,
 )
-from loamz.engine.agents.kernel.types.identity import Actor, Topic
-from loamz.engine.agents.testing.runtime import ephemeral_runtime
+from loamz.runtime.kernel.types.identity import Actor, Topic
+from loamz.runtime.testing.runtime import ephemeral_runtime
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -386,8 +386,8 @@ async def test_nested_effect_inside_journal_hit_tool_stays_replay_safe() -> None
     or miss, and its internal effects live in a child scope that is only
     entered when the body genuinely executes.
     """
-    from loamz.engine.agents.kernel.tools import Toolbox, ToolExecutionResult, ToolRisk
-    from loamz.engine.agents.kernel.types.content import TextBlock
+    from loamz.runtime.kernel.tools import Toolbox, ToolExecutionResult, ToolRisk
+    from loamz.runtime.kernel.types.content import TextBlock
 
     class NestedUuidTool:
         name = "nested_uuid_tool"
@@ -451,7 +451,7 @@ async def test_nested_effect_inside_journal_hit_tool_stays_replay_safe() -> None
 
 async def test_supervisor_join() -> None:
     """A parent agent can spawn a child and await its completion via ctx.join()."""
-    from loamz.engine.agents.kernel.types.run_status import RunStatus
+    from loamz.runtime.kernel.types.run_status import RunStatus
 
     class ChildJoinAgent:
         def __init__(self, agent_id: Actor) -> None:
@@ -498,7 +498,7 @@ async def test_spawn_inherits_execution_budget_transitively() -> None:
     that same budget too, proving the Worker actually rehydrates
     RunMeta.supervision from SupervisorProtocol.supervision_of() at each lease, not
     just at the moment of the original spawn() call."""
-    from loamz.engine.agents.kernel.types.supervision import ExecutionBudget, Supervision
+    from loamz.runtime.kernel.types.supervision import ExecutionBudget, Supervision
 
     class GrandchildAgent:
         def __init__(self, agent_id: Actor) -> None:
@@ -562,8 +562,8 @@ async def test_log_once_does_not_duplicate_across_suspend_resume() -> None:
 
     ctx.log_once() must append its entry exactly once no matter how many
     times the surrounding tool body re-executes."""
-    from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk
-    from loamz.engine.agents.kernel.types.content import TextBlock
+    from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk
+    from loamz.runtime.kernel.types.content import TextBlock
 
     log_call_count = 0
 
@@ -591,7 +591,7 @@ async def test_log_once_does_not_duplicate_across_suspend_resume() -> None:
             await ctx.tool("suspending_tool")
             self.done.set()
 
-    from loamz.engine.agents.kernel.tools import Toolbox
+    from loamz.runtime.kernel.tools import Toolbox
 
     agent_id = _agent_id("log_once_suspend")
     agent = SuspendingAgent(agent_id)
@@ -707,7 +707,7 @@ class PostsThenSuspends:
 
 
 async def test_a_post_from_a_replaying_run_lands_once_and_a_read_is_stable() -> None:
-    from loamz.engine.agents.kernel.runtime.channel import Member
+    from loamz.runtime.kernel.runtime.channel import Member
 
     poster_id, helper_id = Actor("agent", "poster@g"), _agent_id("helper2")
     poster = PostsThenSuspends(poster_id, helper_id)

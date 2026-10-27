@@ -12,7 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SRC = REPO_ROOT / "src" / "loamz" / "engine" / "agents"
+SRC = REPO_ROOT / "src" / "loamz" / "runtime"
 KERNEL = SRC / "kernel"
 
 CONCEPTS = (
@@ -67,22 +67,22 @@ CONTRACTS = (
 )
 
 PUBLIC_PACKAGES = (
-    "loamz.engine.agents",
-    "loamz.engine.agents.kernel.types",
-    "loamz.engine.agents.kernel.errors",
-    "loamz.engine.agents.kernel.telemetry",
-    "loamz.engine.agents.kernel.tools",
-    "loamz.engine.agents.kernel.models",
-    "loamz.engine.agents.kernel.ports",
-    "loamz.engine.agents.kernel.safety",
-    "loamz.engine.agents.kernel.context",
-    "loamz.engine.agents.kernel.middleware",
-    "loamz.engine.agents.kernel.runtime",
-    "loamz.engine.agents.kernel.agents",
-    "loamz.engine.agents.kernel.events",
-    "loamz.engine.agents.kernel.wire",
-    "loamz.engine.agents.stores",
-    "loamz.engine.agents.stores.workspace",
+    "loamz.runtime",
+    "loamz.runtime.kernel.types",
+    "loamz.runtime.kernel.errors",
+    "loamz.runtime.kernel.telemetry",
+    "loamz.runtime.kernel.tools",
+    "loamz.runtime.kernel.models",
+    "loamz.runtime.kernel.ports",
+    "loamz.runtime.kernel.safety",
+    "loamz.runtime.kernel.context",
+    "loamz.runtime.kernel.middleware",
+    "loamz.runtime.kernel.runtime",
+    "loamz.runtime.kernel.agents",
+    "loamz.runtime.kernel.events",
+    "loamz.runtime.kernel.wire",
+    "loamz.runtime.stores",
+    "loamz.runtime.stores.workspace",
 )
 """The packages whose ``__all__`` is the public API (``tests/invariants/public_api.json``)."""
 
@@ -105,7 +105,7 @@ def contract_files() -> list[Path]:
 
 def module_name(path: Path) -> str:
     return ".".join(
-        ("loamz", "engine", "agents", *path.relative_to(SRC).with_suffix("").parts)
+        ("loamz", "runtime", *path.relative_to(SRC).with_suffix("").parts)
     ).removesuffix(".__init__")
 
 

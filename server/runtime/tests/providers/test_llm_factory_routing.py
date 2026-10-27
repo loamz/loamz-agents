@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import pytest
 
-from loamz.engine.agents.providers.llm.factory import (
+from loamz.runtime.providers.llm.factory import (
     LLMFactory,
     create_embedding_client,
     detect_embedding_provider,
@@ -22,7 +22,7 @@ from loamz.engine.agents.providers.llm.factory import (
 
 
 def test_bare_openai_model_name_routes_to_responses_api_client() -> None:
-    from loamz.engine.agents.providers.llm.openai.openai_client import OpenAIClient
+    from loamz.runtime.providers.llm.openai.openai_client import OpenAIClient
 
     factory = LLMFactory("gpt-4o-mini", "sk-test")
     assert factory.provider == "openai"
@@ -46,7 +46,7 @@ def test_self_hosted_and_openai_compatible_providers_route_to_chat_completions_c
     the client that speaks ``/v1/chat/completions``, not the one that
     speaks OpenAI's newer Responses API, which self-hosted servers do not
     implement."""
-    from loamz.engine.agents.providers.llm.openai_compatible import OpenAICompatibleClient
+    from loamz.runtime.providers.llm.openai_compatible import OpenAICompatibleClient
 
     factory = LLMFactory(model, "sk-test")
     kwargs = {"base_url": base_url} if base_url else {}
@@ -69,8 +69,8 @@ def test_compatible_provider_requires_an_explicit_base_url() -> None:
 
 
 def test_anthropic_and_gemini_route_to_their_own_clients() -> None:
-    from loamz.engine.agents.providers.llm.anthropic.anthropic_client import AnthropicClient
-    from loamz.engine.agents.providers.llm.gemini.gemini_client import GeminiClient
+    from loamz.runtime.providers.llm.anthropic.anthropic_client import AnthropicClient
+    from loamz.runtime.providers.llm.gemini.gemini_client import GeminiClient
 
     assert isinstance(
         LLMFactory("claude-sonnet-4-20250514", "sk-ant-test").build(), AnthropicClient
@@ -99,7 +99,7 @@ def test_embedding_compatible_prefixes_route_to_openai_compatible(prefix: str) -
 
 
 def test_embedding_compatible_provider_builds_with_base_url() -> None:
-    from loamz.engine.agents.providers.llm.openai.openai_embedding_client import (
+    from loamz.runtime.providers.llm.openai.openai_embedding_client import (
         OpenAIEmbeddingClient,
     )
 

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.caller import Caller
-from loamz.engine.agents.kernel.ports.files import FileStore
-from loamz.engine.agents.stores.workspace.cas import BlobCAS
-from loamz.engine.agents.stores.workspace.layout import (
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.kernel.ports.files import FileStore
+from loamz.runtime.stores.workspace.cas import BlobCAS
+from loamz.runtime.stores.workspace.layout import (
     conversation_shared_key,
     conversation_shared_prefix,
     is_persistent_workspace,

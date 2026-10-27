@@ -19,7 +19,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const SCHEMA_PATH = resolve(
   __dirname,
-  "../../server/engine/src/loamz/engine/agents/kernel/wire/protocol.schema.json"
+  "../../server/runtime/src/loamz/runtime/kernel/wire/protocol.schema.json"
 );
 const OUT_PATH = resolve(__dirname, "../src/protocol/protocol.gen.ts");
 

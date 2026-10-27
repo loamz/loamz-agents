@@ -6,7 +6,7 @@ import json
 
 from pydantic import TypeAdapter
 
-from loamz.engine.agents.kernel.wire import (
+from loamz.runtime.kernel.wire import (
     PROTOCOL_VERSION,
     ApprovalRequestedEvent,
     ErrorEvent,
@@ -20,7 +20,7 @@ from loamz.engine.agents.kernel.wire import (
     TurnCompletedEvent,
     WireEvent,
 )
-from loamz.engine.agents.kernel.wire.export import build_schema
+from loamz.runtime.kernel.wire.export import build_schema
 
 _ADAPTER = TypeAdapter(WireEvent)
 

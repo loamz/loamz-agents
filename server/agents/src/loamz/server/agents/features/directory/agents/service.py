@@ -15,19 +15,19 @@ from functools import cache
 from importlib import resources
 from typing import Protocol
 
-from loamz.engine.agents.kernel.agents.react import ReActAgent
-from loamz.engine.agents.kernel.caller import Caller
-from loamz.engine.agents.kernel.ports.files import FileStore
-from loamz.engine.agents.kernel.tools.protocols import Tool
-from loamz.engine.agents.kernel.types.ids import new_id
-from loamz.engine.agents.providers.llm.factory import (
+from loamz.runtime.kernel.agents.react import ReActAgent
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.kernel.ports.files import FileStore
+from loamz.runtime.kernel.tools.protocols import Tool
+from loamz.runtime.kernel.types.ids import new_id
+from loamz.runtime.providers.llm.factory import (
     detect_provider,
     has_provider_api_key,
     model_supports_vision,
     resolve_model_for_available_credentials,
 )
-from loamz.engine.agents.stores import AgentStore, ThreadHeader
-from loamz.engine.agents.stores.workspace.layout import conversation_prefix
+from loamz.runtime.stores import AgentStore, ThreadHeader
+from loamz.runtime.stores.workspace.layout import conversation_prefix
 from loamz.engine.errors import ConflictError, InvalidRequestError, NotFoundError
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.directory.agents.activity import (
@@ -84,7 +84,7 @@ class DiscoveredTools:
 
     def describe(self) -> dict[str, str]:
         if self._found is None:
-            from loamz.engine.agents.toolkit.discovery import CapabilityDiscovery
+            from loamz.runtime.toolkit.discovery import CapabilityDiscovery
 
             found: dict[str, str] = {}
             for package in CapabilityDiscovery().discover():
@@ -555,7 +555,7 @@ class AgentsService:
         """The agent for `profile` (unregistered): its role, permitted tools plus `extra_tools`, its own model, keeping
         its conversation under `session_id`. With a `ChannelMemberConfig` as `channel` it is an agent that lives in
         channels. `options` go to `create_assistant_agent` (middleware, approval_required_risk…)."""
-        from loamz.engine.agents.kernel.agents.factory import create_assistant_agent
+        from loamz.runtime.kernel.agents.factory import create_assistant_agent
 
         llm = self._c.settings.llm
         wanted = profile.model or llm.model

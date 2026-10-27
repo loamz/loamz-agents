@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any
 from loamz.engine.sql import Tx, under
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.stores.store import AgentStore
+    from loamz.runtime.stores.store import AgentStore
 
 COMPONENT = "session"
 SCRIPTS = [

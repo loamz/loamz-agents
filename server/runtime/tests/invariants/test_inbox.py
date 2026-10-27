@@ -13,9 +13,9 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from loamz.engine.agents.kernel.runtime import Commit, Complete, DataPayload, Delivery, Message
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.testing.runtime import runtime_store
+from loamz.runtime.kernel.runtime import Commit, Complete, DataPayload, Delivery, Message
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.testing.runtime import runtime_store
 
 AGENT = Actor("agent", "a")
 

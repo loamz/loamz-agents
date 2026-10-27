@@ -6,8 +6,8 @@ import ast
 import operator
 from collections.abc import Callable
 
-from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import TextBlock
+from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import TextBlock
 
 # Whitelisted binary/unary operators. Anything not in these maps is rejected —
 # there is no ``eval``, so LLM-controlled input can never reach attribute
@@ -72,7 +72,7 @@ class CalculatorTool:
 
     Example::
 
-        from loamz.engine.agents.toolkit.compute.calculator import CalculatorTool
+        from loamz.runtime.toolkit.compute.calculator import CalculatorTool
         agent = ReActAgent("bot", runtime, model=llm, tools=[CalculatorTool()])
     """
 

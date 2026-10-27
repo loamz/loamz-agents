@@ -8,8 +8,8 @@ with a hundred contacts is a page of rows, not a hundred journals.
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.runtime.channel import ChannelStore, EntryKind
-from loamz.engine.agents.kernel.types.identity import Actor
+from loamz.runtime.kernel.runtime.channel import ChannelStore, EntryKind
+from loamz.runtime.kernel.types.identity import Actor
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.directory.pairs.store import Pair, PairsStore
 

@@ -15,12 +15,12 @@ from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
 from typing import Any, TypeVar
 
-from loamz.engine.agents.kernel.errors import BudgetExhaustedError, LeaseLostError, ThreadBusyError
-from loamz.engine.agents.kernel.runtime.channel import ChannelObserver
-from loamz.engine.agents.kernel.runtime.inbox import DeadLetterEntry, DeadLetterReason
-from loamz.engine.agents.kernel.runtime.message import Message
-from loamz.engine.agents.kernel.runtime.persistence.accounts import Accounts
-from loamz.engine.agents.kernel.runtime.persistence.channels import (
+from loamz.runtime.kernel.errors import BudgetExhaustedError, LeaseLostError, ThreadBusyError
+from loamz.runtime.kernel.runtime.channel import ChannelObserver
+from loamz.runtime.kernel.runtime.inbox import DeadLetterEntry, DeadLetterReason
+from loamz.runtime.kernel.runtime.message import Message
+from loamz.runtime.kernel.runtime.persistence.accounts import Accounts
+from loamz.runtime.kernel.runtime.persistence.channels import (
     _SCHEMA_CHANNELS,
     Channels,
     _schema_chat,
@@ -28,9 +28,9 @@ from loamz.engine.agents.kernel.runtime.persistence.channels import (
     _schema_engagement,
     _schema_entry_data,
 )
-from loamz.engine.agents.kernel.runtime.scheduler import RunRetryPolicy
-from loamz.engine.agents.kernel.runtime.sealing import PlainSealer, Sealer
-from loamz.engine.agents.kernel.runtime.store import (
+from loamz.runtime.kernel.runtime.scheduler import RunRetryPolicy
+from loamz.runtime.kernel.runtime.sealing import PlainSealer, Sealer
+from loamz.runtime.kernel.runtime.store import (
     Cancel,
     Commit,
     CommitResult,
@@ -49,15 +49,15 @@ from loamz.engine.agents.kernel.runtime.store import (
     StoreStats,
     Suspend,
 )
-from loamz.engine.agents.kernel.runtime.supervisor import RunHandle, RunResult
-from loamz.engine.agents.kernel.types.error_info import ErrorInfo
-from loamz.engine.agents.kernel.types.identity import Actor, Topic
-from loamz.engine.agents.kernel.types.ids import new_id
-from loamz.engine.agents.kernel.types.run_log import RunLogEntry, RunLogKind
-from loamz.engine.agents.kernel.types.run_status import RunId, RunStatus
-from loamz.engine.agents.kernel.types.supervision import Priority, Supervision
-from loamz.engine.agents.kernel.types.trace import TraceContext
-from loamz.engine.agents.kernel.types.wakeup import Wakeup
+from loamz.runtime.kernel.runtime.supervisor import RunHandle, RunResult
+from loamz.runtime.kernel.types.error_info import ErrorInfo
+from loamz.runtime.kernel.types.identity import Actor, Topic
+from loamz.runtime.kernel.types.ids import new_id
+from loamz.runtime.kernel.types.run_log import RunLogEntry, RunLogKind
+from loamz.runtime.kernel.types.run_status import RunId, RunStatus
+from loamz.runtime.kernel.types.supervision import Priority, Supervision
+from loamz.runtime.kernel.types.trace import TraceContext
+from loamz.runtime.kernel.types.wakeup import Wakeup
 from loamz.engine.sql import Database, Row, Tx, migrate
 
 T = TypeVar("T")

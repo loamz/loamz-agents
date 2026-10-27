@@ -27,7 +27,7 @@ import io
 import logging
 from typing import Any
 
-from loamz.engine.agents.kernel.safety import SafetyVerdict, Severity
+from loamz.runtime.kernel.safety import SafetyVerdict, Severity
 
 logger = logging.getLogger(__name__)
 

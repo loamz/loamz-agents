@@ -18,7 +18,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     DataBlock,
     Role,
@@ -26,8 +26,8 @@ from loamz.engine.agents.kernel.types.content import (
     ToolUseBlock,
     parse_content_block,
 )
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.usage import Usage
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.usage import Usage
 
 # --------------------------------------------------------------------------
 # Content model
@@ -37,14 +37,14 @@ from loamz.engine.agents.kernel.types.usage import Usage
 def test_a_block_without_a_type_is_rejected() -> None:
     """``UnknownBlock`` exists for *future provider* types, not for malformed
     input. Swallowing a missing discriminator turns a bug into lost content."""
-    from loamz.engine.agents.kernel.errors import BlockValidationError
+    from loamz.runtime.kernel.errors import BlockValidationError
 
     with pytest.raises(BlockValidationError):
         parse_content_block({"text": "hello"})
 
 
 def test_a_misspelled_known_type_is_rejected() -> None:
-    from loamz.engine.agents.kernel.errors import BlockValidationError
+    from loamz.runtime.kernel.errors import BlockValidationError
 
     with pytest.raises(BlockValidationError):
         parse_content_block({"type": "txt", "text": "hello"})
@@ -74,7 +74,7 @@ def test_structured_blocks_render_non_json_values() -> None:
 def test_a_naive_deadline_is_rejected_at_construction() -> None:
     """``check()`` runs at every cooperative yield point. A deadline that makes
     it raise ``TypeError`` disables cancellation everywhere at once."""
-    from loamz.engine.agents.kernel.types.run import RunMeta
+    from loamz.runtime.kernel.types.run import RunMeta
 
     class _Token:
         is_cancelled = False
@@ -93,7 +93,7 @@ def test_a_naive_deadline_is_rejected_at_construction() -> None:
 def test_structured_exceptions_survive_a_process_boundary() -> None:
     """Workers may run in another process. An exception that cannot be pickled
     is reported as a pickling error instead of the real failure."""
-    from loamz.engine.agents.kernel.errors import (
+    from loamz.runtime.kernel.errors import (
         AgentCrashError,
         BranchHeadConflictError,
         ConcurrentAppendError,
@@ -130,7 +130,7 @@ def test_usage_accumulates_with_sum() -> None:
 def test_tool_risk_is_ordered_by_severity() -> None:
     """Risk is compared to decide whether approval is required. String ordering
     silently inverts that decision."""
-    from loamz.engine.agents.kernel.tools import ToolRisk
+    from loamz.runtime.kernel.tools import ToolRisk
 
     assert ToolRisk.SAFE < ToolRisk.HIGH < ToolRisk.CRITICAL
     assert not ToolRisk.SAFE > ToolRisk.CRITICAL
@@ -139,7 +139,7 @@ def test_tool_risk_is_ordered_by_severity() -> None:
 def test_supervision_survives_a_round_trip_with_an_unknown_field() -> None:
     """Supervision is persisted and read back by a possibly older or newer
     worker. An unknown field must not crash the read."""
-    from loamz.engine.agents.kernel.types.supervision import Supervision
+    from loamz.runtime.kernel.types.supervision import Supervision
 
     data = Supervision.root(Actor("a", "k")).to_dict()
     data["execution_budget"]["max_tool_calls"] = 5  # a field this version doesn't know
@@ -152,9 +152,9 @@ def test_supervision_survives_a_round_trip_with_an_unknown_field() -> None:
 
 
 def test_tagged_results_cannot_contradict_their_tag() -> None:
-    from loamz.engine.agents.kernel.runtime import AskOutcome
-    from loamz.engine.agents.kernel.tools import ApprovalDecision, ApprovalResult
-    from loamz.engine.agents.kernel.types.wakeup import Wakeup
+    from loamz.runtime.kernel.runtime import AskOutcome
+    from loamz.runtime.kernel.tools import ApprovalDecision, ApprovalResult
+    from loamz.runtime.kernel.types.wakeup import Wakeup
 
     with pytest.raises(ValueError):
         Wakeup(kind="timer")  # a timer with no time
@@ -168,7 +168,7 @@ def test_tagged_results_cannot_contradict_their_tag() -> None:
 
 def test_workspace_paths_cannot_escape_the_workspace() -> None:
     """A manifest path comes from tool output and names a file to materialise."""
-    from loamz.engine.agents.kernel.ports.workspace import ContentRef, WorkspaceFileEntry
+    from loamz.runtime.kernel.ports.workspace import ContentRef, WorkspaceFileEntry
 
     ref = ContentRef(hash="x", size_bytes=1)
     for hostile in ("../../etc/passwd", "/etc/passwd"):
@@ -179,7 +179,7 @@ def test_workspace_paths_cannot_escape_the_workspace() -> None:
 def test_effect_identity_handles_any_json_encodable_argument() -> None:
     """Effect identity is computed from tool arguments, which routinely contain
     bytes and timestamps."""
-    from loamz.engine.agents.kernel.runtime import Effect
+    from loamz.runtime.kernel.runtime import Effect
 
     assert Effect.make_id("r", "0", "k", {"b": b"\x00"})
     assert Effect.make_id("r", "0", "k", {"d": datetime.now(tz=UTC)})
@@ -190,7 +190,7 @@ def test_ids_are_time_sortable() -> None:
     separate sequence column."""
     import time
 
-    from loamz.engine.agents.kernel.types.ids import new_id
+    from loamz.runtime.kernel.types.ids import new_id
 
     first = new_id()
     time.sleep(0.002)

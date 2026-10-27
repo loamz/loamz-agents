@@ -9,8 +9,8 @@ on every tool call that returned it.
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.runtime.context import _attachment_url
-from loamz.engine.agents.kernel.types.content import MediaBlock
+from loamz.runtime.kernel.runtime.context import _attachment_url
+from loamz.runtime.kernel.types.content import MediaBlock
 
 
 def test_image_with_storage_key_becomes_a_bare_object_scheme():

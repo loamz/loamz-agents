@@ -15,9 +15,9 @@ from typing import Any
 
 import pytest
 
-from loamz.engine.agents.kernel.errors import ToolDeclarationError
-from loamz.engine.agents.kernel.tools import Toolbox, ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import TextBlock
+from loamz.runtime.kernel.errors import ToolDeclarationError
+from loamz.runtime.kernel.tools import Toolbox, ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import TextBlock
 
 
 def _tool(**declared: Any) -> object:
@@ -57,9 +57,9 @@ def test_i22_a_fully_declared_tool_is_accepted() -> None:
 
 
 def _shipped_tool_classes() -> list[type]:
-    """Every class under ``loamz.engine.agents.toolkit`` that is a tool: it has an async ``execute``
+    """Every class under ``loamz.runtime.toolkit`` that is a tool: it has an async ``execute``
     and either an ``input_schema`` of its own or a name ending in ``Tool``."""
-    import loamz.engine.agents.toolkit as package
+    import loamz.runtime.toolkit as package
 
     found: list[type] = []
     for module_info in pkgutil.walk_packages(package.__path__, prefix=f"{package.__name__}."):
@@ -108,7 +108,7 @@ def test_i22_every_shipped_tool_declares_its_risk_and_idempotency() -> None:
 
 
 def test_i22_a_tool_from_an_mcp_server_needs_approval_unless_the_operator_says_otherwise() -> None:
-    from loamz.engine.agents.toolkit.mcp.tool import MCPTool
+    from loamz.runtime.toolkit.mcp.tool import MCPTool
 
     server_tool = MCPTool(
         client=object(), name="rm", description="d", input_schema={"type": "object"}

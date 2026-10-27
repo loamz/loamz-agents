@@ -9,14 +9,14 @@ from __future__ import annotations
 
 import pytest
 
-from loamz.engine.agents.kernel.errors import (
+from loamz.runtime.kernel.errors import (
     BranchAlreadyExistsError,
     BranchHeadConflictError,
     BranchNotFoundError,
 )
-from loamz.engine.agents.kernel.ports.threads import HistoryCheckpoint, MessageNode, ThreadStore
-from loamz.engine.agents.kernel.types.content import ChatMessage, Role
-from loamz.engine.agents.kernel.types.ids import new_id
+from loamz.runtime.kernel.ports.threads import HistoryCheckpoint, MessageNode, ThreadStore
+from loamz.runtime.kernel.types.content import ChatMessage, Role
+from loamz.runtime.kernel.types.ids import new_id
 
 
 def node(session: str, text: str, parent: MessageNode | None = None) -> MessageNode:

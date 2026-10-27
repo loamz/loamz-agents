@@ -7,8 +7,8 @@ from typing import Any, Protocol, runtime_checkable
 
 from pydantic import Field
 
-from loamz.engine.agents.kernel.types.content import JsonObject, KernelModel
-from loamz.engine.agents.kernel.types.ids import new_id
+from loamz.runtime.kernel.types.content import JsonObject, KernelModel
+from loamz.runtime.kernel.types.ids import new_id
 
 
 class Entity(KernelModel):

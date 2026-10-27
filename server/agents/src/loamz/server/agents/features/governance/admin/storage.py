@@ -10,7 +10,7 @@ admin API, signed in as the platform); swap `StorageAdmin` for an adapter over `
 from __future__ import annotations
 
 from loamz.core.tenancy import TenancyError, split_key
-from loamz.engine.agents.kernel.ports.files import FileStore
+from loamz.runtime.kernel.ports.files import FileStore
 
 
 class StorageAdmin:

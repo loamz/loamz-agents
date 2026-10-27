@@ -22,7 +22,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
 
-from loamz.engine.agents.kernel.wire.version import PROTOCOL_VERSION
+from loamz.runtime.kernel.wire.version import PROTOCOL_VERSION
 
 # ---------------------------------------------------------------------------
 # Handshake

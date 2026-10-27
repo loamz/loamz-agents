@@ -6,8 +6,8 @@ starts handling each inbound message; nothing here reads ambient state.
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.types.content import KernelModel
-from loamz.engine.agents.kernel.types.run import RunScope
+from loamz.runtime.kernel.types.content import KernelModel
+from loamz.runtime.kernel.types.run import RunScope
 
 
 class WorkspaceScope(KernelModel):

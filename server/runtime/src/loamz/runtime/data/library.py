@@ -10,13 +10,13 @@ from typing import Any
 
 from loamz.core.exceptions import NotFoundError as ClientNotFoundError
 from loamz.data.documents import collection_id
-from loamz.engine.agents.data._connection import (
+from loamz.runtime.data._connection import (
     DataServiceConnection,
     TokenProvider,
     identity_of,
     mint,
 )
-from loamz.engine.agents.data._wire import from_wire
+from loamz.runtime.data._wire import from_wire
 from loamz.engine.documents.protocols import DocumentLibrary
 from loamz.engine.documents.types import (
     Added,

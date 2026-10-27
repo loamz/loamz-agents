@@ -6,13 +6,13 @@
     workspace  WorkspaceStore (snapshot trees of a conversation's files)
     files      FileStore (keyed bytes)  ·  blob: BlobStore (content-addressed bytes)
 
-``loamz.engine.agents.stores`` implements the agent's own (threads, tasks, graph, workspace, session state) in SQL;
+``loamz.runtime.stores`` implements the agent's own (threads, tasks, graph, workspace, session state) in SQL;
 file bytes, documents and long-term memory are Loamz Data's (``loamz.engine``).
 """
 
-from loamz.engine.agents.kernel.ports.blob import BlobStore
-from loamz.engine.agents.kernel.ports.files import FileStore
-from loamz.engine.agents.kernel.ports.graph import (
+from loamz.runtime.kernel.ports.blob import BlobStore
+from loamz.runtime.kernel.ports.files import FileStore
+from loamz.runtime.kernel.ports.graph import (
     CypherCapable,
     Entity,
     EntityFinder,
@@ -20,14 +20,14 @@ from loamz.engine.agents.kernel.ports.graph import (
     Relationship,
     SubGraph,
 )
-from loamz.engine.agents.kernel.ports.tasks import Task, TaskList, TaskStatus, TaskStore
-from loamz.engine.agents.kernel.ports.threads import (
+from loamz.runtime.kernel.ports.tasks import Task, TaskList, TaskStatus, TaskStore
+from loamz.runtime.kernel.ports.threads import (
     Branch,
     HistoryCheckpoint,
     MessageNode,
     ThreadStore,
 )
-from loamz.engine.agents.kernel.ports.workspace import (
+from loamz.runtime.kernel.ports.workspace import (
     ContentRef,
     WorkspaceFileEntry,
     WorkspaceManifest,

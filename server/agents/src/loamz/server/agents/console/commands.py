@@ -89,7 +89,7 @@ async def _cmd_model(app: Console, args: str) -> bool:
         app.console.print("  Usage: /model <provider/model-id>", style="info")
         return False
 
-    from loamz.engine.agents.providers.llm import (
+    from loamz.runtime.providers.llm import (
         create_model_client,
         detect_provider,
         has_provider_api_key,

@@ -18,14 +18,14 @@ import time
 
 import pytest
 
-from loamz.engine.agents.kernel.safety import Severity
+from loamz.runtime.kernel.safety import Severity
 
 pytestmark = pytest.mark.heavy
 
 
 @pytest.fixture(scope="module")
 def classifier():
-    from loamz.engine.agents.providers.safety.text_classifier import PromptGuardClassifier
+    from loamz.runtime.providers.safety.text_classifier import PromptGuardClassifier
 
     return PromptGuardClassifier()
 
@@ -54,7 +54,7 @@ def test_benign_hindi_text_is_not_flagged(classifier):
 
 
 def test_empty_text_is_not_flagged_and_does_not_crash():
-    from loamz.engine.agents.providers.safety.text_classifier import PromptGuardClassifier
+    from loamz.runtime.providers.safety.text_classifier import PromptGuardClassifier
 
     c = PromptGuardClassifier()
     v = c.classify("")
@@ -80,7 +80,7 @@ def test_classify_completes_without_hanging(classifier):
 
 
 def test_threshold_is_configurable():
-    from loamz.engine.agents.providers.safety.text_classifier import PromptGuardClassifier
+    from loamz.runtime.providers.safety.text_classifier import PromptGuardClassifier
 
     # A near-certain jailbreak should still flag even at a very strict
     # (near-1.0) threshold; a benign message should stay unflagged even at a

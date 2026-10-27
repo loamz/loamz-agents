@@ -15,12 +15,12 @@ from pathlib import Path
 
 import pytest
 
-from loamz.engine.agents.kernel.ports.files import FileStore as Files
-from loamz.engine.agents.stores.workspace.scope import WorkspaceScope
-from loamz.engine.agents.stores.workspace.tables import Workspaces
-from loamz.engine.agents.testing.doubles import MemoryFileStore
-from loamz.engine.agents.toolkit.code.runtimes.base import ExecResult, SandboxSpec
-from loamz.engine.agents.toolkit.code.runtimes.staged import StagedSandboxRuntime
+from loamz.runtime.kernel.ports.files import FileStore as Files
+from loamz.runtime.stores.workspace.scope import WorkspaceScope
+from loamz.runtime.stores.workspace.tables import Workspaces
+from loamz.runtime.testing.doubles import MemoryFileStore
+from loamz.runtime.toolkit.code.runtimes.base import ExecResult, SandboxSpec
+from loamz.runtime.toolkit.code.runtimes.staged import StagedSandboxRuntime
 from loamz.engine.errors import QuotaExceededError
 from tests._stores import agent_store_at
 
@@ -75,8 +75,8 @@ def _inline(name: str, data: bytes, mime: str = "text/plain") -> dict:
 async def _seed_branch(object_store, ws_store, files: dict[str, bytes]) -> None:
     """Commit a snapshot to main directly, bypassing the runtime — chains
     onto the branch's current head (if any), same as a real prior turn."""
-    from loamz.engine.agents.stores.workspace.cas import BlobCAS
-    from loamz.engine.agents.stores.workspace.materialize import commit
+    from loamz.runtime.stores.workspace.cas import BlobCAS
+    from loamz.runtime.stores.workspace.materialize import commit
 
     cas = BlobCAS(object_store, tenant_id=TENANT, user_id=USER)
     import tempfile
@@ -182,7 +182,7 @@ async def test_commit_conflict_does_not_fail_the_run(tmp_path, spec):
     snap_b = await ws_store.get_branch_snapshot_head(CONVERSATION, BRANCH)
     assert snap_b is not None and snap_b.id != snap_a.id
 
-    from loamz.engine.agents.stores.workspace.cas import BlobCAS
+    from loamz.runtime.stores.workspace.cas import BlobCAS
 
     cas = BlobCAS(store, tenant_id=TENANT, user_id=USER)
     scratch_dir = tmp_path / "scratch" / SESSION_KEY
@@ -333,7 +333,7 @@ def _tree_spec(home: str = HOME, mounts: tuple = (), code: str = "x=1") -> Sandb
 
 
 def _mount(label: str, workspace: str):
-    from loamz.engine.agents.toolkit.code.runtimes.base import Mount
+    from loamz.runtime.toolkit.code.runtimes.base import Mount
 
     return Mount(
         label=label,
@@ -343,7 +343,7 @@ def _mount(label: str, workspace: str):
 
 
 def _key(workspace: str, rel: str) -> str:
-    from loamz.engine.agents.stores.workspace.layout import conversation_shared_key
+    from loamz.runtime.stores.workspace.layout import conversation_shared_key
 
     return conversation_shared_key(TENANT, USER, workspace, rel)
 

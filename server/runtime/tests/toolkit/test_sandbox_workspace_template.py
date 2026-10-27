@@ -9,11 +9,11 @@ from typing import Any
 import pytest
 from kubernetes.client.rest import ApiException
 
-from loamz.engine.agents.toolkit.code.sandbox_service import (
+from loamz.runtime.toolkit.code.sandbox_service import (
     CodeInterpreterConfig,
     CodeInterpreterService,
 )
-from loamz.engine.agents.toolkit.code.session_store import InMemorySessionStore
+from loamz.runtime.toolkit.code.session_store import InMemorySessionStore
 
 _BASE_TEMPLATE = {
     "metadata": {"name": "python-sandbox-template", "namespace": "af-runtime"},
@@ -55,7 +55,7 @@ class _FakeCustomObjectsApi:
 def service(monkeypatch) -> tuple[CodeInterpreterService, _FakeCustomObjectsApi]:
     fake_api = _FakeCustomObjectsApi()
     monkeypatch.setattr(
-        "loamz.engine.agents.toolkit.code.k8s_helper.get_custom_objects_api",
+        "loamz.runtime.toolkit.code.k8s_helper.get_custom_objects_api",
         lambda: fake_api,
     )
     config = CodeInterpreterConfig(

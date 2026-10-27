@@ -22,8 +22,8 @@ import time
 from collections import OrderedDict
 from collections.abc import Awaitable, Callable
 
-from loamz.engine.agents.kernel.runtime.agent import Agent
-from loamz.engine.agents.kernel.types.identity import Actor
+from loamz.runtime.kernel.runtime.agent import Agent
+from loamz.runtime.kernel.types.identity import Actor
 
 logger = logging.getLogger(__name__)
 

@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from loamz.engine.agents.kernel.agents.factory import create_assistant_agent
-from loamz.engine.agents.kernel.models.protocols import ReasoningEffort
-from loamz.engine.agents.testing.scripted import ScriptedModel
+from loamz.runtime.kernel.agents.factory import create_assistant_agent
+from loamz.runtime.kernel.models.protocols import ReasoningEffort
+from loamz.runtime.testing.scripted import ScriptedModel
 from tests._stores import fs_history
 
 

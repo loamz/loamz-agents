@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import time
 
-from loamz.engine.agents.kernel.runtime.sealing import PlainSealer, Sealer
+from loamz.runtime.kernel.runtime.sealing import PlainSealer, Sealer
 from loamz.engine.sql import Database, migrate
 
 COMPONENT = "governance.workspace_oauth"

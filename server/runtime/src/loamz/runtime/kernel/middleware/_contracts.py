@@ -6,14 +6,14 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Protocol
 
-from loamz.engine.agents.kernel.middleware.stage import MiddlewareStage
-from loamz.engine.agents.kernel.models.protocols import LLMResponse
-from loamz.engine.agents.kernel.tools.chain import InvocationResult
-from loamz.engine.agents.kernel.tools.protocols import AnyTool
-from loamz.engine.agents.kernel.types.content import ChatMessage, KernelModel
+from loamz.runtime.kernel.middleware.stage import MiddlewareStage
+from loamz.runtime.kernel.models.protocols import LLMResponse
+from loamz.runtime.kernel.tools.chain import InvocationResult
+from loamz.runtime.kernel.tools.protocols import AnyTool
+from loamz.runtime.kernel.types.content import ChatMessage, KernelModel
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.runtime.context import RunContext
+    from loamz.runtime.kernel.runtime.context import RunContext
 
 
 # ---------------------------------------------------------------------------

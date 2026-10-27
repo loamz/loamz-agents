@@ -11,9 +11,9 @@ import httpx
 import jwt
 import pytest
 
-from loamz.engine.agents.data import DataGateway, DataTokenMinter
-from loamz.engine.agents.kernel.types.run import RunScope
-from loamz.engine.agents.toolkit.code.runtimes.base import DataMount
+from loamz.runtime.data import DataGateway, DataTokenMinter
+from loamz.runtime.kernel.types.run import RunScope
+from loamz.runtime.toolkit.code.runtimes.base import DataMount
 from loamz.server.agents.bootstrap.data_access import GatewayDataAccess
 
 

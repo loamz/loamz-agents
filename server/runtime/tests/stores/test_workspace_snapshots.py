@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from loamz.engine.agents.kernel.ports.workspace import (
+from loamz.runtime.kernel.ports.workspace import (
     ContentRef,
     WorkspaceFileEntry,
     WorkspaceManifest,

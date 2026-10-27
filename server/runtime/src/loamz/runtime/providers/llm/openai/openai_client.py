@@ -17,18 +17,18 @@ from openai.types.responses.response_reasoning_summary_text_delta_event import (
 )
 from openai.types.responses.response_text_delta_event import ResponseTextDeltaEvent
 
-from loamz.engine.agents.kernel.models import (
+from loamz.runtime.kernel.models import (
     ChatModel,
     GenerationOptions,
     LLMResponse,
     ModelCapabilities,
     ReasoningEffort,
 )
-from loamz.engine.agents.kernel.models.modalities import fit_to_capabilities
-from loamz.engine.agents.kernel.models.registry import resolve_capabilities
-from loamz.engine.agents.kernel.models.tool_arguments import parse_tool_arguments
-from loamz.engine.agents.kernel.tools import Tool, is_hosted_tool, is_provider_defined_tool
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.models.modalities import fit_to_capabilities
+from loamz.runtime.kernel.models.registry import resolve_capabilities
+from loamz.runtime.kernel.models.tool_arguments import parse_tool_arguments
+from loamz.runtime.kernel.tools import Tool, is_hosted_tool, is_provider_defined_tool
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     ContentBlock,
     DataBlock,
@@ -36,13 +36,13 @@ from loamz.engine.agents.kernel.types.content import (
     TextBlock,
     ToolUseBlock,
 )
-from loamz.engine.agents.kernel.types.finish_reason import FinishReason
-from loamz.engine.agents.kernel.types.run import RunMeta
-from loamz.engine.agents.kernel.types.stream import CompletionEvent, ReasoningDelta, TextDelta
-from loamz.engine.agents.kernel.types.usage import Usage
-from loamz.engine.agents.providers.llm.base import off_effort
-from loamz.engine.agents.providers.llm.encoders.openai import encode_messages as _encode_messages
-from loamz.engine.agents.providers.llm.encoders.openai import encode_tools as _encode_tools
+from loamz.runtime.kernel.types.finish_reason import FinishReason
+from loamz.runtime.kernel.types.run import RunMeta
+from loamz.runtime.kernel.types.stream import CompletionEvent, ReasoningDelta, TextDelta
+from loamz.runtime.kernel.types.usage import Usage
+from loamz.runtime.providers.llm.base import off_effort
+from loamz.runtime.providers.llm.encoders.openai import encode_messages as _encode_messages
+from loamz.runtime.providers.llm.encoders.openai import encode_tools as _encode_tools
 
 if TYPE_CHECKING:
     from pydantic import BaseModel

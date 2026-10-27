@@ -13,8 +13,8 @@ from __future__ import annotations
 
 import json
 
-from loamz.engine.agents.kernel.tools import Tool, ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import TextBlock
+from loamz.runtime.kernel.tools import Tool, ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import TextBlock
 
 
 def _param_summary(schema: dict[str, object]) -> str:

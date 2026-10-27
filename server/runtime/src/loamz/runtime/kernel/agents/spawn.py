@@ -36,9 +36,9 @@ from __future__ import annotations
 
 import threading
 
-from loamz.engine.agents.kernel.errors import BudgetExhaustedError
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.supervision import Priority, SpawnBudget
+from loamz.runtime.kernel.errors import BudgetExhaustedError
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.supervision import Priority, SpawnBudget
 
 
 class SpawnTracker:

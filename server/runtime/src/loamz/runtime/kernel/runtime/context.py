@@ -27,19 +27,19 @@ from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any, cast
 
-from loamz.engine.agents.kernel.errors import BudgetExhaustedError, ControlSignal, SuspendInterrupt
-from loamz.engine.agents.kernel.models.protocols import (
+from loamz.runtime.kernel.errors import BudgetExhaustedError, ControlSignal, SuspendInterrupt
+from loamz.runtime.kernel.models.protocols import (
     ChatModel,
     FinishReason,
     GenerationOptions,
     LLMResponse,
 )
-from loamz.engine.agents.kernel.runtime.agent import Agent as _KernelAgent
-from loamz.engine.agents.kernel.runtime.channel import SPOKEN, AppendResult, ChannelEntry
-from loamz.engine.agents.kernel.runtime.communication import AskOutcome, RunStatusSummary
-from loamz.engine.agents.kernel.runtime.journal import Journal, current_idempotency_key
-from loamz.engine.agents.kernel.runtime.message import DataPayload, Message
-from loamz.engine.agents.kernel.runtime.store import (
+from loamz.runtime.kernel.runtime.agent import Agent as _KernelAgent
+from loamz.runtime.kernel.runtime.channel import SPOKEN, AppendResult, ChannelEntry
+from loamz.runtime.kernel.runtime.communication import AskOutcome, RunStatusSummary
+from loamz.runtime.kernel.runtime.journal import Journal, current_idempotency_key
+from loamz.runtime.kernel.runtime.message import DataPayload, Message
+from loamz.runtime.kernel.runtime.store import (
     Commit,
     CommitResult,
     Delivery,
@@ -50,12 +50,12 @@ from loamz.engine.agents.kernel.runtime.store import (
     SpawnSpec,
     Spend,
 )
-from loamz.engine.agents.kernel.runtime.supervisor import RunHandle, RunResult
-from loamz.engine.agents.kernel.telemetry import semconv
-from loamz.engine.agents.kernel.telemetry.metrics import instruments
-from loamz.engine.agents.kernel.telemetry.tracing import span
-from loamz.engine.agents.kernel.tools.chain import InvocationResult
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.runtime.supervisor import RunHandle, RunResult
+from loamz.runtime.kernel.telemetry import semconv
+from loamz.runtime.kernel.telemetry.metrics import instruments
+from loamz.runtime.kernel.telemetry.tracing import span
+from loamz.runtime.kernel.tools.chain import InvocationResult
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     JsonObject,
     MediaBlock,
@@ -63,20 +63,20 @@ from loamz.engine.agents.kernel.types.content import (
     TextBlock,
     parse_content_block,
 )
-from loamz.engine.agents.kernel.types.identity import Actor, Topic
-from loamz.engine.agents.kernel.types.ids import new_id, new_run_id
-from loamz.engine.agents.kernel.types.run import RunMeta, RunScope
-from loamz.engine.agents.kernel.types.run_log import RunLogKind
-from loamz.engine.agents.kernel.types.run_status import RunId, RunStatus
-from loamz.engine.agents.kernel.types.scope import Scope
-from loamz.engine.agents.kernel.types.stream import CompletionEvent, ReasoningDelta, TextDelta
-from loamz.engine.agents.kernel.types.supervision import Supervision
-from loamz.engine.agents.kernel.types.trace import TraceContext
-from loamz.engine.agents.kernel.types.usage import Usage
-from loamz.engine.agents.kernel.types.wakeup import Wakeup
+from loamz.runtime.kernel.types.identity import Actor, Topic
+from loamz.runtime.kernel.types.ids import new_id, new_run_id
+from loamz.runtime.kernel.types.run import RunMeta, RunScope
+from loamz.runtime.kernel.types.run_log import RunLogKind
+from loamz.runtime.kernel.types.run_status import RunId, RunStatus
+from loamz.runtime.kernel.types.scope import Scope
+from loamz.runtime.kernel.types.stream import CompletionEvent, ReasoningDelta, TextDelta
+from loamz.runtime.kernel.types.supervision import Supervision
+from loamz.runtime.kernel.types.trace import TraceContext
+from loamz.runtime.kernel.types.usage import Usage
+from loamz.runtime.kernel.types.wakeup import Wakeup
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.runtime.tool_invoker import InvokerSession, ToolInvoker
+    from loamz.runtime.kernel.runtime.tool_invoker import InvokerSession, ToolInvoker
 
 logger = logging.getLogger(__name__)
 
@@ -352,7 +352,7 @@ class RunContext:
     async def _generate(
         self, client: ChatModel, messages: list[ChatMessage], options: GenerationOptions
     ) -> LLMResponse:
-        from loamz.engine.agents.kernel.models.errors import classify_llm_error
+        from loamz.runtime.kernel.models.errors import classify_llm_error
 
         started = time.monotonic()
         attributes = {
@@ -406,8 +406,8 @@ class RunContext:
         middleware = getattr(self.agent, "middleware", None)
         if middleware is None:
             return await self._stream(client, messages, options)
-        from loamz.engine.agents.kernel.middleware._contracts import MiddlewareContext
-        from loamz.engine.agents.kernel.middleware.stage import MiddlewareStage
+        from loamz.runtime.kernel.middleware._contracts import MiddlewareContext
+        from loamz.runtime.kernel.middleware.stage import MiddlewareStage
 
         chat_ctx = MiddlewareContext(
             stage=MiddlewareStage.CHAT,
@@ -490,7 +490,7 @@ class RunContext:
         for the tool's schema, and splatting an untrusted dict into this method's own
         keywords collides the first time a schema names an argument ``name``.
         """
-        from loamz.engine.agents.kernel.tools.protocols import ToolCallRequest
+        from loamz.runtime.kernel.tools.protocols import ToolCallRequest
 
         invoker = self._tool_invoker
         if invoker is None:
@@ -547,8 +547,8 @@ class RunContext:
         middleware = getattr(self.agent, "middleware", None)
         if middleware is None:
             return await invoke()
-        from loamz.engine.agents.kernel.middleware._contracts import MiddlewareContext
-        from loamz.engine.agents.kernel.middleware.stage import MiddlewareStage
+        from loamz.runtime.kernel.middleware._contracts import MiddlewareContext
+        from loamz.runtime.kernel.middleware.stage import MiddlewareStage
 
         func_ctx = MiddlewareContext(
             stage=MiddlewareStage.TOOL,

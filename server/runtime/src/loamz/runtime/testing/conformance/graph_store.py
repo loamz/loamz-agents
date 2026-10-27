@@ -12,7 +12,7 @@ import uuid
 
 import pytest
 
-from loamz.engine.agents.kernel.ports.graph import Entity, GraphStore, Relationship
+from loamz.runtime.kernel.ports.graph import Entity, GraphStore, Relationship
 
 
 def ids(sub) -> set[str]:

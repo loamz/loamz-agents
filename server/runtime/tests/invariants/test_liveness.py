@@ -12,10 +12,10 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from loamz.engine.agents.kernel.runtime import DataPayload, Message
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.run_log import RunLogKind
-from loamz.engine.agents.testing.runtime import ephemeral_runtime
+from loamz.runtime.kernel.runtime import DataPayload, Message
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.run_log import RunLogKind
+from loamz.runtime.testing.runtime import ephemeral_runtime
 
 
 class Slow:

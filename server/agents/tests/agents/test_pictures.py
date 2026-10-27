@@ -5,7 +5,7 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from loamz.engine.agents.kernel.caller import Caller
+from loamz.runtime.kernel.caller import Caller
 from loamz.engine.errors import InvalidRequestError, NotFoundError
 from loamz.server.agents.bootstrap import Container, Settings
 from loamz.server.agents.bootstrap.http import caller as caller_dependency

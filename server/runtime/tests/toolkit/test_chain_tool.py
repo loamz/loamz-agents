@@ -6,11 +6,11 @@ from typing import Any
 
 import pytest
 
-from loamz.engine.agents.kernel.runtime.tool_invoker import ToolInvoker
-from loamz.engine.agents.kernel.tools import Toolbox, ToolCallRequest, ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import TextBlock
-from loamz.engine.agents.toolkit.chain.bridge import BridgeSession, ChainBridgeRegistry
-from loamz.engine.agents.toolkit.chain.prelude import build_prelude
+from loamz.runtime.kernel.runtime.tool_invoker import ToolInvoker
+from loamz.runtime.kernel.tools import Toolbox, ToolCallRequest, ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import TextBlock
+from loamz.runtime.toolkit.chain.bridge import BridgeSession, ChainBridgeRegistry
+from loamz.runtime.toolkit.chain.prelude import build_prelude
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -164,8 +164,8 @@ def test_bridge_registry_deregister_missing():
 
 
 async def test_tool_chain_tool_registers_and_deregisters_session():
-    from loamz.engine.agents.toolkit.chain.bridge import ChainBridgeRegistry
-    from loamz.engine.agents.toolkit.chain.tool import ToolChainTool
+    from loamz.runtime.toolkit.chain.bridge import ChainBridgeRegistry
+    from loamz.runtime.toolkit.chain.tool import ToolChainTool
 
     registry = make_registry(EchoTool())
     invoker = ToolInvoker(registry=registry)
@@ -186,7 +186,7 @@ async def test_tool_chain_tool_registers_and_deregisters_session():
 
 
 async def test_tool_chain_tool_error_propagates():
-    from loamz.engine.agents.toolkit.chain.tool import ToolChainTool
+    from loamz.runtime.toolkit.chain.tool import ToolChainTool
 
     registry = make_registry(EchoTool())
     invoker = ToolInvoker(registry=registry)
@@ -204,7 +204,7 @@ async def test_tool_chain_tool_error_propagates():
 
 
 def test_tool_chain_tool_raises_without_interpreter():
-    from loamz.engine.agents.toolkit.chain.tool import ToolChainTool
+    from loamz.runtime.toolkit.chain.tool import ToolChainTool
 
     registry = make_registry()
     invoker = ToolInvoker(registry=registry)
@@ -213,7 +213,7 @@ def test_tool_chain_tool_raises_without_interpreter():
 
 
 async def test_tool_chain_tool_prelude_includes_registry_names():
-    from loamz.engine.agents.toolkit.chain.tool import ToolChainTool
+    from loamz.runtime.toolkit.chain.tool import ToolChainTool
 
     registry = make_registry(EchoTool())
     invoker = ToolInvoker(registry=registry)

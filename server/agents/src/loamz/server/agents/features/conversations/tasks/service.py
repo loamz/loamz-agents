@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.caller import Caller
-from loamz.engine.agents.kernel.ports.tasks import Task, TaskList, TaskStore
-from loamz.engine.agents.kernel.types.scope import Scope
-from loamz.engine.agents.stores import AgentStore, bind_tasks
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.kernel.ports.tasks import Task, TaskList, TaskStore
+from loamz.runtime.kernel.types.scope import Scope
+from loamz.runtime.stores import AgentStore, bind_tasks
 from loamz.engine.errors import NotFoundError
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.conversations.tasks.model import (

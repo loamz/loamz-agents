@@ -12,8 +12,8 @@ import base64
 import json
 from typing import Any
 
-from loamz.engine.agents.kernel.tools import ToolExecutionResult
-from loamz.engine.agents.kernel.types.content import MediaBlock, TextBlock
+from loamz.runtime.kernel.tools import ToolExecutionResult
+from loamz.runtime.kernel.types.content import MediaBlock, TextBlock
 
 # Appended to both code-interpreter tools' descriptions. Teaches the model the
 # ChatGPT-ADA presentation convention: files it saves in its working directory

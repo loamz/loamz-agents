@@ -14,9 +14,9 @@ from __future__ import annotations
 
 import time
 
-from loamz.engine.agents.kernel.runtime import DataPayload, Message, RunRetryPolicy, Runtime
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.testing.runtime import ephemeral_runtime
+from loamz.runtime.kernel.runtime import DataPayload, Message, RunRetryPolicy, Runtime
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.testing.runtime import ephemeral_runtime
 from loamz.engine.errors import PermanentError
 
 

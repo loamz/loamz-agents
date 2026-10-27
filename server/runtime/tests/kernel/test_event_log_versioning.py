@@ -3,7 +3,7 @@ their persisted spellings, and a log with an unknown kind still loads."""
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.types.run_log import RunLogEntry, RunLogKind
+from loamz.runtime.kernel.types.run_log import RunLogEntry, RunLogKind
 
 
 def test_core_kind_values_are_the_persisted_strings() -> None:

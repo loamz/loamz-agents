@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.context.compaction._window import drop_orphaned_tool_results
-from loamz.engine.agents.kernel.context.tokens import estimate_message_chars
-from loamz.engine.agents.kernel.types.content import ChatMessage
+from loamz.runtime.kernel.context.compaction._window import drop_orphaned_tool_results
+from loamz.runtime.kernel.context.tokens import estimate_message_chars
+from loamz.runtime.kernel.types.content import ChatMessage
 
 
 class TruncationStrategy:

@@ -17,9 +17,9 @@ from typing import Any
 from rich.console import Console as RichConsole
 from rich.tree import Tree
 
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.run_log import RunLogEntry
-from loamz.engine.agents.kernel.types.stream import (
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.run_log import RunLogEntry
+from loamz.runtime.kernel.types.stream import (
     AgentProgress,
     AgentStep,
     CompletionEvent,
@@ -405,7 +405,7 @@ async def test_live_turn_sets_failed_flag_on_run_failed() -> None:
 
 async def test_live_turn_failed_false_on_success() -> None:
     """LiveTurn.failed stays False on a normal completion."""
-    from loamz.engine.agents.kernel.types.content import TextBlock
+    from loamz.runtime.kernel.types.content import TextBlock
 
     turn = _make_turn()
     await _feed(
@@ -421,7 +421,7 @@ async def test_live_turn_failed_false_on_success() -> None:
 
 
 async def test_live_turn_returns_assistant_text() -> None:
-    from loamz.engine.agents.kernel.types.content import TextBlock
+    from loamz.runtime.kernel.types.content import TextBlock
 
     turn = _make_turn()
     result = await _feed(

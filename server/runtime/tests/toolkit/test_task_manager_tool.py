@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.ports.tasks import TaskStatus
-from loamz.engine.agents.kernel.runtime import CancellationToken
-from loamz.engine.agents.kernel.types.run import RunMeta, RunScope
-from loamz.engine.agents.toolkit.task_manager.tool import TaskManagerTool
+from loamz.runtime.kernel.ports.tasks import TaskStatus
+from loamz.runtime.kernel.runtime import CancellationToken
+from loamz.runtime.kernel.types.run import RunMeta, RunScope
+from loamz.runtime.toolkit.task_manager.tool import TaskManagerTool
 from tests._stores import fs_tasks
 
 

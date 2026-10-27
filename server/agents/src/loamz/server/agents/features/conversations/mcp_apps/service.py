@@ -4,7 +4,7 @@ import json
 from importlib import resources
 from pathlib import Path
 
-from loamz.engine.agents.kernel.caller import Caller
+from loamz.runtime.kernel.caller import Caller
 from loamz.engine.errors import NotFoundError
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.conversations.chat.service import ChatService, chat
@@ -16,7 +16,7 @@ from loamz.server.agents.features.conversations.mcp_apps.model import (
 from loamz.server.agents.features.conversations.mcp_apps.theme import inject_theme_bridge
 from loamz.server.agents.features.conversations.threads.service import ThreadsService, threads
 
-APPS_DIR = Path(str(resources.files("loamz.engine.agents.toolkit.mcp") / "apps"))
+APPS_DIR = Path(str(resources.files("loamz.runtime.toolkit.mcp") / "apps"))
 
 CONTENT_SECURITY_POLICY = (
     "default-src 'self'; "

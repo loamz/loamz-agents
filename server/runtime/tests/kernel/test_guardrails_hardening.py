@@ -5,15 +5,15 @@ from __future__ import annotations
 
 import pytest
 
-from loamz.engine.agents.kernel.errors import BudgetExhaustedError, MiddlewareTermination
-from loamz.engine.agents.kernel.middleware import (
+from loamz.runtime.kernel.errors import BudgetExhaustedError, MiddlewareTermination
+from loamz.runtime.kernel.middleware import (
     MaxTokenMiddleware,
     MiddlewareContext,
     MiddlewareStage,
     PIIDetectionMiddleware,
     RetryMiddleware,
 )
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     MediaBlock,
     Role,

@@ -215,13 +215,13 @@ and the marker has to come off. That is what keeps this document honest.
 
 - ✅ **The kernel is the engine, so it has to be installable and importable without a vendor SDK, a model runtime or a database driver.**
   `test_i26_the_kernel_imports_only_its_allowed_third_party_set`
-- ✅ **Everything else in loamz.engine.agents builds on the kernel, so the kernel can name none of it; of Loamz Data it uses only the embeddable storage (never the client or the server).**
+- ✅ **Everything else in loamz.runtime builds on the kernel, so the kernel can name none of it; of Loamz Data it uses only the embeddable storage (never the client or the server).**
   `test_the_kernel_imports_nothing_of_loamz_but_itself_and_storage`
 - ✅ **Concepts are ordered bottom-up (``tests/_layout.CONCEPTS``). A concept that imported one above it would make the order a cycle. Imports made only for type checking are exempt: they never run.**
   `test_concepts_only_import_the_concepts_below_them`
-- ✅ **``loamz.engine.agents.testing`` holds conformance suites and doubles; production code that imported it would make pytest a runtime dependency.**
+- ✅ **``loamz.runtime.testing`` holds conformance suites and doubles; production code that imported it would make pytest a runtime dependency.**
   `test_production_code_never_imports_the_test_support`
-- ✅ **Governed data is Loamz Data's: only ``loamz.engine.agents.data`` (the ``data`` extra) may name ``loamz.data``, and importing the kernel, the stores, the providers or the toolkit must not load it.**
+- ✅ **Governed data is Loamz Data's: only ``loamz.runtime.data`` (the ``data`` extra) may name ``loamz.data``, and importing the kernel, the stores, the providers or the toolkit must not load it.**
   `test_the_data_client_stays_behind_the_data_extra_and_importing_the_engine_never_loads_it`
 - ✅ **Files are Loamz Data's and clients move bytes on URLs it signs, so the library holds no object-store credentials: no S3 client is named anywhere in it and the package declares no ``s3`` extra.**
   `test_no_object_store_credentials_or_s3_client_belong_to_the_library`

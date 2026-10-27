@@ -13,9 +13,9 @@ from typing import Any
 
 from opentelemetry import metrics
 
-from loamz.engine.agents.kernel.telemetry import semconv
+from loamz.runtime.kernel.telemetry import semconv
 
-_METER_NAME = "loamz.engine.agents"
+_METER_NAME = "loamz.runtime"
 
 
 class Instruments:

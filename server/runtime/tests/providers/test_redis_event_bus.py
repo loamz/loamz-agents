@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from loamz.engine.agents.testing.conformance.event_bus import EventBusConformance
+from loamz.runtime.testing.conformance.event_bus import EventBusConformance
 
 pytestmark = pytest.mark.requires_redis
 
@@ -12,7 +12,7 @@ pytestmark = pytest.mark.requires_redis
 class TestRedisEventBus(EventBusConformance):
     @pytest.fixture
     async def bus(self, redis_url):
-        from loamz.engine.agents.providers.redis.bus import RedisEventBus
+        from loamz.runtime.providers.redis.bus import RedisEventBus
 
         bus = RedisEventBus(redis_url)
         await bus.connect()

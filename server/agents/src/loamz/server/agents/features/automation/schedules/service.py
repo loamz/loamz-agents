@@ -4,8 +4,8 @@ import logging
 import re
 from typing import Annotated
 
-from loamz.engine.agents.kernel.caller import Caller
-from loamz.engine.agents.kernel.types.ids import new_id
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.kernel.types.ids import new_id
 from loamz.engine.errors import NotFoundError, PermanentError
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.automation.schedules.model import (

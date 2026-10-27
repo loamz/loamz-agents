@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING, Protocol, Self, runtime_checkable
 
 from pydantic import Field, model_validator
 
-from loamz.engine.agents.kernel.ports.threads import HistoryCheckpoint, MessageNode
-from loamz.engine.agents.kernel.types.content import ChatMessage, ContentBlock, KernelModel
+from loamz.runtime.kernel.ports.threads import HistoryCheckpoint, MessageNode
+from loamz.runtime.kernel.types.content import ChatMessage, ContentBlock, KernelModel
 
 if TYPE_CHECKING:
     from loamz.engine.memory import ContextMemoryInjection

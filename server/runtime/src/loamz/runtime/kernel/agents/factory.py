@@ -5,18 +5,18 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from loamz.engine.agents.kernel.context.compaction.pipeline import CompactionPipeline
-from loamz.engine.agents.kernel.context.compaction.sliding_window import SlidingWindowCompaction
-from loamz.engine.agents.kernel.context.history import ThreadStore
-from loamz.engine.agents.kernel.middleware._contracts import Middleware
-from loamz.engine.agents.kernel.middleware.pipeline import MiddlewarePipeline
-from loamz.engine.agents.kernel.models.protocols import ChatModel, ReasoningEffort
-from loamz.engine.agents.kernel.tools.approval import ApprovalHandler
-from loamz.engine.agents.kernel.tools.protocols import Tool, ToolRisk
+from loamz.runtime.kernel.context.compaction.pipeline import CompactionPipeline
+from loamz.runtime.kernel.context.compaction.sliding_window import SlidingWindowCompaction
+from loamz.runtime.kernel.context.history import ThreadStore
+from loamz.runtime.kernel.middleware._contracts import Middleware
+from loamz.runtime.kernel.middleware.pipeline import MiddlewarePipeline
+from loamz.runtime.kernel.models.protocols import ChatModel, ReasoningEffort
+from loamz.runtime.kernel.tools.approval import ApprovalHandler
+from loamz.runtime.kernel.tools.protocols import Tool, ToolRisk
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.agents.channel import ChannelMemberConfig
-    from loamz.engine.agents.kernel.agents.react import ReActAgent
+    from loamz.runtime.kernel.agents.channel import ChannelMemberConfig
+    from loamz.runtime.kernel.agents.react import ReActAgent
 
 logger = logging.getLogger(__name__)
 
@@ -47,9 +47,9 @@ def rebuild_agent(
     attached. A cold-resumed agent that needs more must be paired with a
     spec that records which ones to reattach; not needed by any caller today.
     """
-    from loamz.engine.agents.kernel.agents.react import ReActAgent
-    from loamz.engine.agents.kernel.context.context import ContextConfig
-    from loamz.engine.agents.kernel.tools.toolbox import Toolbox
+    from loamz.runtime.kernel.agents.react import ReActAgent
+    from loamz.runtime.kernel.context.context import ContextConfig
+    from loamz.runtime.kernel.tools.toolbox import Toolbox
 
     session_id = spec.get("session_id", "resumed")
     max_iterations = spec.get("max_iterations", 30)
@@ -139,9 +139,9 @@ def create_assistant_agent(
             leaves ``ToolInvoker``'s own default (see
             ``worker.py::_build_tool_invoker``).
     """
-    from loamz.engine.agents.kernel.agents.react import ReActAgent
-    from loamz.engine.agents.kernel.context.context import ContextConfig
-    from loamz.engine.agents.kernel.tools.toolbox import Toolbox
+    from loamz.runtime.kernel.agents.react import ReActAgent
+    from loamz.runtime.kernel.context.context import ContextConfig
+    from loamz.runtime.kernel.tools.toolbox import Toolbox
 
     pipeline = model_context or CompactionPipeline(
         [SlidingWindowCompaction(max_messages=model_context_window)]
@@ -170,7 +170,7 @@ def create_assistant_agent(
         "reasoning": reasoning,
     }
     if channel is not None:
-        from loamz.engine.agents.kernel.agents.channel import ChannelMemberAgent
+        from loamz.runtime.kernel.agents.channel import ChannelMemberAgent
 
         return ChannelMemberAgent(name, channel=channel, **build)  # type: ignore[arg-type]
     return ReActAgent(name, **build)  # type: ignore[arg-type]

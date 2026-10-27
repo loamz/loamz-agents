@@ -12,12 +12,12 @@ import json
 from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, TypeVar
 
-from loamz.engine.agents.kernel.errors import SnapshotConflictError
-from loamz.engine.agents.kernel.ports.workspace import WorkspaceSnapshot
+from loamz.runtime.kernel.errors import SnapshotConflictError
+from loamz.runtime.kernel.ports.workspace import WorkspaceSnapshot
 from loamz.engine.sql import Row, Tx
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.stores.store import AgentStore
+    from loamz.runtime.stores.store import AgentStore
 
 T = TypeVar("T")
 

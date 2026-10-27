@@ -2,10 +2,10 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from loamz.engine.agents.kernel.runtime.store import NewEntry, RunSpec
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.stores.headers import ThreadHeader
-from loamz.engine.agents.testing.runtime import runtime_store
+from loamz.runtime.kernel.runtime.store import NewEntry, RunSpec
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.stores.headers import ThreadHeader
+from loamz.runtime.testing.runtime import runtime_store
 from loamz.server.agents.features.people.usage.store import usage_by_day
 from loamz.server.agents.testing.app import serving
 
@@ -90,7 +90,7 @@ async def test_the_api_sums_only_the_callers_own_threads(tmp_path):
             ThreadHeader(id="mine", tenant_id="acme", user_id="alice")
         )
         await store.thread_headers.create(ThreadHeader(id="his", tenant_id="acme", user_id="bob"))
-        from loamz.engine.agents.kernel.runtime.persistence.store import RuntimeStore
+        from loamz.runtime.kernel.runtime.persistence.store import RuntimeStore
 
         runtime = RuntimeStore(served.container.database)
         await runtime.start()

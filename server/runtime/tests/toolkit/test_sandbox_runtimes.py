@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from loamz.engine.agents.toolkit.code.runtimes import (
+from loamz.runtime.toolkit.code.runtimes import (
     InProcessRuntime,
     NetworkPolicy,
     NsjailRuntime,
@@ -306,8 +306,8 @@ GROUP_DIR = "g/group-1/main"
 
 
 def _mount(label: str = "trip", session_dir: str = GROUP_DIR):
-    from loamz.engine.agents.stores.workspace.scope import WorkspaceScope
-    from loamz.engine.agents.toolkit.code.runtimes.base import Mount
+    from loamz.runtime.stores.workspace.scope import WorkspaceScope
+    from loamz.runtime.toolkit.code.runtimes.base import Mount
 
     return Mount(
         label=label,
@@ -393,7 +393,7 @@ async def test_a_runtime_that_cannot_mount_says_so_rather_than_running_without(
 def test_a_data_mount_must_be_an_absolute_path_that_cannot_add_a_mount_option(
     tmp_path: Path,
 ) -> None:
-    from loamz.engine.agents.toolkit.code.runtimes.base import DataMount
+    from loamz.runtime.toolkit.code.runtimes.base import DataMount
 
     DataMount(socket_dir=str(tmp_path))
     for bad in ("relative/dir", f"{tmp_path}:/etc", ""):
@@ -407,7 +407,7 @@ def test_a_data_mount_must_be_an_absolute_path_that_cannot_add_a_mount_option(
 def test_nsjail_shows_only_the_runs_socket_read_only_and_no_token_file(
     workspace: Path, tmp_path: Path
 ) -> None:
-    from loamz.engine.agents.toolkit.code.runtimes.base import DataMount
+    from loamz.runtime.toolkit.code.runtimes.base import DataMount
 
     runtime = NsjailRuntime(workspace)
     base = runtime._nsjail_argv(spec(code="1"), tmp_path)
@@ -432,7 +432,7 @@ async def test_a_run_reaches_data_only_through_the_mounted_socket(
     import asyncio
     import tempfile
 
-    from loamz.engine.agents.toolkit.code.runtimes.base import DataMount
+    from loamz.runtime.toolkit.code.runtimes.base import DataMount
 
     runtime = _nsjail_or_skip(workspace)
     socket_dir = Path(tempfile.mkdtemp(prefix="data-relay-", dir="/var/tmp"))
@@ -480,7 +480,7 @@ async def test_a_run_reaches_data_only_through_the_mounted_socket(
 def test_the_sandbox_bounds_data_library_thread_pools_and_still_leaks_no_host_environment(
     monkeypatch,
 ) -> None:
-    from loamz.engine.agents.toolkit.code.runtimes.nsjail import _sandbox_env
+    from loamz.runtime.toolkit.code.runtimes.nsjail import _sandbox_env
 
     monkeypatch.setenv("DATABASE_URL", "postgresql://secret")
     env = _sandbox_env()

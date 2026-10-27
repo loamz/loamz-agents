@@ -23,9 +23,9 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Protocol, runtime_checkable
 
-from loamz.engine.agents.kernel.errors import CancellationError
-from loamz.engine.agents.kernel.types.supervision import Supervision
-from loamz.engine.agents.kernel.types.trace import TraceContext
+from loamz.runtime.kernel.errors import CancellationError
+from loamz.runtime.kernel.types.supervision import Supervision
+from loamz.runtime.kernel.types.trace import TraceContext
 
 
 @runtime_checkable

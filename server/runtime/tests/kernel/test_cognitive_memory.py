@@ -12,7 +12,7 @@ Verifies:
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.identity import Actor
 from loamz.engine.memory import (
     ContextMemoryInjection,
     MemoryCategory,

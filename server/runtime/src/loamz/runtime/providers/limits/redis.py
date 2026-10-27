@@ -5,7 +5,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from loamz.engine.agents.kernel.ports.counters import Day, Window
+from loamz.runtime.kernel.ports.counters import Day, Window
 
 
 def _day(key: str) -> str:

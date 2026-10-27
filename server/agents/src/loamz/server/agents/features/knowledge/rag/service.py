@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from loamz.engine.agents.kernel.caller import Caller
-from loamz.engine.agents.stores.workspace.layout import tenant_prefix
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.stores.workspace.layout import tenant_prefix
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.knowledge.documents.service import DocumentsService, documents
 from loamz.server.agents.features.knowledge.enrichment.service import EnrichmentService, enrichment

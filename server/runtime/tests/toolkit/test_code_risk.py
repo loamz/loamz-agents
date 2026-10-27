@@ -5,11 +5,11 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock
 
-from loamz.engine.agents.kernel.models import LLMResponse
-from loamz.engine.agents.kernel.tools import ToolRisk
-from loamz.engine.agents.kernel.types.content import TextBlock
-from loamz.engine.agents.kernel.types.usage import Usage
-from loamz.engine.agents.toolkit.code.code_risk import (
+from loamz.runtime.kernel.models import LLMResponse
+from loamz.runtime.kernel.tools import ToolRisk
+from loamz.runtime.kernel.types.content import TextBlock
+from loamz.runtime.kernel.types.usage import Usage
+from loamz.runtime.toolkit.code.code_risk import (
     classify_and_summarize,
     classify_code,
     templated_summary,

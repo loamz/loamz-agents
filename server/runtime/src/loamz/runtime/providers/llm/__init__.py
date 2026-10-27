@@ -1,10 +1,10 @@
-"""loamz.engine.agents.providers.llm — LLM provider clients and factory.
+"""loamz.runtime.providers.llm — LLM provider clients and factory.
 
 Quick-start
 -----------
 Any provider by model name::
 
-    from loamz.engine.agents.providers.llm import LLMFactory
+    from loamz.runtime.providers.llm import LLMFactory
 
     # Cloud providers — auto-detected from prefix
     client = LLMFactory("gpt-4o", api_key).build()
@@ -22,7 +22,7 @@ Any provider by model name::
 
 Direct client construction::
 
-    from loamz.engine.agents.providers.llm import OpenAICompatibleClient
+    from loamz.runtime.providers.llm import OpenAICompatibleClient
 
     # Points at Ollama running locally
     client = OpenAICompatibleClient(
@@ -40,27 +40,27 @@ from typing import TYPE_CHECKING
 # Imported when asked for, not when the package is: each vendor's client needs only its own SDK (``openai``,
 # ``anthropic``, ``gemini`` extras), so asking for one must not require the others.
 _LAZY: dict[str, str] = {
-    "LLMFactory": "loamz.engine.agents.providers.llm.factory",
-    "build_client": "loamz.engine.agents.providers.llm.factory",
-    "create_model_client": "loamz.engine.agents.providers.llm.factory",
-    "create_embedding_client": "loamz.engine.agents.providers.llm.factory",
-    "detect_provider": "loamz.engine.agents.providers.llm.factory",
-    "detect_embedding_provider": "loamz.engine.agents.providers.llm.factory",
-    "strip_provider_prefix": "loamz.engine.agents.providers.llm.factory",
-    "model_supports_vision": "loamz.engine.agents.providers.llm.factory",
-    "has_provider_api_key": "loamz.engine.agents.providers.llm.factory",
-    "resolve_model_for_available_credentials": "loamz.engine.agents.providers.llm.factory",
-    "resolve_vision_model_for_available_credentials": "loamz.engine.agents.providers.llm.factory",
-    "CHAT_MODEL_FALLBACKS": "loamz.engine.agents.providers.llm.factory",
-    "VISION_MODEL_FALLBACKS": "loamz.engine.agents.providers.llm.factory",
-    "OpenAIClient": "loamz.engine.agents.providers.llm.openai",
-    "OpenAIEmbeddingClient": "loamz.engine.agents.providers.llm.openai",
-    "SentenceTransformersEmbeddingClient": "loamz.engine.agents.providers.llm.local_embeddings",
-    "OpenAICompatibleClient": "loamz.engine.agents.providers.llm.openai_compatible",
+    "LLMFactory": "loamz.runtime.providers.llm.factory",
+    "build_client": "loamz.runtime.providers.llm.factory",
+    "create_model_client": "loamz.runtime.providers.llm.factory",
+    "create_embedding_client": "loamz.runtime.providers.llm.factory",
+    "detect_provider": "loamz.runtime.providers.llm.factory",
+    "detect_embedding_provider": "loamz.runtime.providers.llm.factory",
+    "strip_provider_prefix": "loamz.runtime.providers.llm.factory",
+    "model_supports_vision": "loamz.runtime.providers.llm.factory",
+    "has_provider_api_key": "loamz.runtime.providers.llm.factory",
+    "resolve_model_for_available_credentials": "loamz.runtime.providers.llm.factory",
+    "resolve_vision_model_for_available_credentials": "loamz.runtime.providers.llm.factory",
+    "CHAT_MODEL_FALLBACKS": "loamz.runtime.providers.llm.factory",
+    "VISION_MODEL_FALLBACKS": "loamz.runtime.providers.llm.factory",
+    "OpenAIClient": "loamz.runtime.providers.llm.openai",
+    "OpenAIEmbeddingClient": "loamz.runtime.providers.llm.openai",
+    "SentenceTransformersEmbeddingClient": "loamz.runtime.providers.llm.local_embeddings",
+    "OpenAICompatibleClient": "loamz.runtime.providers.llm.openai_compatible",
 }
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.providers.llm.factory import (
+    from loamz.runtime.providers.llm.factory import (
         CHAT_MODEL_FALLBACKS,
         VISION_MODEL_FALLBACKS,
         LLMFactory,
@@ -75,11 +75,11 @@ if TYPE_CHECKING:
         resolve_vision_model_for_available_credentials,
         strip_provider_prefix,
     )
-    from loamz.engine.agents.providers.llm.local_embeddings import (
+    from loamz.runtime.providers.llm.local_embeddings import (
         SentenceTransformersEmbeddingClient,
     )
-    from loamz.engine.agents.providers.llm.openai import OpenAIClient, OpenAIEmbeddingClient
-    from loamz.engine.agents.providers.llm.openai_compatible import OpenAICompatibleClient
+    from loamz.runtime.providers.llm.openai import OpenAIClient, OpenAIEmbeddingClient
+    from loamz.runtime.providers.llm.openai_compatible import OpenAICompatibleClient
 
 __all__ = [
     # Factory

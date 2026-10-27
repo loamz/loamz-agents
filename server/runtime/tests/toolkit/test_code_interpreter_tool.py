@@ -4,9 +4,9 @@ snapshot id back to ctx so persist_turns can stamp the turn's MessageNode."""
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.types.run import RunScope
-from loamz.engine.agents.toolkit.code.runtimes.base import ExecResult, NetworkPolicy
-from loamz.engine.agents.toolkit.code.tool import CodeInterpreterTool
+from loamz.runtime.kernel.types.run import RunScope
+from loamz.runtime.toolkit.code.runtimes.base import ExecResult, NetworkPolicy
+from loamz.runtime.toolkit.code.tool import CodeInterpreterTool
 
 
 class _FakeRuntime:
@@ -199,7 +199,7 @@ class _DataRuntime(_FakeRuntime):
 
 
 def _mount():
-    from loamz.engine.agents.toolkit.code.runtimes.base import DataMount
+    from loamz.runtime.toolkit.code.runtimes.base import DataMount
 
     return DataMount(socket_dir="/var/tmp/relay")
 

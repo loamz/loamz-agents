@@ -6,52 +6,52 @@ import logging
 import time
 from typing import TYPE_CHECKING
 
-from loamz.engine.agents.kernel.agents.base import BaseAgent
-from loamz.engine.agents.kernel.agents.routed import handle
-from loamz.engine.agents.kernel.context.compaction.sliding_window import SlidingWindowCompaction
-from loamz.engine.agents.kernel.context.context import ContextConfig
-from loamz.engine.agents.kernel.context.protocols import CompactionContext, CompactionPhase
-from loamz.engine.agents.kernel.errors import (
+from loamz.runtime.kernel.agents.base import BaseAgent
+from loamz.runtime.kernel.agents.routed import handle
+from loamz.runtime.kernel.context.compaction.sliding_window import SlidingWindowCompaction
+from loamz.runtime.kernel.context.context import ContextConfig
+from loamz.runtime.kernel.context.protocols import CompactionContext, CompactionPhase
+from loamz.runtime.kernel.errors import (
     BudgetExhaustedError,
     ContentFilterError,
     ContextLengthError,
 )
-from loamz.engine.agents.kernel.middleware._contracts import (
+from loamz.runtime.kernel.middleware._contracts import (
     AgentRunResult,
     MiddlewareContext,
     ToolCallRecord,
 )
-from loamz.engine.agents.kernel.middleware.pipeline import MiddlewarePipeline
-from loamz.engine.agents.kernel.middleware.stage import MiddlewareStage
-from loamz.engine.agents.kernel.models.protocols import (
+from loamz.runtime.kernel.middleware.pipeline import MiddlewarePipeline
+from loamz.runtime.kernel.middleware.stage import MiddlewareStage
+from loamz.runtime.kernel.models.protocols import (
     GenerationOptions,
     LLMResponse,
     ReasoningEffort,
 )
-from loamz.engine.agents.kernel.ports.threads import ThreadStore
-from loamz.engine.agents.kernel.runtime.message import ChatPayload, DataPayload, Message
-from loamz.engine.agents.kernel.tools.approval import ApprovalHandler
-from loamz.engine.agents.kernel.tools.chain import ChainPolicy
-from loamz.engine.agents.kernel.tools.protocols import ToolRegistry, ToolRisk, is_concurrency_safe
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.ports.threads import ThreadStore
+from loamz.runtime.kernel.runtime.message import ChatPayload, DataPayload, Message
+from loamz.runtime.kernel.tools.approval import ApprovalHandler
+from loamz.runtime.kernel.tools.chain import ChainPolicy
+from loamz.runtime.kernel.tools.protocols import ToolRegistry, ToolRisk, is_concurrency_safe
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     Role,
     TextBlock,
     ToolResultBlock,
     ToolUseBlock,
 )
-from loamz.engine.agents.kernel.types.finish_reason import FinishReason
-from loamz.engine.agents.kernel.types.identity import Actor, Topic
-from loamz.engine.agents.kernel.types.run import RunScope
-from loamz.engine.agents.kernel.types.run_log import RunLogKind
-from loamz.engine.agents.kernel.types.supervision import ExecutionBudget
+from loamz.runtime.kernel.types.finish_reason import FinishReason
+from loamz.runtime.kernel.types.identity import Actor, Topic
+from loamz.runtime.kernel.types.run import RunScope
+from loamz.runtime.kernel.types.run_log import RunLogKind
+from loamz.runtime.kernel.types.supervision import ExecutionBudget
 
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.models.protocols import ChatModel
-    from loamz.engine.agents.kernel.runtime.context import RunContext
-    from loamz.engine.agents.kernel.tools.chain import InvocationResult
+    from loamz.runtime.kernel.models.protocols import ChatModel
+    from loamz.runtime.kernel.runtime.context import RunContext
+    from loamz.runtime.kernel.tools.chain import InvocationResult
 
 
 class ReActAgent(BaseAgent):
@@ -97,7 +97,7 @@ class ReActAgent(BaseAgent):
         self.model = model
 
         if isinstance(tools, list):
-            from loamz.engine.agents.kernel.tools.toolbox import Toolbox
+            from loamz.runtime.kernel.tools.toolbox import Toolbox
 
             tb = Toolbox()
             for t in tools:

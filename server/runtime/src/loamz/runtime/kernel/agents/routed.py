@@ -24,13 +24,13 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
-from loamz.engine.agents.kernel.errors import UnroutableMessageError
-from loamz.engine.agents.kernel.runtime.message import Message
-from loamz.engine.agents.kernel.telemetry import semconv
-from loamz.engine.agents.kernel.telemetry.tracing import span
+from loamz.runtime.kernel.errors import UnroutableMessageError
+from loamz.runtime.kernel.runtime.message import Message
+from loamz.runtime.kernel.telemetry import semconv
+from loamz.runtime.kernel.telemetry.tracing import span
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.runtime.context import RunContext
+    from loamz.runtime.kernel.runtime.context import RunContext
 
 Handler = Callable[["RunContext", Message], Awaitable[None]]
 F = TypeVar("F", bound=Callable[..., Awaitable[None]])

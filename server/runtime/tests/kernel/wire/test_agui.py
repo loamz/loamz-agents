@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import json
 
-from loamz.engine.agents.kernel.tools.function import tool
-from loamz.engine.agents.kernel.tools.protocols import ToolRisk
-from loamz.engine.agents.kernel.types.run_log import RunLogEntry, RunLogKind
-from loamz.engine.agents.kernel.wire import agui
+from loamz.runtime.kernel.tools.function import tool
+from loamz.runtime.kernel.tools.protocols import ToolRisk
+from loamz.runtime.kernel.types.run_log import RunLogEntry, RunLogKind
+from loamz.runtime.kernel.wire import agui
 
 BODY = {
     "threadId": "t1",

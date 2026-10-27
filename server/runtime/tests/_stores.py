@@ -5,10 +5,10 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from loamz.engine.agents.stores import AgentStore
-from loamz.engine.agents.stores.tasks import Tasks
-from loamz.engine.agents.stores.threads import Threads
-from loamz.engine.agents.testing.doubles import MemoryFileStore
+from loamz.runtime.stores import AgentStore
+from loamz.runtime.stores.tasks import Tasks
+from loamz.runtime.stores.threads import Threads
+from loamz.runtime.testing.doubles import MemoryFileStore
 
 _ROOT = tempfile.TemporaryDirectory(prefix="loamz-tests-")
 
@@ -36,6 +36,6 @@ def agent_store_at(location: str | Path) -> AgentStore:
 
 def open_runtime(location: str | Path | None = None, **options):
     """A ``Runtime`` that owns an agent store in ``location`` (a fresh temp folder when omitted)."""
-    from loamz.engine.agents.kernel.runtime import Runtime
+    from loamz.runtime.kernel.runtime import Runtime
 
     return Runtime(agent_store_at(location or folder()), owns_store=True, **options)

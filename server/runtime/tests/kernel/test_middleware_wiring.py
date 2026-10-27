@@ -15,16 +15,16 @@ there's genuinely one middleware concept, not three.
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.middleware import (
+from loamz.runtime.kernel.middleware import (
     CacheMiddleware,
     ContentFilterMiddleware,
     MaxTokenMiddleware,
     MiddlewarePipeline,
     PIIDetectionMiddleware,
 )
-from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import TextBlock, ToolUseBlock
-from loamz.engine.agents.testing.runtime import ephemeral_runtime
+from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import TextBlock, ToolUseBlock
+from loamz.runtime.testing.runtime import ephemeral_runtime
 from tests.kernel.test_assistant_agent import make_agent, run_agent
 
 

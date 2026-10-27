@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from loamz.engine.agents.kernel.context import (
+from loamz.runtime.kernel.context import (
     AgentContext,
     CompactionPipeline,
     ContextConfig,
@@ -10,11 +10,11 @@ from loamz.engine.agents.kernel.context import (
     SummarizationCompaction,
     TokenBudgetComposedStrategy,
 )
-from loamz.engine.agents.kernel.models import GenerationOptions, LLMResponse
-from loamz.engine.agents.kernel.ports.threads import MessageNode
-from loamz.engine.agents.kernel.types.content import ChatMessage, TextBlock
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.usage import Usage
+from loamz.runtime.kernel.models import GenerationOptions, LLMResponse
+from loamz.runtime.kernel.ports.threads import MessageNode
+from loamz.runtime.kernel.types.content import ChatMessage, TextBlock
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.usage import Usage
 from tests._stores import fs_history
 
 
@@ -143,7 +143,7 @@ async def test_summarization_incremental_update():
         chars_per_token=4.0,
     )
 
-    from loamz.engine.agents.kernel.context.compaction.summarization import _make_summary_message
+    from loamz.runtime.kernel.context.compaction.summarization import _make_summary_message
 
     existing_summary_msg = _make_summary_message("Previous summary of early turns.")
     new_msgs = [_make_msg("user", "b" * 100) for _ in range(5)]

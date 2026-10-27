@@ -18,8 +18,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk, ToolType
-from loamz.engine.agents.kernel.types.content import TextBlock
+from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk, ToolType
+from loamz.runtime.kernel.types.content import TextBlock
 
 logger = logging.getLogger(__name__)
 

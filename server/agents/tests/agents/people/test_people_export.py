@@ -1,9 +1,9 @@
 import json
 
-from loamz.engine.agents.kernel.caller import Caller
-from loamz.engine.agents.kernel.ports.threads import MessageNode
-from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
-from loamz.engine.agents.stores.headers import ThreadHeader
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.kernel.ports.threads import MessageNode
+from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
+from loamz.runtime.stores.headers import ThreadHeader
 from loamz.server.agents.features.people.memory.model import MemoryIn
 from loamz.server.agents.features.people.memory.service import memory
 from loamz.server.agents.features.people.notifications.service import notifications

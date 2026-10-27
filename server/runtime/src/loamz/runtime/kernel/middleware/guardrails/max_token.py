@@ -3,10 +3,10 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 from typing import ClassVar
 
-from loamz.engine.agents.kernel.context.tokens import DEFAULT_CHARS_PER_TOKEN, estimate_tokens
-from loamz.engine.agents.kernel.errors import MiddlewareTermination
-from loamz.engine.agents.kernel.middleware._contracts import MiddlewareContext
-from loamz.engine.agents.kernel.middleware.stage import MiddlewareStage
+from loamz.runtime.kernel.context.tokens import DEFAULT_CHARS_PER_TOKEN, estimate_tokens
+from loamz.runtime.kernel.errors import MiddlewareTermination
+from loamz.runtime.kernel.middleware._contracts import MiddlewareContext
+from loamz.runtime.kernel.middleware.stage import MiddlewareStage
 
 
 class MaxTokenMiddleware:

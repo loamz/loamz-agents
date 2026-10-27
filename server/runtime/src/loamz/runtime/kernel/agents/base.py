@@ -19,22 +19,22 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from loamz.engine.agents.kernel.agents.routed import RoutedAgent
-from loamz.engine.agents.kernel.runtime.message import ChatPayload, DataPayload, Message
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.agents.routed import RoutedAgent
+from loamz.runtime.kernel.runtime.message import ChatPayload, DataPayload, Message
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     Role,
     TextBlock,
     content_blocks_to_str,
 )
-from loamz.engine.agents.kernel.types.identity import Actor, Topic
-from loamz.engine.agents.kernel.types.run_log import RunLogKind
-from loamz.engine.agents.kernel.version import __version__ as _PACKAGE_VERSION
+from loamz.runtime.kernel.types.identity import Actor, Topic
+from loamz.runtime.kernel.types.run_log import RunLogKind
+from loamz.runtime.kernel.version import __version__ as _PACKAGE_VERSION
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.context.context import ContextConfig
-    from loamz.engine.agents.kernel.ports.threads import ThreadStore
-    from loamz.engine.agents.kernel.runtime.context import RunContext
+    from loamz.runtime.kernel.context.context import ContextConfig
+    from loamz.runtime.kernel.ports.threads import ThreadStore
+    from loamz.runtime.kernel.runtime.context import RunContext
 
 
 def message_to_chat(msg: Message) -> ChatMessage:
@@ -90,7 +90,7 @@ async def load_history(
     branch_id: str = "main",
 ) -> list[ChatMessage]:
     """The session branch's history as LLM-ready messages (see ``project_messages``)."""
-    from loamz.engine.agents.kernel.context.history import project_messages
+    from loamz.runtime.kernel.context.history import project_messages
 
     return await project_messages(
         ctx_cfg.history,
@@ -122,7 +122,7 @@ async def persist_turns(
     branch's workspace per turn) is responsible for actually producing the
     snapshot id; this function only threads it onto the right node.
     """
-    from loamz.engine.agents.kernel.ports.threads import MessageNode
+    from loamz.runtime.kernel.ports.threads import MessageNode
 
     for i, turn in enumerate(new_turns):
         branch = await ctx_cfg.history.get_branch(session_id, branch_id)
@@ -190,7 +190,7 @@ class BaseAgent(RoutedAgent):
         """Keep this agent's history in ``threads`` unless it was given a context of its own. The runtime calls
         this when the agent is registered on it."""
         if self._context_config is None:
-            from loamz.engine.agents.kernel.context.context import ContextConfig
+            from loamz.runtime.kernel.context.context import ContextConfig
 
             self._context_config = ContextConfig(threads)
 

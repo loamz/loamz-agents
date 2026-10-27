@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.errors import (
+from loamz.runtime.kernel.errors import (
     ContextLengthError,
     SuspendInterrupt,
     ToolDeclarationError,
@@ -28,10 +28,10 @@ def test_suspend_interrupt_is_base_exception() -> None:
 
 
 def test_kernel_exceptions_module() -> None:
-    """loamz.engine.agents.kernel.errors must export all L0 exceptions with correct semantic tiering."""
+    """loamz.runtime.kernel.errors must export all L0 exceptions with correct semantic tiering."""
     from types import SimpleNamespace
 
-    import loamz.engine.agents.kernel.errors as agent_errors
+    import loamz.runtime.kernel.errors as agent_errors
     import loamz.engine.errors as storage_errors
 
     ke = SimpleNamespace(

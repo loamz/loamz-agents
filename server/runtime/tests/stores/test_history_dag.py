@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from loamz.engine.agents.kernel.context import DefaultHistoryResolver
-from loamz.engine.agents.kernel.ports.threads import MessageNode
-from loamz.engine.agents.kernel.types.content import ChatMessage, TextBlock
+from loamz.runtime.kernel.context import DefaultHistoryResolver
+from loamz.runtime.kernel.ports.threads import MessageNode
+from loamz.runtime.kernel.types.content import ChatMessage, TextBlock
 from tests._stores import fs_history
 
 

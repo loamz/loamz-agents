@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock, ToolResultBlock
+from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock, ToolResultBlock
 
 
 class ToolResultCompactionStrategy:

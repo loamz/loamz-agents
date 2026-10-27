@@ -14,10 +14,10 @@ import asyncio
 from collections.abc import AsyncIterator
 from typing import Any
 
-from loamz.engine.agents.kernel.runtime import ChatPayload, Message, Runtime
-from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.run_log import RunLogEntry, RunLogKind
+from loamz.runtime.kernel.runtime import ChatPayload, Message, Runtime
+from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.run_log import RunLogEntry, RunLogKind
 
 TERMINAL = frozenset({RunLogKind.RUN_COMPLETED, RunLogKind.RUN_FAILED, RunLogKind.RUN_CANCELLED})
 

@@ -22,7 +22,7 @@ from pydantic import (
     model_validator,
 )
 
-from loamz.engine.agents.kernel.errors import BlockValidationError
+from loamz.runtime.kernel.errors import BlockValidationError
 
 JsonObject = dict[str, Any]
 

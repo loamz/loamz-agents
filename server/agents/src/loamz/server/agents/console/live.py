@@ -20,8 +20,8 @@ from rich.console import Console as RichConsole
 from rich.console import Group, RenderableType
 from rich.live import Live
 
-from loamz.engine.agents.kernel.types.content import content_blocks_to_str
-from loamz.engine.agents.kernel.types.stream import (
+from loamz.runtime.kernel.types.content import content_blocks_to_str
+from loamz.runtime.kernel.types.stream import (
     AgentProgress,
     AgentStep,
     CompletionEvent,

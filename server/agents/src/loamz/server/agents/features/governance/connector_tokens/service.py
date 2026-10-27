@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import time
 
-from loamz.engine.agents.kernel.caller import Caller
+from loamz.runtime.kernel.caller import Caller
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.governance.connector_tokens.model import TokenPush
 from loamz.server.agents.features.governance.connector_tokens.store import ConnectorTokenStore

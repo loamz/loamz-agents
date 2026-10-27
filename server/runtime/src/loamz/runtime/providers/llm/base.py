@@ -6,9 +6,9 @@ import re
 from collections.abc import Sequence
 from typing import Any
 
-from loamz.engine.agents.kernel.errors import UnsupportedContentError
-from loamz.engine.agents.kernel.models import EmbeddingResult, Modality
-from loamz.engine.agents.kernel.types.content import ContentBlock, MediaBlock, TextBlock
+from loamz.runtime.kernel.errors import UnsupportedContentError
+from loamz.runtime.kernel.models import EmbeddingResult, Modality
+from loamz.runtime.kernel.types.content import ContentBlock, MediaBlock, TextBlock
 
 
 class BaseEmbeddingClient:

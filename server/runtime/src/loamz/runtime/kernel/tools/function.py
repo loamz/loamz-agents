@@ -42,8 +42,8 @@ from pydantic import (
     create_model,
 )
 
-from loamz.engine.agents.kernel.tools.protocols import ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.tools.protocols import ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import (
     DataBlock,
     ErrorBlock,
     MediaBlock,

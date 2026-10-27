@@ -5,12 +5,12 @@ import logging
 import re
 from typing import Any
 
-from loamz.engine.agents.kernel.caller import Caller
-from loamz.engine.agents.kernel.ports.files import FileStore
-from loamz.engine.agents.kernel.types.ids import new_id
-from loamz.engine.agents.kernel.types.scope import Scope
-from loamz.engine.agents.stores.scoped import fence_objects
-from loamz.engine.agents.stores.workspace.layout import knowledge_document_prefix
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.kernel.ports.files import FileStore
+from loamz.runtime.kernel.types.ids import new_id
+from loamz.runtime.kernel.types.scope import Scope
+from loamz.runtime.stores.scoped import fence_objects
+from loamz.runtime.stores.workspace.layout import knowledge_document_prefix
 from loamz.engine.errors import InvalidRequestError, LoamzError
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.knowledge.documents.service import DocumentsService, documents

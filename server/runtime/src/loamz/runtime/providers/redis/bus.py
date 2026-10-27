@@ -15,7 +15,7 @@ import redis.asyncio as aioredis
 from opentelemetry import trace
 from opentelemetry.propagate import extract, inject
 
-from loamz.engine.agents.kernel.events.envelope import EventEnvelope
+from loamz.runtime.kernel.events.envelope import EventEnvelope
 
 logger = logging.getLogger(__name__)
 
@@ -124,7 +124,7 @@ class RedisEventBus:
                                 data["envelope"]  # pyright: ignore[reportOptionalSubscript, reportCallIssue, reportArgumentType]
                             )
                             parent_ctx = extract(envelope.trace_context or {})
-                            tracer = trace.get_tracer("loamz.engine.agents.events")
+                            tracer = trace.get_tracer("loamz.runtime.events")
                             with tracer.start_as_current_span(
                                 f"consume:{envelope.event_type}",
                                 context=parent_ctx,

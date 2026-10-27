@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-from loamz.engine.agents.kernel.types.content import JsonObject
+from loamz.runtime.kernel.types.content import JsonObject
 
 
 class McpContextUpdate(BaseModel):

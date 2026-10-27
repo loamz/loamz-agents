@@ -17,9 +17,9 @@ from typing import Any
 import httpx
 import pytest
 
-from loamz.engine.agents.kernel.models import GenerationOptions
-from loamz.engine.agents.kernel.types.content import ChatMessage, TextBlock
-from loamz.engine.agents.providers.llm.openai_compatible import OpenAICompatibleClient
+from loamz.runtime.kernel.models import GenerationOptions
+from loamz.runtime.kernel.types.content import ChatMessage, TextBlock
+from loamz.runtime.providers.llm.openai_compatible import OpenAICompatibleClient
 
 
 def _client(handler, **kwargs) -> OpenAICompatibleClient:
@@ -149,7 +149,7 @@ async def test_generate_stream_yields_text_deltas_then_completion() -> None:
     async for event in client.generate_stream(_user_message("hi")):
         deltas.append(event)
 
-    from loamz.engine.agents.kernel.types.stream import CompletionEvent, TextDelta
+    from loamz.runtime.kernel.types.stream import CompletionEvent, TextDelta
 
     text_deltas = [e for e in deltas if isinstance(e, TextDelta)]
     completions = [e for e in deltas if isinstance(e, CompletionEvent)]

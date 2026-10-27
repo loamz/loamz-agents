@@ -4,9 +4,9 @@ import re
 from collections.abc import Awaitable, Callable
 from typing import ClassVar
 
-from loamz.engine.agents.kernel.errors import MiddlewareTermination
-from loamz.engine.agents.kernel.middleware._contracts import MiddlewareContext
-from loamz.engine.agents.kernel.middleware.stage import MiddlewareStage
+from loamz.runtime.kernel.errors import MiddlewareTermination
+from loamz.runtime.kernel.middleware._contracts import MiddlewareContext
+from loamz.runtime.kernel.middleware.stage import MiddlewareStage
 
 
 class ToolCallValidationMiddleware:

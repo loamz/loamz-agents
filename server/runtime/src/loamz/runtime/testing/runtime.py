@@ -13,9 +13,9 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
-from loamz.engine.agents.kernel.runtime.persistence.store import RuntimeStore
-from loamz.engine.agents.kernel.runtime.runtime import Runtime
-from loamz.engine.agents.stores.store import AgentStore
+from loamz.runtime.kernel.runtime.persistence.store import RuntimeStore
+from loamz.runtime.kernel.runtime.runtime import Runtime
+from loamz.runtime.stores.store import AgentStore
 
 
 @asynccontextmanager

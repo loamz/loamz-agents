@@ -17,11 +17,11 @@ import json
 from collections.abc import Awaitable, Callable, Sequence
 from typing import TYPE_CHECKING, TypeVar
 
-from loamz.engine.agents.kernel.ports.graph import Entity, Relationship, SubGraph
+from loamz.runtime.kernel.ports.graph import Entity, Relationship, SubGraph
 from loamz.engine.sql import Row, Tx, under
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.stores.store import AgentStore
+    from loamz.runtime.stores.store import AgentStore
 
 T = TypeVar("T")
 

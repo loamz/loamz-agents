@@ -61,8 +61,8 @@ from typing import Protocol, runtime_checkable
 
 from pydantic import Field
 
-from loamz.engine.agents.kernel.types.content import JsonObject, KernelModel
-from loamz.engine.agents.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.content import JsonObject, KernelModel
+from loamz.runtime.kernel.types.identity import Actor
 
 
 class Mode(StrEnum):

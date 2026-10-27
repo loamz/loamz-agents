@@ -14,20 +14,20 @@ from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass
 from typing import Any
 
-from loamz.engine.agents.kernel.models import (
+from loamz.runtime.kernel.models import (
     FinishReason,
     GenerationOptions,
     LLMResponse,
     ModelCapabilities,
 )
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     ContentBlock,
     TextBlock,
     ToolUseBlock,
 )
-from loamz.engine.agents.kernel.types.stream import CompletionEvent, TextDelta
-from loamz.engine.agents.kernel.types.usage import Usage
+from loamz.runtime.kernel.types.stream import CompletionEvent, TextDelta
+from loamz.runtime.kernel.types.usage import Usage
 
 
 @dataclass(frozen=True)

@@ -21,7 +21,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
-from loamz.engine.agents.kernel.runtime.sealing import PlainSealer, Sealer, SealError
+from loamz.runtime.kernel.runtime.sealing import PlainSealer, Sealer, SealError
 
 PREFIX = "sealed:v1:"
 SALT = b"loamz.sealing.v1"

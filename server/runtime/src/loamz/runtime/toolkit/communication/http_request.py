@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from urllib.parse import urlparse
 
-from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import TextBlock
+from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import TextBlock
 
 _DEFAULT_ALLOWED_DOMAINS: list[str] = [
     "api.github.com",

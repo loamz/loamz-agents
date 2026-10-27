@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.tools import Toolbox, ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import TextBlock
+from loamz.runtime.kernel.tools import Toolbox, ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import TextBlock
 
 
 class MockToolImpl:

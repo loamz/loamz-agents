@@ -30,11 +30,11 @@ import time
 import uuid
 from typing import Any
 
-from loamz.engine.agents.kernel.runtime.tool_invoker import InvokerSession, ToolInvoker
-from loamz.engine.agents.kernel.tools import ChainRunResult, ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import MediaBlock, TextBlock
-from loamz.engine.agents.toolkit.chain.bridge import BridgeSession, ChainBridgeRegistry
-from loamz.engine.agents.toolkit.chain.prelude import build_prelude
+from loamz.runtime.kernel.runtime.tool_invoker import InvokerSession, ToolInvoker
+from loamz.runtime.kernel.tools import ChainRunResult, ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import MediaBlock, TextBlock
+from loamz.runtime.toolkit.chain.bridge import BridgeSession, ChainBridgeRegistry
+from loamz.runtime.toolkit.chain.prelude import build_prelude
 
 logger = logging.getLogger(__name__)
 

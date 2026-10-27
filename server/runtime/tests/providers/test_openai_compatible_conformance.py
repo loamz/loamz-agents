@@ -8,9 +8,9 @@ import json
 import httpx
 import pytest
 
-from loamz.engine.agents.kernel.models import ModelCapabilities
-from loamz.engine.agents.providers.llm.openai_compatible import OpenAICompatibleClient
-from loamz.engine.agents.testing.conformance.chat_model import ChatModelConformance
+from loamz.runtime.kernel.models import ModelCapabilities
+from loamz.runtime.providers.llm.openai_compatible import OpenAICompatibleClient
+from loamz.runtime.testing.conformance.chat_model import ChatModelConformance
 
 CAPS = ModelCapabilities(
     model_id="conformance-model", input_modalities=frozenset({"text", "image"})

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from loamz.engine.agents.kernel.tools import ChainPolicy
+from loamz.runtime.kernel.tools import ChainPolicy
 
 
 @pytest.mark.parametrize(

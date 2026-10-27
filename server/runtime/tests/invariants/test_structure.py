@@ -86,14 +86,14 @@ def test_i26_the_kernel_imports_only_its_allowed_third_party_set() -> None:
 
 
 def test_the_kernel_imports_nothing_of_loamz_but_itself_and_storage() -> None:
-    """Everything else in loamz.engine.agents builds on the kernel, so the kernel can name none of it; of Loamz Data it uses
+    """Everything else in loamz.runtime builds on the kernel, so the kernel can name none of it; of Loamz Data it uses
     only the embeddable storage (never the client or the server)."""
     offenders = {
         f"{path.relative_to(REPO_ROOT)}: {module}"
         for path in kernel_files()
         for module in _imports(path)
         if module.startswith("loamz.")
-        and not module.startswith(("loamz.engine.agents.kernel", "loamz.engine"))
+        and not module.startswith(("loamz.runtime.kernel", "loamz.engine"))
     }
     assert not offenders, "the kernel imports from outside it:\n  " + "\n  ".join(sorted(offenders))
 
@@ -116,7 +116,7 @@ def test_concepts_only_import_the_concepts_below_them() -> None:
 
 
 def test_production_code_never_imports_the_test_support() -> None:
-    """``loamz.engine.agents.testing`` holds conformance suites and doubles; production code that imported it would make
+    """``loamz.runtime.testing`` holds conformance suites and doubles; production code that imported it would make
     pytest a runtime dependency."""
     support = SRC / "testing"
     offenders = [
@@ -124,15 +124,15 @@ def test_production_code_never_imports_the_test_support() -> None:
         for path in SRC.rglob("*.py")
         if "__pycache__" not in path.parts
         and support not in path.parents
-        and any(m.startswith("loamz.engine.agents.testing") for m in _imports(path))
+        and any(m.startswith("loamz.runtime.testing") for m in _imports(path))
     ]
-    assert not offenders, f"production code imports loamz.engine.agents.testing: {offenders}"
+    assert not offenders, f"production code imports loamz.runtime.testing: {offenders}"
 
 
 def test_the_data_client_stays_behind_the_data_extra_and_importing_the_engine_never_loads_it() -> (
     None
 ):
-    """Governed data is Loamz Data's: only ``loamz.engine.agents.data`` (the ``data`` extra) may name ``loamz.data``,
+    """Governed data is Loamz Data's: only ``loamz.runtime.data`` (the ``data`` extra) may name ``loamz.data``,
     and importing the kernel, the stores, the providers or the toolkit must not load it."""
     offenders = [
         str(path.relative_to(REPO_ROOT))
@@ -141,10 +141,10 @@ def test_the_data_client_stays_behind_the_data_extra_and_importing_the_engine_ne
         and any(m.startswith("loamz.data") for m in _imports(path))
     ]
     assert not offenders, (
-        "only loamz.engine.agents.data may import the data client:\n  " + "\n  ".join(offenders)
+        "only loamz.runtime.data may import the data client:\n  " + "\n  ".join(offenders)
     )
     program = (
-        "import sys, loamz.engine.agents.kernel.agents, loamz.engine.agents.stores, loamz.engine.agents.providers, loamz.engine.agents.toolkit\n"
+        "import sys, loamz.runtime.kernel.agents, loamz.runtime.stores, loamz.runtime.providers, loamz.runtime.toolkit\n"
         "assert 'loamz.data' not in sys.modules, 'importing the engine loaded the data client'\n"
     )
     done = subprocess.run(
@@ -176,10 +176,10 @@ def test_i27_the_contracts_never_import_the_engine() -> None:
     for path in contract_files():
         for module in _imports(path):
             if (
-                module.startswith("loamz.engine.agents.")
+                module.startswith("loamz.runtime.")
                 and module not in contracts
                 and module
-                not in ("loamz.engine.agents.kernel.types", "loamz.engine.agents.kernel.errors")
+                not in ("loamz.runtime.kernel.types", "loamz.runtime.kernel.errors")
             ):
                 offenders.add(f"{path.relative_to(REPO_ROOT)}: {module}")
     assert not offenders, "a contract imports the engine:\n  " + "\n  ".join(sorted(offenders))
@@ -301,7 +301,7 @@ def test_the_core_install_carries_the_opentelemetry_api_and_nothing_that_exports
         d for d in core if d.startswith("opentelemetry-") and d != "opentelemetry-api"
     )
     assert not exporting, f"core dependencies that belong to the host, not the engine: {exporting}"
-    server = tomllib.loads((REPO_ROOT.parent / "server" / "pyproject.toml").read_text())["project"]
+    server = tomllib.loads((REPO_ROOT.parent / "agents" / "pyproject.toml").read_text())["project"]
     assert "opentelemetry-sdk" in names(server["dependencies"])
 
 
@@ -313,7 +313,7 @@ def test_i26_importing_the_whole_kernel_loads_only_the_allowed_third_party_set()
     probe = (
         "import sys\n"
         "before = set(sys.modules)\n"
-        f"import {', '.join('loamz.engine.agents.kernel.' + c for c in concepts)}\n"
+        f"import {', '.join('loamz.runtime.kernel.' + c for c in concepts)}\n"
         "roots = {m.split('.')[0] for m in set(sys.modules) - before}\n"
         "print(sorted(r for r in roots if r not in sys.stdlib_module_names and not r.startswith('_')))\n"
     )

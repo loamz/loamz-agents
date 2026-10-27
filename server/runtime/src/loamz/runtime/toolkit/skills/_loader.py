@@ -27,7 +27,7 @@ from pathlib import Path
 
 import yaml
 
-from loamz.engine.agents.toolkit.skills._models import SkillMetadata, SkillPackage
+from loamz.runtime.toolkit.skills._models import SkillMetadata, SkillPackage
 
 logger = logging.getLogger(__name__)
 

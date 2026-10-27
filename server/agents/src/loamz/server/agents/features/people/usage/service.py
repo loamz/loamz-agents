@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from loamz.engine.agents.kernel.caller import Caller
-from loamz.engine.agents.stores import AgentStore
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.stores import AgentStore
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.people.usage.model import DayOut, Totals, UsageOut
 from loamz.server.agents.features.people.usage.store import MAX_THREADS, usage_by_day

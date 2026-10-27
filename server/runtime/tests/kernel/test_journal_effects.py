@@ -12,10 +12,10 @@ from typing import Any
 
 import pytest
 
-from loamz.engine.agents.kernel.errors import NonDeterminismError, OrphanedEffectError
-from loamz.engine.agents.kernel.runtime import Journal, NewEntry
-from loamz.engine.agents.kernel.runtime.journal import OFFLOAD_BYTES, current_idempotency_key
-from loamz.engine.agents.kernel.types.run_log import RunLogEntry, RunLogKind
+from loamz.runtime.kernel.errors import NonDeterminismError, OrphanedEffectError
+from loamz.runtime.kernel.runtime import Journal, NewEntry
+from loamz.runtime.kernel.runtime.journal import OFFLOAD_BYTES, current_idempotency_key
+from loamz.runtime.kernel.types.run_log import RunLogEntry, RunLogKind
 
 
 class Log:

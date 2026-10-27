@@ -51,11 +51,11 @@ from typing import (
 
 from pydantic import BaseModel, Field
 
-from loamz.engine.agents.kernel.types.content import ContentBlock, JsonObject, content_blocks_to_str
-from loamz.engine.agents.kernel.types.ids import new_id
+from loamz.runtime.kernel.types.content import ContentBlock, JsonObject, content_blocks_to_str
+from loamz.runtime.kernel.types.ids import new_id
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.types.run import RunMeta
+    from loamz.runtime.kernel.types.run import RunMeta
 
 
 # ---------------------------------------------------------------------------

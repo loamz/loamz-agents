@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from loamz.engine.agents.kernel.caller import Caller
+from loamz.runtime.kernel.caller import Caller
 from loamz.engine.errors import NotFoundError, PermanentError
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.automation.pipelines.model import (

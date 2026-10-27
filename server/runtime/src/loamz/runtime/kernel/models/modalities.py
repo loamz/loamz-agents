@@ -9,8 +9,8 @@ provider rejecting the request or the content vanishing silently.
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.models.protocols import Modality, ModelCapabilities
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.models.protocols import Modality, ModelCapabilities
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     ContentBlock,
     MediaBlock,

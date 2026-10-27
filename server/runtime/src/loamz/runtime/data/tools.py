@@ -14,11 +14,11 @@ import json
 from typing import Any
 
 from loamz.core.exceptions import HttpResponseError
-from loamz.engine.agents.data._connection import DataServiceConnection
-from loamz.engine.agents.data.tokens import DataTokenMinter
-from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import TextBlock
-from loamz.engine.agents.kernel.types.run import scope_of
+from loamz.runtime.data._connection import DataServiceConnection
+from loamz.runtime.data.tokens import DataTokenMinter
+from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import TextBlock
+from loamz.runtime.kernel.types.run import scope_of
 
 MAX_ROWS = 200
 MAX_CELL = 120

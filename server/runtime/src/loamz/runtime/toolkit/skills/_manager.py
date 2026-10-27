@@ -14,8 +14,8 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from loamz.engine.agents.toolkit.skills._loader import SkillLoader
-from loamz.engine.agents.toolkit.skills._models import SkillMetadata, SkillPackage
+from loamz.runtime.toolkit.skills._loader import SkillLoader
+from loamz.runtime.toolkit.skills._models import SkillMetadata, SkillPackage
 
 logger = logging.getLogger(__name__)
 

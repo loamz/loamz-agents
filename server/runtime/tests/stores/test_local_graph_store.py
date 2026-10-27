@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.ports.graph import Entity, Relationship
+from loamz.runtime.kernel.ports.graph import Entity, Relationship
 from tests._stores import agent_store_at
 
 

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from loamz.engine.agents.kernel.caller import Caller
-from loamz.engine.agents.kernel.ports.counters import Counters, seconds_until_tomorrow
-from loamz.engine.agents.stores.workspace.layout import (
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.kernel.ports.counters import Counters, seconds_until_tomorrow
+from loamz.runtime.stores.workspace.layout import (
     conversation_documents_prefix,
     knowledge_collection,
 )

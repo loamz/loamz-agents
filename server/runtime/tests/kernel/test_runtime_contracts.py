@@ -17,8 +17,8 @@ from uuid import uuid4
 
 import pytest
 
-from loamz.engine.agents.kernel.errors import ConcurrentAppendError
-from loamz.engine.agents.kernel.runtime import (
+from loamz.runtime.kernel.errors import ConcurrentAppendError
+from loamz.runtime.kernel.runtime import (
     AgentRunContext,
     CancellationToken,
     DataPayload,
@@ -26,12 +26,12 @@ from loamz.engine.agents.kernel.runtime import (
     Message,
     RunRetryPolicy,
 )
-from loamz.engine.agents.kernel.runtime.agent import Agent
-from loamz.engine.agents.kernel.types.identity import Actor, Topic
-from loamz.engine.agents.kernel.types.run import RunMeta
-from loamz.engine.agents.kernel.types.run_log import RunLogEntry
-from loamz.engine.agents.kernel.types.run_status import new_run_id
-from loamz.engine.agents.kernel.types.supervision import Supervision
+from loamz.runtime.kernel.runtime.agent import Agent
+from loamz.runtime.kernel.types.identity import Actor, Topic
+from loamz.runtime.kernel.types.run import RunMeta
+from loamz.runtime.kernel.types.run_log import RunLogEntry
+from loamz.runtime.kernel.types.run_status import new_run_id
+from loamz.runtime.kernel.types.supervision import Supervision
 from loamz.engine.memory import MemoryProvenance
 
 # ---------------------------------------------------------------------------

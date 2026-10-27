@@ -6,15 +6,15 @@ import logging
 from collections.abc import Sequence
 from typing import Any, Protocol, runtime_checkable
 
-from loamz.engine.agents.kernel.context.protocols import (
+from loamz.runtime.kernel.context.protocols import (
     CompactionContext,
     CompactionPhase,
     CompactionResult,
     CompactionStrategy,
 )
-from loamz.engine.agents.kernel.context.tokens import DEFAULT_CHARS_PER_TOKEN, estimate_tokens
-from loamz.engine.agents.kernel.errors import BudgetExhaustedError
-from loamz.engine.agents.kernel.types.content import ChatMessage, ContentBlock, Role
+from loamz.runtime.kernel.context.tokens import DEFAULT_CHARS_PER_TOKEN, estimate_tokens
+from loamz.runtime.kernel.errors import BudgetExhaustedError
+from loamz.runtime.kernel.types.content import ChatMessage, ContentBlock, Role
 
 logger = logging.getLogger(__name__)
 

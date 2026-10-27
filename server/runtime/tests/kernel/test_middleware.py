@@ -6,15 +6,15 @@ import logging
 
 import pytest
 
-from loamz.engine.agents.kernel.errors import MiddlewareTermination
-from loamz.engine.agents.kernel.middleware import (
+from loamz.runtime.kernel.errors import MiddlewareTermination
+from loamz.runtime.kernel.middleware import (
     AgentRunResult,
     AuditLoggerMiddleware,
     MiddlewareContext,
     MiddlewarePipeline,
     MiddlewareStage,
 )
-from loamz.engine.agents.kernel.types.content import ChatMessage, TextBlock
+from loamz.runtime.kernel.types.content import ChatMessage, TextBlock
 
 
 def _ctx(text: str = "hello") -> MiddlewareContext:
@@ -139,7 +139,7 @@ async def test_pipeline_skips_middleware_for_undeclared_stage():
 
 @pytest.mark.asyncio
 async def test_audit_logger_logs_run(caplog):
-    loamz_logger = logging.getLogger("loamz.engine.agents")
+    loamz_logger = logging.getLogger("loamz.runtime")
     loamz_logger.addHandler(caplog.handler)
 
     mw = AuditLoggerMiddleware(log_level=logging.INFO)
@@ -151,7 +151,7 @@ async def test_audit_logger_logs_run(caplog):
         c.turn_result = AgentRunResult(output="done", status="success", run_id="r1")
         result_holder.append(c.turn_result)
 
-    with caplog.at_level(logging.INFO, logger="loamz.engine.agents"):
+    with caplog.at_level(logging.INFO, logger="loamz.runtime"):
         await MiddlewarePipeline([mw]).execute(ctx, final)
 
     assert "RUN START" in caplog.text

@@ -5,10 +5,10 @@ from datetime import UTC, datetime
 import pytest
 from pydantic import ValidationError
 
-from loamz.engine.agents.kernel.context import AncestryCheckpointResolver, DefaultContextBuilder
-from loamz.engine.agents.kernel.errors import DAGIntegrityError
-from loamz.engine.agents.kernel.ports.threads import HistoryCheckpoint, MessageNode
-from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
+from loamz.runtime.kernel.context import AncestryCheckpointResolver, DefaultContextBuilder
+from loamz.runtime.kernel.errors import DAGIntegrityError
+from loamz.runtime.kernel.ports.threads import HistoryCheckpoint, MessageNode
+from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
 from tests._stores import fs_history
 
 

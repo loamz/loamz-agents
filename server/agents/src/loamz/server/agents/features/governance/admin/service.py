@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from loamz.engine.agents.kernel.caller import Caller
+from loamz.runtime.kernel.caller import Caller
 from loamz.engine.errors import ForbiddenError, InvalidRequestError, NotFoundError
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.governance.admin.model import (
@@ -78,7 +78,7 @@ class AdminService:
             store = self._c.agent_store
             await store.tenant(tenant_id).erase_conversation(thread_id)
             if await store.has("runtime"):
-                from loamz.engine.agents.kernel.runtime.persistence.store import RuntimeStore
+                from loamz.runtime.kernel.runtime.persistence.store import RuntimeStore
 
                 await RuntimeStore(self._c.database).erase(tenant=tenant_id, thread_id=thread_id)
             await self._store.drop_header(tenant_id, thread_id)

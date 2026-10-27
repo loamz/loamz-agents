@@ -7,21 +7,21 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     ContentBlock,
     KernelModel,
     TextBlock,
 )
-from loamz.engine.agents.kernel.types.finish_reason import FinishReason
-from loamz.engine.agents.kernel.types.stream import CompletionEvent, ReasoningDelta, TextDelta
-from loamz.engine.agents.kernel.types.usage import Usage
+from loamz.runtime.kernel.types.finish_reason import FinishReason
+from loamz.runtime.kernel.types.stream import CompletionEvent, ReasoningDelta, TextDelta
+from loamz.runtime.kernel.types.usage import Usage
 
 if TYPE_CHECKING:
     from pydantic import BaseModel
 
-    from loamz.engine.agents.kernel.tools.protocols import AnyTool
-    from loamz.engine.agents.kernel.types.run import RunMeta
+    from loamz.runtime.kernel.tools.protocols import AnyTool
+    from loamz.runtime.kernel.types.run import RunMeta
 
 
 class Modality(StrEnum):

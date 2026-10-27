@@ -5,8 +5,8 @@ Wraps the OpenAI Images API to produce images from text prompts.
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import MediaBlock, TextBlock
+from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import MediaBlock, TextBlock
 
 
 class ImageGeneratorTool:

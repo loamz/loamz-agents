@@ -2,11 +2,11 @@
 
 import asyncio
 
-from loamz.engine.agents.kernel.agents.channel import ChannelMemberAgent, ChannelMemberConfig
-from loamz.engine.agents.kernel.context import ContextConfig
-from loamz.engine.agents.kernel.runtime.channel import Member, ParticipantKind
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.testing.scripted import ScriptedModel
+from loamz.runtime.kernel.agents.channel import ChannelMemberAgent, ChannelMemberConfig
+from loamz.runtime.kernel.context import ContextConfig
+from loamz.runtime.kernel.runtime.channel import Member, ParticipantKind
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.testing.scripted import ScriptedModel
 from tests._stores import fs_history, open_runtime
 
 

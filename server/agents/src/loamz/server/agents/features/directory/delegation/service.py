@@ -16,10 +16,10 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any
 
-from loamz.engine.agents.kernel.caller import Caller
-from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import TextBlock
-from loamz.engine.agents.kernel.types.ids import new_id
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import TextBlock
+from loamz.runtime.kernel.types.ids import new_id
 from loamz.server.agents.features.directory.agents.model import AgentProfile
 
 logger = logging.getLogger(__name__)

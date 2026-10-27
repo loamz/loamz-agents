@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import datetime
 
-from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import TextBlock
+from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import TextBlock
 
 
 class CurrentTimeTool:
@@ -13,7 +13,7 @@ class CurrentTimeTool:
 
     Example::
 
-        from loamz.engine.agents.toolkit.utils.current_time import CurrentTimeTool
+        from loamz.runtime.toolkit.utils.current_time import CurrentTimeTool
         agent = ReActAgent("bot", runtime, model=llm, tools=[CurrentTimeTool()])
     """
 

@@ -5,8 +5,8 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from loamz.engine.agents.kernel.runtime.tool_invoker import ToolInvoker
-from loamz.engine.agents.kernel.tools import (
+from loamz.runtime.kernel.runtime.tool_invoker import ToolInvoker
+from loamz.runtime.kernel.tools import (
     ApprovalDecision,
     ApprovalRequest,
     ApprovalResult,
@@ -16,7 +16,7 @@ from loamz.engine.agents.kernel.tools import (
     ToolExecutionResult,
     ToolRisk,
 )
-from loamz.engine.agents.kernel.types.content import MediaBlock, TextBlock
+from loamz.runtime.kernel.types.content import MediaBlock, TextBlock
 
 # ---------------------------------------------------------------------------
 # Fake implementations

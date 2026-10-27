@@ -17,15 +17,15 @@ from typing import Any
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from loamz.engine.agents.kernel.models import GenerationOptions, ModelCapabilities
-from loamz.engine.agents.kernel.runtime import DataPayload, Message
-from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.run_log import RunLogKind
-from loamz.engine.agents.kernel.types.stream import CompletionEvent
-from loamz.engine.agents.kernel.types.supervision import ExecutionBudget, Supervision
-from loamz.engine.agents.kernel.types.usage import Usage
-from loamz.engine.agents.testing.runtime import ephemeral_runtime
+from loamz.runtime.kernel.models import GenerationOptions, ModelCapabilities
+from loamz.runtime.kernel.runtime import DataPayload, Message
+from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.run_log import RunLogKind
+from loamz.runtime.kernel.types.stream import CompletionEvent
+from loamz.runtime.kernel.types.supervision import ExecutionBudget, Supervision
+from loamz.runtime.kernel.types.usage import Usage
+from loamz.runtime.testing.runtime import ephemeral_runtime
 
 
 class _CostedLLM:

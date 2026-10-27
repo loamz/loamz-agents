@@ -7,11 +7,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from loamz.engine.agents.kernel.caller import Caller
-from loamz.engine.agents.kernel.tools import ToolRisk
-from loamz.engine.agents.testing.scripted import ScriptedModel, ToolCall
-from loamz.engine.agents.toolkit.mcp.servers import McpToolServers
-from loamz.engine.agents.toolkit.mcp.tool import MCPTool
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.kernel.tools import ToolRisk
+from loamz.runtime.testing.scripted import ScriptedModel, ToolCall
+from loamz.runtime.toolkit.mcp.servers import McpToolServers
+from loamz.runtime.toolkit.mcp.tool import MCPTool
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.bootstrap.settings import Settings
 from loamz.server.agents.features.conversations.chat.model import ChatRequest, HitlResponse

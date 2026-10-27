@@ -14,9 +14,9 @@ from __future__ import annotations
 
 import logging
 
-from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import TextBlock
-from loamz.engine.agents.kernel.types.run import scope_of
+from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import TextBlock
+from loamz.runtime.kernel.types.run import scope_of
 from loamz.engine.memory import (
     MemoryCategory,
     MemoryNamespace,

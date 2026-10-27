@@ -18,10 +18,10 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from loamz.engine.agents.toolkit.skills._loader import SkillLoader
+from loamz.runtime.toolkit.skills._loader import SkillLoader
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-SKILLS_DIR = REPO_ROOT / "src" / "loamz" / "engine" / "agents" / "toolkit" / "skills"
+SKILLS_DIR = REPO_ROOT / "src" / "loamz" / "runtime" / "toolkit" / "skills"
 
 # excel_report is the most complex skill by design (chart-quality guard
 # functions) and is deliberately split across SKILL.md + references/ to fit
@@ -38,7 +38,7 @@ def test_all_real_skills_discover_without_warnings(caplog) -> None:
     """A skill with malformed frontmatter or a missing description is
     silently dropped by SkillLoader (by design — see module docstring), so
     this test is the only thing that actually catches it before merge."""
-    with caplog.at_level(logging.WARNING, logger="loamz.engine.agents"):
+    with caplog.at_level(logging.WARNING, logger="loamz.runtime"):
         loader = SkillLoader(skill_dirs=[SKILLS_DIR])
         skills = loader.discover_all()
 

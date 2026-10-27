@@ -1,6 +1,6 @@
 """An agent that lives in channels: it is woken by new entries, reads what it has not read, and chooses whether to speak.
 
-The channel decides *who is woken* (``loamz.engine.agents.kernel.runtime.channel``); this decides *what to do about it*. A wake is only a
+The channel decides *who is woken* (``loamz.runtime.kernel.runtime.channel``); this decides *what to do about it*. A wake is only a
 nudge — the member waits a moment so a burst becomes one wake, reads everything after its cursor as one digest, runs its
 ordinary ReAct turn on it, and posts the answer unless it chose silence (``PASS``). If someone else spoke while it was
 thinking, its post is refused as stale and it reconsiders with what is new, a bounded number of times.
@@ -20,20 +20,20 @@ from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from loamz.engine.agents.kernel.agents.react import ReActAgent
-from loamz.engine.agents.kernel.agents.routed import handle
-from loamz.engine.agents.kernel.models import Modality
-from loamz.engine.agents.kernel.models.protocols import ChatModel, GenerationOptions
-from loamz.engine.agents.kernel.runtime.channel import (
+from loamz.runtime.kernel.agents.react import ReActAgent
+from loamz.runtime.kernel.agents.routed import handle
+from loamz.runtime.kernel.models import Modality
+from loamz.runtime.kernel.models.protocols import ChatModel, GenerationOptions
+from loamz.runtime.kernel.runtime.channel import (
     EVERYONE,
     ChannelEntry,
     EntryKind,
     WakeReason,
     mentions_in,
 )
-from loamz.engine.agents.kernel.runtime.message import ChatPayload, DataPayload, Message
-from loamz.engine.agents.kernel.tools import ToolExecutionResult, ToolRisk
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.runtime.message import ChatPayload, DataPayload, Message
+from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     ContentBlock,
     MediaBlock,
@@ -42,8 +42,8 @@ from loamz.engine.agents.kernel.types.content import (
 )
 
 if TYPE_CHECKING:
-    from loamz.engine.agents.kernel.runtime.context import RunContext
-    from loamz.engine.agents.kernel.tools.chain import InvocationResult
+    from loamz.runtime.kernel.runtime.context import RunContext
+    from loamz.runtime.kernel.tools.chain import InvocationResult
 
 MediaLoader = Callable[[Mapping[str, Any]], Awaitable[MediaBlock | None]]
 """Opens one shared attachment as media the model can be shown (the host knows where files are kept), or ``None`` when it cannot."""
@@ -127,7 +127,7 @@ class ChannelMemberAgent(ReActAgent):
         super().__init__(*args, **kwargs)
         if channel.publish is not None:
             # The member's tools are its own (the factory builds a toolbox per agent), so it may add the one that shares files.
-            from loamz.engine.agents.kernel.tools.toolbox import Toolbox
+            from loamz.runtime.kernel.tools.toolbox import Toolbox
 
             if self.tools is None:
                 self.tools = Toolbox()

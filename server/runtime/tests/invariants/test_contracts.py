@@ -80,7 +80,7 @@ def test_contracts_import_only_pydantic_and_a_measured_stdlib_set() -> None:
                 continue
             if "pydantic" in line or "typing_extensions" in line:
                 continue
-            if line.startswith(("from loamz.engine.agents.kernel", "from loamz.engine.errors")):
+            if line.startswith(("from loamz.runtime.kernel", "from loamz.engine.errors")):
                 continue
             if line.startswith("from .") or line.startswith("from .."):
                 continue
@@ -98,9 +98,9 @@ def test_contracts_import_only_pydantic_and_a_measured_stdlib_set() -> None:
 
 def test_message_round_trip() -> None:
     """Message must serialize/deserialize cleanly via model_dump_json()."""
-    from loamz.engine.agents.kernel.runtime import ChatPayload, Message
-    from loamz.engine.agents.kernel.types.content import ChatMessage, TextBlock
-    from loamz.engine.agents.kernel.types.identity import Actor
+    from loamz.runtime.kernel.runtime import ChatPayload, Message
+    from loamz.runtime.kernel.types.content import ChatMessage, TextBlock
+    from loamz.runtime.kernel.types.identity import Actor
 
     agent = Actor(type="agent", key="assistant")
     chat = ChatMessage(role="user", content=[TextBlock(text="hello")])
@@ -118,7 +118,7 @@ def test_message_round_trip() -> None:
 
 def test_content_block_unknown_preserved() -> None:
     """Unknown block types must be preserved as UnknownBlock, not silently mangled."""
-    from loamz.engine.agents.kernel.types.content import UnknownBlock, parse_content_block
+    from loamz.runtime.kernel.types.content import UnknownBlock, parse_content_block
 
     raw = {"type": "future_block_v99", "some_field": "some_value"}
     result = parse_content_block(raw, forward_compatible=True)  # type: ignore[arg-type]
@@ -128,8 +128,8 @@ def test_content_block_unknown_preserved() -> None:
 
 def test_content_block_invalid_raises() -> None:
     """Invalid data for a known block type must raise BlockValidationError."""
-    from loamz.engine.agents.kernel.errors import BlockValidationError
-    from loamz.engine.agents.kernel.types.content import parse_content_block
+    from loamz.runtime.kernel.errors import BlockValidationError
+    from loamz.runtime.kernel.types.content import parse_content_block
 
     bad = {"type": "text"}  # missing required 'text' field
     try:
@@ -144,8 +144,8 @@ def test_message_requires_sender() -> None:
     import pytest
     from pydantic import ValidationError
 
-    from loamz.engine.agents.kernel.runtime import DataPayload, Message
-    from loamz.engine.agents.kernel.types.identity import Actor
+    from loamz.runtime.kernel.runtime import DataPayload, Message
+    from loamz.runtime.kernel.types.identity import Actor
 
     target = Actor(type="agent", key="worker")
 
@@ -164,7 +164,7 @@ def test_message_requires_sender() -> None:
 
 def test_actor_factory_helpers() -> None:
     """Actor factory classmethods must provide canonical standard addresses."""
-    from loamz.engine.agents.kernel.types.identity import Actor
+    from loamz.runtime.kernel.types.identity import Actor
 
     system_default = Actor.system()
     assert system_default == Actor(type="system", key="bootstrap")

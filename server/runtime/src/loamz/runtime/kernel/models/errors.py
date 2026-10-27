@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from loamz.engine.agents.kernel.errors import AuthError, ContentFilterError, ContextLengthError
+from loamz.runtime.kernel.errors import AuthError, ContentFilterError, ContextLengthError
 from loamz.engine.errors import LoamzError, PermanentError, RateLimitedError
 
 _PERMANENT_STATUS = frozenset({400, 401, 403, 404, 413, 422})

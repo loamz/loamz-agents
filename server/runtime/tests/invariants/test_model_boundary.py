@@ -17,10 +17,10 @@ import asyncio
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from loamz.engine.agents.kernel.context import SlidingWindowCompaction, ToolResultCompactionStrategy
-from loamz.engine.agents.kernel.models import Modality, ModelCapabilities
-from loamz.engine.agents.kernel.models.modalities import fit_to_capabilities
-from loamz.engine.agents.kernel.types.content import (
+from loamz.runtime.kernel.context import SlidingWindowCompaction, ToolResultCompactionStrategy
+from loamz.runtime.kernel.models import Modality, ModelCapabilities
+from loamz.runtime.kernel.models.modalities import fit_to_capabilities
+from loamz.runtime.kernel.types.content import (
     ChatMessage,
     MediaBlock,
     Role,
@@ -28,7 +28,7 @@ from loamz.engine.agents.kernel.types.content import (
     ToolResultBlock,
     ToolUseBlock,
 )
-from loamz.engine.agents.kernel.types.usage import Usage
+from loamz.runtime.kernel.types.usage import Usage
 
 # --------------------------------------------------------------------------
 # Generated conversations containing tool calls and tool-result media

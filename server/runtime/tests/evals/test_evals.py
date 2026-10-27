@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from loamz.engine.agents.evals import (
+from loamz.runtime.evals import (
     CORRECTNESS,
     TOOL_USAGE,
     EvalCase,
@@ -15,9 +15,9 @@ from loamz.engine.agents.evals import (
     EvalRunner,
     EvalScore,
 )
-from loamz.engine.agents.evals.judge import LLMJudge
-from loamz.engine.agents.kernel.runtime import Message, RunContext
-from loamz.engine.agents.kernel.types.identity import Actor
+from loamz.runtime.evals.judge import LLMJudge
+from loamz.runtime.kernel.runtime import Message, RunContext
+from loamz.runtime.kernel.types.identity import Actor
 
 # ---------------------------------------------------------------------------
 # Helpers — kernel-compliant stub agents
@@ -33,8 +33,8 @@ class OKAgent:
     async def run(self, ctx: RunContext, inbox: list[Message]) -> None:
         for msg in inbox:
             # Extract input text from the message payload
-            from loamz.engine.agents.kernel.runtime import ChatPayload, DataPayload
-            from loamz.engine.agents.kernel.types.content import content_blocks_to_str
+            from loamz.runtime.kernel.runtime import ChatPayload, DataPayload
+            from loamz.runtime.kernel.types.content import content_blocks_to_str
 
             p = msg.payload
             if isinstance(p, ChatPayload):

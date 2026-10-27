@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from pydantic import field_validator
 
-from loamz.engine.agents.kernel.types.content import KernelModel
+from loamz.runtime.kernel.types.content import KernelModel
 
 
 class Scope(KernelModel):

@@ -16,8 +16,8 @@ from __future__ import annotations
 
 from pydantic import TypeAdapter
 
-from loamz.engine.agents.kernel.types.run_log import RunLogKind
-from loamz.engine.agents.kernel.wire.events import WireEvent
+from loamz.runtime.kernel.types.run_log import RunLogKind
+from loamz.runtime.kernel.wire.events import WireEvent
 
 _ADAPTER: TypeAdapter[WireEvent] = TypeAdapter(WireEvent)
 

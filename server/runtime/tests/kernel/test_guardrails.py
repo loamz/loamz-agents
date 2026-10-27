@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from loamz.engine.agents.kernel.errors import MiddlewareTermination
-from loamz.engine.agents.kernel.middleware import (
+from loamz.runtime.kernel.errors import MiddlewareTermination
+from loamz.runtime.kernel.middleware import (
     ContentFilterMiddleware,
     MaxTokenMiddleware,
     MiddlewareContext,
@@ -13,7 +13,7 @@ from loamz.engine.agents.kernel.middleware import (
     MiddlewareStage,
     PromptInjectionMiddleware,
 )
-from loamz.engine.agents.kernel.types.content import ChatMessage, TextBlock
+from loamz.runtime.kernel.types.content import ChatMessage, TextBlock
 
 
 def _agent_ctx(text: str) -> MiddlewareContext:

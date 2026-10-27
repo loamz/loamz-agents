@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from loamz.engine.agents.kernel.ports.workspace import WorkspaceSnapshot, WorkspaceStore
+from loamz.runtime.kernel.ports.workspace import WorkspaceSnapshot, WorkspaceStore
 
 from .cas import BlobCAS
 from .materialize import commit as _commit_dir

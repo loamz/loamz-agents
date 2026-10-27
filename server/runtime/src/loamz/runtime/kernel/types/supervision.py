@@ -27,8 +27,8 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.ids import new_id
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.ids import new_id
 
 
 class HistoryRetention(StrEnum):

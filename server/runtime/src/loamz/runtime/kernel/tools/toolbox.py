@@ -8,8 +8,8 @@ pass a plain list[AnyTool] to the agent constructor.
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.errors import ToolDeclarationError
-from loamz.engine.agents.kernel.tools.protocols import AnyTool, ToolRisk, is_hosted_tool
+from loamz.runtime.kernel.errors import ToolDeclarationError
+from loamz.runtime.kernel.tools.protocols import AnyTool, ToolRisk, is_hosted_tool
 
 
 def check_declaration(tool: object) -> None:

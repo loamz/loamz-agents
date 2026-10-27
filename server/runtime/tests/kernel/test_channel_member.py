@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import asyncio
 
-from loamz.engine.agents.kernel.agents.channel import PASS, ChannelMemberAgent, ChannelMemberConfig
-from loamz.engine.agents.kernel.context import ContextConfig
-from loamz.engine.agents.kernel.runtime import EVERYONE, Member, Mode
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.testing.runtime import ephemeral_runtime
-from loamz.engine.agents.testing.scripted import ScriptedModel
+from loamz.runtime.kernel.agents.channel import PASS, ChannelMemberAgent, ChannelMemberConfig
+from loamz.runtime.kernel.context import ContextConfig
+from loamz.runtime.kernel.runtime import EVERYONE, Member, Mode
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.testing.runtime import ephemeral_runtime
+from loamz.runtime.testing.scripted import ScriptedModel
 from tests._stores import fs_history
 
 HUMAN = Actor("user", "ravi")
@@ -159,7 +159,7 @@ async def test_an_answer_that_names_a_member_mentions_it() -> None:
 
 
 def test_mentions_match_whole_names_in_any_case() -> None:
-    from loamz.engine.agents.kernel.runtime import mentions_in
+    from loamz.runtime.kernel.runtime import mentions_in
 
     names = {"agent/a": "Scout", "agent/b": "Scout Two", "agent/c": "Max"}
     assert mentions_in("hey @scout, look", names) == ["agent/a"]
@@ -216,9 +216,9 @@ async def test_the_digest_shows_what_was_attached_and_what_it_says() -> None:
 
 # -- senses and hands: seeing what is shared, and sharing what one made ------------------------------------------------------------------
 
-from loamz.engine.agents.kernel.models import Modality, ModelCapabilities  # noqa: E402
-from loamz.engine.agents.kernel.types.content import MediaBlock, TextBlock, ToolResultBlock  # noqa: E402
-from loamz.engine.agents.testing.scripted import ToolCall  # noqa: E402
+from loamz.runtime.kernel.models import Modality, ModelCapabilities  # noqa: E402
+from loamz.runtime.kernel.types.content import MediaBlock, TextBlock, ToolResultBlock  # noqa: E402
+from loamz.runtime.testing.scripted import ToolCall  # noqa: E402
 
 
 def seeing(model: ScriptedModel) -> ScriptedModel:
@@ -671,7 +671,7 @@ async def test_what_happened_to_an_entry_is_not_something_a_member_reads() -> No
 class ShowTool:
     """A tool that shows the person a card (A2UI messages in its structured content) and tells the model only a sentence."""
 
-    from loamz.engine.agents.kernel.tools import ToolRisk as _Risk
+    from loamz.runtime.kernel.tools import ToolRisk as _Risk
 
     risk = _Risk.SAFE
     idempotent = True
@@ -683,8 +683,8 @@ class ShowTool:
         self.surfaces, self.calls = surfaces, 0
 
     async def execute(self, **_kw: object):
-        from loamz.engine.agents.kernel.tools import ToolExecutionResult
-        from loamz.engine.agents.kernel.types.content import TextBlock
+        from loamz.runtime.kernel.tools import ToolExecutionResult
+        from loamz.runtime.kernel.types.content import TextBlock
 
         shown = self.surfaces[min(self.calls, len(self.surfaces) - 1)]
         self.calls += 1

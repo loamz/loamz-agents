@@ -9,11 +9,11 @@ from datetime import UTC, datetime
 
 import pytest
 
-from loamz.engine.agents.kernel.runtime.channel import Member
-from loamz.engine.agents.kernel.runtime.message import DataPayload, Message
-from loamz.engine.agents.kernel.runtime.store import Commit, NewEntry, RunSpec, SpawnSpec, Spend
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.supervision import ExecutionBudget
+from loamz.runtime.kernel.runtime.channel import Member
+from loamz.runtime.kernel.runtime.message import DataPayload, Message
+from loamz.runtime.kernel.runtime.store import Commit, NewEntry, RunSpec, SpawnSpec, Spend
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.supervision import ExecutionBudget
 
 NOW = datetime(2030, 1, 1, tzinfo=UTC)
 AGENT = Actor("agent", "a")

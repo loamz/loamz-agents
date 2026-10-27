@@ -7,9 +7,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol
 
-from loamz.engine.agents.kernel.runtime.store import RuntimeStore
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.run_log import RunLogKind
+from loamz.runtime.kernel.runtime.store import RuntimeStore
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.run_log import RunLogKind
 from loamz.server.agents.features.text import one_line
 
 PREVIEW_CHARS = 140

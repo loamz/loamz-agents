@@ -60,10 +60,10 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
-from loamz.engine.agents.kernel.runtime.message import Payload
-from loamz.engine.agents.kernel.types.content import JsonObject
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.run_status import RunId, RunStatus
+from loamz.runtime.kernel.runtime.message import Payload
+from loamz.runtime.kernel.types.content import JsonObject
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.run_status import RunId, RunStatus
 
 
 class RunHandle(BaseModel):

@@ -15,11 +15,11 @@ from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from typing import Any
 
-from loamz.engine.agents.kernel.runtime import ChatPayload, Message
-from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.run_log import RunLogKind
-from loamz.engine.agents.kernel.types.stream import (
+from loamz.runtime.kernel.runtime import ChatPayload, Message
+from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.run_log import RunLogKind
+from loamz.runtime.kernel.types.stream import (
     AgentProgress,
     AgentStep,
     CompletionEvent,
@@ -27,7 +27,7 @@ from loamz.engine.agents.kernel.types.stream import (
     StreamDone,
     TextDelta,
 )
-from loamz.engine.agents.toolkit.human_input import InputOption
+from loamz.runtime.toolkit.human_input import InputOption
 
 from .hitl import _HITLRequest
 from .taskboard import _TaskBoardUpdate

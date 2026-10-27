@@ -2,16 +2,16 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 
-from loamz.engine.agents.kernel.caller import Caller
-from loamz.engine.agents.kernel.runtime import ChatPayload, Message, Runtime
-from loamz.engine.agents.kernel.tools import ToolRisk
-from loamz.engine.agents.kernel.tools.approval import ApprovalDecision, DurableApproval
-from loamz.engine.agents.kernel.types.content import ChatMessage, Role, TextBlock
-from loamz.engine.agents.kernel.types.identity import Actor
-from loamz.engine.agents.kernel.types.run_log import RunLogKind
-from loamz.engine.agents.kernel.wire import wire_from_log
-from loamz.engine.agents.kernel.wire.streaming import TERMINAL
-from loamz.engine.agents.stores import AgentStore
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.kernel.runtime import ChatPayload, Message, Runtime
+from loamz.runtime.kernel.tools import ToolRisk
+from loamz.runtime.kernel.tools.approval import ApprovalDecision, DurableApproval
+from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
+from loamz.runtime.kernel.types.identity import Actor
+from loamz.runtime.kernel.types.run_log import RunLogKind
+from loamz.runtime.kernel.wire import wire_from_log
+from loamz.runtime.kernel.wire.streaming import TERMINAL
+from loamz.runtime.stores import AgentStore
 from loamz.engine.errors import ConflictError, InvalidRequestError, NotFoundError
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.conversations.chat.model import (
@@ -103,7 +103,7 @@ class ChatService:
         agent_id = req.agent_id or header.agent_id or "default"
         sender_actor = Actor(type="user", key=caller.user_id)
 
-        from loamz.engine.agents.kernel.agents.factory import create_assistant_agent
+        from loamz.runtime.kernel.agents.factory import create_assistant_agent
         from loamz.server.agents.features.directory.agents.service import instructions_block
 
         profile = await self._profile(caller, agent_id)

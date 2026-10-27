@@ -2,10 +2,10 @@ import json
 
 import pytest
 
-from loamz.engine.agents.kernel.caller import Caller
-from loamz.engine.agents.kernel.types.run import RunScope
-from loamz.engine.agents.providers.limits.memory import MemoryCounters
-from loamz.engine.agents.testing.scripted import ScriptedModel
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.kernel.types.run import RunScope
+from loamz.runtime.providers.limits.memory import MemoryCounters
+from loamz.runtime.testing.scripted import ScriptedModel
 from loamz.engine.errors import InvalidRequestError, QuotaExceededError
 from loamz.server.agents.bootstrap.settings import DocumentSettings
 from loamz.server.agents.features.knowledge.documents.service import (

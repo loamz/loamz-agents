@@ -24,9 +24,9 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from loamz.engine.agents.kernel.errors import BudgetExhaustedError, LeaseLostError, ThreadBusyError
-from loamz.engine.agents.kernel.runtime.message import DataPayload, Message
-from loamz.engine.agents.kernel.runtime.store import (
+from loamz.runtime.kernel.errors import BudgetExhaustedError, LeaseLostError, ThreadBusyError
+from loamz.runtime.kernel.runtime.message import DataPayload, Message
+from loamz.runtime.kernel.runtime.store import (
     Cancel,
     Commit,
     Complete,
@@ -43,13 +43,13 @@ from loamz.engine.agents.kernel.runtime.store import (
     Spend,
     Suspend,
 )
-from loamz.engine.agents.kernel.types.error_info import ErrorInfo
-from loamz.engine.agents.kernel.types.identity import Actor, Topic
-from loamz.engine.agents.kernel.types.run_status import RunStatus
-from loamz.engine.agents.kernel.types.supervision import Priority, SpawnBudget, Supervision
-from loamz.engine.agents.kernel.types.wakeup import Wakeup
-from loamz.engine.agents.testing.conformance.runtime_accounts import AccountTests
-from loamz.engine.agents.testing.conformance.runtime_channels import ChannelTests
+from loamz.runtime.kernel.types.error_info import ErrorInfo
+from loamz.runtime.kernel.types.identity import Actor, Topic
+from loamz.runtime.kernel.types.run_status import RunStatus
+from loamz.runtime.kernel.types.supervision import Priority, SpawnBudget, Supervision
+from loamz.runtime.kernel.types.wakeup import Wakeup
+from loamz.runtime.testing.conformance.runtime_accounts import AccountTests
+from loamz.runtime.testing.conformance.runtime_channels import ChannelTests
 
 AGENT = Actor("agent", "a")
 OTHER = Actor("agent", "b")

@@ -4,9 +4,9 @@ import logging
 from collections.abc import Awaitable, Callable
 from typing import ClassVar
 
-from loamz.engine.agents.kernel.middleware._contracts import MiddlewareContext
-from loamz.engine.agents.kernel.middleware.stage import MiddlewareStage
-from loamz.engine.agents.kernel.types.content import TextBlock
+from loamz.runtime.kernel.middleware._contracts import MiddlewareContext
+from loamz.runtime.kernel.middleware.stage import MiddlewareStage
+from loamz.runtime.kernel.types.content import TextBlock
 
 logger = logging.getLogger(__name__)
 

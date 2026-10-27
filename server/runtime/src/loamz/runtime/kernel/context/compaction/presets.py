@@ -8,23 +8,23 @@ construction, so it belongs beside the compaction strategies it presets.
 
 from __future__ import annotations
 
-from loamz.engine.agents.kernel.context.compaction.pipeline import CompactionPipeline
+from loamz.runtime.kernel.context.compaction.pipeline import CompactionPipeline
 
 
 def build_token_budget_pipeline(*, token_budget: int = 50_000) -> CompactionPipeline:
     """Compaction pipeline used by chat-facing agents: trims tool results and
     older tool-call groups before truncating outright, keeping recent
     context intact until the token budget is actually under pressure."""
-    from loamz.engine.agents.kernel.context.compaction.selective_tool_call import (
+    from loamz.runtime.kernel.context.compaction.selective_tool_call import (
         SelectiveToolCallCompactionStrategy,
     )
-    from loamz.engine.agents.kernel.context.compaction.token_budget_composed import (
+    from loamz.runtime.kernel.context.compaction.token_budget_composed import (
         TokenBudgetComposedStrategy,
     )
-    from loamz.engine.agents.kernel.context.compaction.tool_result import (
+    from loamz.runtime.kernel.context.compaction.tool_result import (
         ToolResultCompactionStrategy,
     )
-    from loamz.engine.agents.kernel.context.compaction.truncation import TruncationStrategy
+    from loamz.runtime.kernel.context.compaction.truncation import TruncationStrategy
 
     return CompactionPipeline(
         [
