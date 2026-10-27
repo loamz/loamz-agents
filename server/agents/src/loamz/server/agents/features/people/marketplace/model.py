@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 Kind = Literal["skill", "tool", "connector", "agent"]
 Group = Literal["read", "write", "delete"]
 Choice = Literal["allow", "ask", "block"]
-Trust = Literal["verified", "community"]
+Trust = Literal["verified", "publisher", "community"]
 
 
 class Permission(BaseModel):
@@ -32,6 +32,14 @@ class Listing(BaseModel):
     needs: str | None = None
     """What must be connected first, like `oauth:google`."""
     data_seen_by: list[str] = Field(default_factory=list)
+    mcp_url: str | None = None
+    """For a connector: the vendor-hosted MCP server it connects to."""
+    publisher_url: str | None = None
+    icon_url: str | None = None
+    checked_on: str | None = None
+    """When we last read the vendor's own documentation for this entry."""
+    tools: dict[str, Group] = Field(default_factory=dict)
+    """Which permission group each of the server's tools belongs to. A tool not listed here counts as `write`."""
     version: str = "1.0"
     added_at: str
     installs: int = 0

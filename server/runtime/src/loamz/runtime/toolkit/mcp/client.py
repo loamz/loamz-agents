@@ -12,11 +12,13 @@ try:
     from mcp import ClientSession, StdioServerParameters
     from mcp.client.sse import sse_client
     from mcp.client.stdio import stdio_client
+    from mcp.client.streamable_http import streamable_http_client
     from mcp.types import CallToolResult
 except ImportError:
     ClientSession = None  # type: ignore[assignment,misc]
     StdioServerParameters = None  # type: ignore[assignment,misc]
     sse_client = None  # type: ignore[assignment,misc]
+    streamable_http_client = None  # type: ignore[assignment,misc]
     stdio_client = None  # type: ignore[assignment,misc]
     CallToolResult = None  # type: ignore[assignment,misc]
 
@@ -67,7 +69,7 @@ class MCPClient:
         self.session: ClientSession | None = None
         self.exit_stack: AsyncExitStack | None = None
         self._connected = False
-        self._transport_type: Literal["stdio", "sse"] | None = None
+        self._transport_type: Literal["stdio", "sse", "http"] | None = None
 
     async def connect_stdio(
         self, command: str, args: list[str], env: dict[str, str] | None = None
@@ -155,6 +157,43 @@ class MCPClient:
                 await self.exit_stack.aclose()
             raise RuntimeError(f"Failed to connect to MCP server via SSE: {e}") from e
 
+    async def connect_http(
+        self,
+        url: str,
+        headers: dict[str, str] | None = None,
+        timeout: float | None = None,
+        auth: object | None = None,
+    ) -> None:
+        """Connect to an MCP server over streamable HTTP, the transport hosted servers use today.
+
+        `auth` is an `httpx.Auth`, for example the SDK's `OAuthClientProvider`, which signs each request with the
+        person's own token and refreshes it.
+        """
+        if self._connected:
+            raise RuntimeError("Already connected to an MCP server")
+        try:
+            self.exit_stack = AsyncExitStack()
+            import httpx
+
+            http = await self.exit_stack.enter_async_context(
+                httpx.AsyncClient(
+                    headers=headers, timeout=timeout or 30.0, auth=auth, follow_redirects=True
+                )  # type: ignore[arg-type]
+            )
+            read_stream, write_stream, _ = await self.exit_stack.enter_async_context(
+                streamable_http_client(url, http_client=http)
+            )
+            self.session = await self.exit_stack.enter_async_context(
+                ClientSession(read_stream, write_stream)
+            )
+            await self.session.initialize()
+            self._connected = True
+            self._transport_type = "http"
+        except Exception as e:
+            if self.exit_stack:
+                await self.exit_stack.aclose()
+            raise RuntimeError(f"Failed to connect to MCP server over HTTP: {e}") from e
+
     async def disconnect(self) -> None:
         """Disconnect from the MCP server."""
         if self.exit_stack:
@@ -170,7 +209,7 @@ class MCPClient:
         return self._connected
 
     @property
-    def transport_type(self) -> Literal["stdio", "sse"] | None:
+    def transport_type(self) -> Literal["stdio", "sse", "http"] | None:
         """Get the current transport type (stdio or sse)."""
         return self._transport_type
 
