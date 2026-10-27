@@ -194,13 +194,25 @@ class ChatService:
         async for line in self._relay(run_id, from_seq):
             yield line
 
+    async def _is_mine(self, caller: Caller, run: object) -> bool:
+        """Whether the caller may see this run: it is in their own thread (a tenant admin may see the organization's).
+        Without this, anyone in an organization could list and answer another person's approvals."""
+        thread_id = getattr(run, "thread_id", None)
+        if getattr(run, "tenant", None) != caller.tenant_id or not thread_id:
+            return False
+        try:
+            await self._threads.require(caller, thread_id)
+        except NotFoundError:
+            return False
+        return True
+
     async def respond_hitl(
         self, caller: Caller, request_id: str, body: HitlResponse
     ) -> dict[str, object]:
         runs = await self._rt.find_runs(active_only=True)
         target_run_id: str | None = None
         for run in runs:
-            if run.tenant == caller.tenant_id:
+            if await self._is_mine(caller, run):
                 pending = await self._rt.pending_approvals(run.run_id)
                 if any(p.request_id == request_id for p in pending) and not self._rt.is_live(
                     run.agent
@@ -282,7 +294,7 @@ class ChatService:
         runs = await self._rt.find_runs(active_only=True)
         approvals: list[ApprovalOut] = []
         for run in runs:
-            if run.tenant == caller.tenant_id:
+            if await self._is_mine(caller, run):
                 for p in await self._rt.pending_approvals(run.run_id):
                     approvals.append(
                         ApprovalOut(
