@@ -140,8 +140,8 @@ def test_the_data_client_stays_behind_the_data_extra_and_importing_the_engine_ne
         if path.relative_to(SRC).parts[0] != "data"
         and any(m.startswith("loamz.data") for m in _imports(path))
     ]
-    assert not offenders, (
-        "only loamz.runtime.data may import the data client:\n  " + "\n  ".join(offenders)
+    assert not offenders, "only loamz.runtime.data may import the data client:\n  " + "\n  ".join(
+        offenders
     )
     program = (
         "import sys, loamz.runtime.kernel.agents, loamz.runtime.stores, loamz.runtime.providers, loamz.runtime.toolkit\n"
@@ -178,8 +178,7 @@ def test_i27_the_contracts_never_import_the_engine() -> None:
             if (
                 module.startswith("loamz.runtime.")
                 and module not in contracts
-                and module
-                not in ("loamz.runtime.kernel.types", "loamz.runtime.kernel.errors")
+                and module not in ("loamz.runtime.kernel.types", "loamz.runtime.kernel.errors")
             ):
                 offenders.add(f"{path.relative_to(REPO_ROOT)}: {module}")
     assert not offenders, "a contract imports the engine:\n  " + "\n  ".join(sorted(offenders))

@@ -45,7 +45,7 @@ class LocalFileStore:
         path = self._path(key)
         try:
             return await asyncio.to_thread(path.read_bytes)
-        except (FileNotFoundError, IsADirectoryError):
+        except FileNotFoundError, IsADirectoryError:
             raise NotFoundError(f"no object at {key!r}") from None
 
     async def exists(self, key: str) -> bool:

@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import pytest
 
-from loamz.runtime.kernel.ports.files import FileStore
 from loamz.engine.errors import InvalidRequestError, NotFoundError
+from loamz.runtime.kernel.ports.files import FileStore
 
 T1 = "tenants/t1/users/u1/"
 T2 = "tenants/t2/users/u1/"

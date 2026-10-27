@@ -19,6 +19,7 @@ from typing import Any
 
 import pytest
 
+from loamz.engine.errors import PermanentError, RateLimitedError
 from loamz.runtime.kernel.agents import ReActAgent
 from loamz.runtime.kernel.errors import AuthError, ContentFilterError, ContextLengthError
 from loamz.runtime.kernel.models import GenerationOptions, ModelCapabilities
@@ -31,7 +32,6 @@ from loamz.runtime.kernel.types.run_log import RunLogKind
 from loamz.runtime.kernel.types.stream import CompletionEvent
 from loamz.runtime.kernel.types.usage import Usage
 from loamz.runtime.testing.runtime import ephemeral_runtime
-from loamz.engine.errors import PermanentError, RateLimitedError
 
 # ---------------------------------------------------------------------------- classification
 

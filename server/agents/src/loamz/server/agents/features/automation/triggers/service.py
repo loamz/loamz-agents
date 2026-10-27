@@ -3,8 +3,8 @@ from __future__ import annotations
 import secrets
 from typing import Annotated
 
-from loamz.runtime.kernel.caller import Caller
 from loamz.engine.errors import NotFoundError
+from loamz.runtime.kernel.caller import Caller
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.automation.triggers.model import (
     ConditionOut,

@@ -43,6 +43,7 @@ from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import Any, TypeVar
 
+from loamz.engine.errors import LoamzError
 from loamz.runtime.kernel.errors import (
     ControlSignal,
     NonDeterminismError,
@@ -54,7 +55,6 @@ from loamz.runtime.kernel.telemetry.metrics import instruments
 from loamz.runtime.kernel.types.content import JsonObject
 from loamz.runtime.kernel.types.error_info import ErrorInfo
 from loamz.runtime.kernel.types.run_log import RunLogEntry, RunLogKind
-from loamz.engine.errors import LoamzError
 
 T = TypeVar("T")
 

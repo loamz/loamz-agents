@@ -3,9 +3,9 @@
 import mimetypes
 from pathlib import PurePosixPath
 
+from loamz.engine.errors import InvalidRequestError
 from loamz.runtime.kernel.caller import Caller
 from loamz.runtime.kernel.types.ids import new_id
-from loamz.engine.errors import InvalidRequestError
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.messaging.chats.model import GroupFile
 from loamz.server.agents.features.messaging.chats.service import chats

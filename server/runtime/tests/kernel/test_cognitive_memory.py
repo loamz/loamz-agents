@@ -12,7 +12,6 @@ Verifies:
 
 from __future__ import annotations
 
-from loamz.runtime.kernel.types.identity import Actor
 from loamz.engine.memory import (
     ContextMemoryInjection,
     MemoryCategory,
@@ -24,6 +23,7 @@ from loamz.engine.memory import (
     MemoryStatus,
 )
 from loamz.engine.types import DataBlock, MediaBlock, TextBlock
+from loamz.runtime.kernel.types.identity import Actor
 
 
 def test_memory_record_content_normalization():

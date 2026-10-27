@@ -78,19 +78,19 @@ class LLMJudgeMiddleware:
     def _parse_judgment(text: str) -> dict[str, Any]:
         try:
             return json.loads(text.strip())
-        except (json.JSONDecodeError, ValueError):
+        except json.JSONDecodeError, ValueError:
             pass
         json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
         if json_match:
             try:
                 return json.loads(json_match.group(1))
-            except (json.JSONDecodeError, ValueError):
+            except json.JSONDecodeError, ValueError:
                 pass
         json_match = re.search(r"\{[^{}]*\"safe\"[^{}]*\}", text, re.DOTALL)
         if json_match:
             try:
                 return json.loads(json_match.group())
-            except (json.JSONDecodeError, ValueError):
+            except json.JSONDecodeError, ValueError:
                 pass
         lower = text.lower()
         if "unsafe" in lower or "not safe" in lower or '"safe": false' in lower:

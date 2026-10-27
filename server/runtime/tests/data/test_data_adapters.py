@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import jwt
 
+from loamz.engine.memory import MemoryNamespace, MemoryQuery, MemoryRecord
 from loamz.runtime.data import (
     DataFileStore,
     DataLibrary,
@@ -13,7 +14,6 @@ from loamz.runtime.data import (
     DataServiceConnection,
     DataTokenMinter,
 )
-from loamz.engine.memory import MemoryNamespace, MemoryQuery, MemoryRecord
 
 
 def test_data_token_minter_roundtrip(tmp_path):

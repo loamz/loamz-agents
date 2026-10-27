@@ -12,11 +12,11 @@ import json
 from dataclasses import dataclass
 from datetime import datetime
 
+from loamz.engine.sql import Row, Tx
 from loamz.runtime.kernel.runtime import NewEntry, Runtime
 from loamz.runtime.kernel.types.run_log import RunLogKind
 from loamz.runtime.kernel.wire import WireEvent, wire_from_log
 from loamz.runtime.stores import AgentStore
-from loamz.engine.sql import Row, Tx
 from loamz.server.agents.features.conversations.threads.model import LastWord, RunDetail, ToolStep
 from loamz.server.agents.features.text import one_line
 

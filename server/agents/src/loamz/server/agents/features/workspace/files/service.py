@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import mimetypes
 
+from loamz.engine.errors import NotFoundError
 from loamz.runtime.kernel.caller import Caller
 from loamz.runtime.kernel.ports.files import FileStore
 from loamz.runtime.kernel.types.ids import new_id
 from loamz.runtime.stores.workspace.layout import conversation_shared_key, user_prefix
-from loamz.engine.errors import NotFoundError
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.workspace.files.model import (
     DirectUploadComplete,

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from loamz.engine.errors import NotFoundError
 from loamz.runtime.kernel.caller import Caller
 from loamz.runtime.kernel.ports.files import FileStore
 from loamz.runtime.stores.workspace.cas import BlobCAS
@@ -9,7 +10,6 @@ from loamz.runtime.stores.workspace.layout import (
     is_persistent_workspace,
     user_prefix,
 )
-from loamz.engine.errors import NotFoundError
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.workspace.versioning import (
     list_versions as get_versions,

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from loamz.runtime.kernel.caller import Caller
 from loamz.engine.errors import ConflictError, InvalidRequestError, NotFoundError
 from loamz.engine.memory import (
     MemoryCategory,
@@ -10,6 +9,7 @@ from loamz.engine.memory import (
     MemoryStore,
     ShortTermMemory,
 )
+from loamz.runtime.kernel.caller import Caller
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.people.memory.model import (
     MAX_MEMORIES,

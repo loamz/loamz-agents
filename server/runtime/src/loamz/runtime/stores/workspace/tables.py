@@ -12,9 +12,9 @@ import json
 from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, TypeVar
 
+from loamz.engine.sql import Row, Tx
 from loamz.runtime.kernel.errors import SnapshotConflictError
 from loamz.runtime.kernel.ports.workspace import WorkspaceSnapshot
-from loamz.engine.sql import Row, Tx
 
 if TYPE_CHECKING:
     from loamz.runtime.stores.store import AgentStore

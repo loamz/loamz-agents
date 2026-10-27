@@ -23,9 +23,9 @@ import stat
 import tempfile
 from pathlib import Path, PurePosixPath
 
+from loamz.engine.errors import QuotaExceededError
 from loamz.runtime.kernel.ports.files import FileStore
 from loamz.runtime.stores.workspace.materialize import regular_files
-from loamz.engine.errors import QuotaExceededError
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +61,7 @@ class PrefixSync:
     def _load(self, state_key: str) -> dict[str, dict[str, list]]:
         try:
             return json.loads(self._record_path(state_key).read_text(encoding="utf-8"))["files"]
-        except (OSError, ValueError, KeyError):
+        except OSError, ValueError, KeyError:
             return {}  # no record (or a damaged one): everything is treated as new, which costs a download, not a file
 
     def _save(self, state_key: str, files: dict[str, dict[str, list]]) -> None:

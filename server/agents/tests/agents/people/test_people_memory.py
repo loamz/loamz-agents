@@ -1,9 +1,9 @@
 import pytest
 
-from loamz.runtime.kernel.caller import Caller
-from loamz.runtime.kernel.types.run import RunScope
 from loamz.engine.errors import ConflictError, NotFoundError, ScopeViolationError
 from loamz.engine.memory import MemoryNamespace, MemoryQuery, MemoryRecord
+from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.kernel.types.run import RunScope
 from loamz.server.agents.features.people.memory.model import MemoryIn
 from loamz.server.agents.features.people.memory.service import MemoryService, memory_tool
 from loamz.server.agents.features.people.memory.store import SqlMemoryStore

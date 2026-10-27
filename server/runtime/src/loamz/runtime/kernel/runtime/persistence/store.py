@@ -15,6 +15,7 @@ from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
 from typing import Any, TypeVar
 
+from loamz.engine.sql import Database, Row, Tx, migrate
 from loamz.runtime.kernel.errors import BudgetExhaustedError, LeaseLostError, ThreadBusyError
 from loamz.runtime.kernel.runtime.channel import ChannelObserver
 from loamz.runtime.kernel.runtime.inbox import DeadLetterEntry, DeadLetterReason
@@ -58,7 +59,6 @@ from loamz.runtime.kernel.types.run_status import RunId, RunStatus
 from loamz.runtime.kernel.types.supervision import Priority, Supervision
 from loamz.runtime.kernel.types.trace import TraceContext
 from loamz.runtime.kernel.types.wakeup import Wakeup
-from loamz.engine.sql import Database, Row, Tx, migrate
 
 T = TypeVar("T")
 

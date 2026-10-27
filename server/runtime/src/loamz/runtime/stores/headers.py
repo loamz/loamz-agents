@@ -23,10 +23,10 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import Field
 
-from loamz.runtime.kernel.types.content import JsonObject, KernelModel
-from loamz.runtime.kernel.types.ids import new_id
 from loamz.engine.errors import InvalidRequestError
 from loamz.engine.sql import Row, Tx
+from loamz.runtime.kernel.types.content import JsonObject, KernelModel
+from loamz.runtime.kernel.types.ids import new_id
 
 if TYPE_CHECKING:
     from loamz.runtime.stores.store import AgentStore

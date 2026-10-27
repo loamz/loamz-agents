@@ -10,6 +10,7 @@ from collections.abc import Awaitable, Callable, Sequence
 from datetime import UTC, datetime
 from typing import Any
 
+from loamz.engine.sql import Database, Row, Tx
 from loamz.runtime.kernel.runtime.channel import (
     EVERYONE,
     AppendResult,
@@ -30,7 +31,6 @@ from loamz.runtime.kernel.runtime.store import Delivery
 from loamz.runtime.kernel.types.content import JsonObject
 from loamz.runtime.kernel.types.identity import Actor
 from loamz.runtime.kernel.types.ids import new_id
-from loamz.engine.sql import Database, Row, Tx
 
 logger = logging.getLogger(__name__)
 

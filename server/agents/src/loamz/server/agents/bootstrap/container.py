@@ -13,6 +13,7 @@ from collections.abc import Awaitable, Callable
 from functools import cached_property
 from typing import TYPE_CHECKING
 
+from loamz.engine.sql import Database, postgres, sqlite
 from loamz.runtime.kernel.events import EventBus, InMemoryEventBus
 from loamz.runtime.kernel.models import ChatModel
 from loamz.runtime.kernel.ports.counters import Counters
@@ -21,7 +22,6 @@ from loamz.runtime.kernel.runtime import Runtime
 from loamz.runtime.kernel.runtime.sealing import Sealer
 from loamz.runtime.kernel.telemetry import set_capture_content
 from loamz.runtime.stores import AgentStore
-from loamz.engine.sql import Database, postgres, sqlite
 from loamz.server.agents.bootstrap.data_access import GatewayDataAccess
 from loamz.server.agents.bootstrap.settings import Settings
 

@@ -230,7 +230,7 @@ class CLIHumanHandler(HumanInputHandler):
 
             except ValueError:
                 print("  Please enter a valid number.")
-            except (EOFError, KeyboardInterrupt):
+            except EOFError, KeyboardInterrupt:
                 print("\n  Input cancelled.")
                 return HumanInputResponse(
                     request_id=request.request_id,

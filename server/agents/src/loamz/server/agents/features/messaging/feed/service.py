@@ -9,9 +9,9 @@ import logging
 import time
 from collections.abc import AsyncIterator
 
+from loamz.engine.errors import NotFoundError
 from loamz.runtime.kernel.caller import Caller
 from loamz.runtime.kernel.runtime.channel import ChannelChange
-from loamz.engine.errors import NotFoundError
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.messaging.chats.service import chats
 from loamz.server.agents.features.messaging.feed.model import FeedIn

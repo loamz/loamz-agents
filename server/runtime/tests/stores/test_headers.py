@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import pytest
 
+from loamz.engine.errors import InvalidRequestError
 from loamz.runtime.kernel.ports.threads import MessageNode
 from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
 from loamz.runtime.stores import AgentStore, ThreadHeader
-from loamz.engine.errors import InvalidRequestError
 
 
 @pytest.fixture

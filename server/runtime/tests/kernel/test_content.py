@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from loamz.engine.errors import LoamzError
 from loamz.runtime.kernel.errors import BlockValidationError
 from loamz.runtime.kernel.types.content import (
     ChatMessage,
@@ -15,7 +16,6 @@ from loamz.runtime.kernel.types.content import (
     content_blocks_to_str,
     parse_content_block,
 )
-from loamz.engine.errors import LoamzError
 
 
 def test_error_block():

@@ -4,8 +4,8 @@ import asyncio
 import contextlib
 import logging
 
-from loamz.runtime.kernel.runtime.channel import ChannelChange, EntryKind
 from loamz.engine.errors import ServiceUnavailableError
+from loamz.runtime.kernel.runtime.channel import ChannelChange, EntryKind
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.messaging.chats.service import chats
 from loamz.server.agents.features.messaging.push.store import PushStore

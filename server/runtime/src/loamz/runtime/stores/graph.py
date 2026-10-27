@@ -17,8 +17,8 @@ import json
 from collections.abc import Awaitable, Callable, Sequence
 from typing import TYPE_CHECKING, TypeVar
 
-from loamz.runtime.kernel.ports.graph import Entity, Relationship, SubGraph
 from loamz.engine.sql import Row, Tx, under
+from loamz.runtime.kernel.ports.graph import Entity, Relationship, SubGraph
 
 if TYPE_CHECKING:
     from loamz.runtime.stores.store import AgentStore

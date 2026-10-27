@@ -15,13 +15,13 @@ from pathlib import Path
 
 import pytest
 
+from loamz.engine.errors import QuotaExceededError
 from loamz.runtime.kernel.ports.files import FileStore as Files
 from loamz.runtime.stores.workspace.scope import WorkspaceScope
 from loamz.runtime.stores.workspace.tables import Workspaces
 from loamz.runtime.testing.doubles import MemoryFileStore
 from loamz.runtime.toolkit.code.runtimes.base import ExecResult, SandboxSpec
 from loamz.runtime.toolkit.code.runtimes.staged import StagedSandboxRuntime
-from loamz.engine.errors import QuotaExceededError
 from tests._stores import agent_store_at
 
 TENANT = "t1"

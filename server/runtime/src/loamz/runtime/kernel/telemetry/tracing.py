@@ -38,10 +38,10 @@ from opentelemetry.trace import (
     TraceFlags,
 )
 
+from loamz.engine.errors import LoamzError
 from loamz.runtime.kernel.errors import ControlSignal
 from loamz.runtime.kernel.telemetry import semconv
 from loamz.runtime.kernel.types.trace import TraceContext
-from loamz.engine.errors import LoamzError
 
 _TRACER_NAME = "loamz.runtime"
 
