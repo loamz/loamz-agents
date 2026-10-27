@@ -44,7 +44,7 @@ def listing(url: str) -> Listing:
         publisher="Test",
         trust="publisher",
         mcp_url=url,
-        tools={"search": "read", "create_item": "write"},
+        tools={"search": "read", "create_item": "write", "fill": "write"},
         permissions=[
             Permission(group="read", label="Look things up", default="allow"),
             Permission(group="write", label="Make items", default="ask"),
@@ -111,6 +111,15 @@ async def test_blocked_groups_are_never_offered_and_off_switches_everything_off(
     assert await service.tools(ALICE) == []
 
 
+async def test_a_curated_entry_offers_only_the_tools_we_chose(service, server, monkeypatch):
+    curated = listing(server.url).model_copy(update={"tools": {"search": "read"}})
+    monkeypatch.setattr(market_module, "CATALOG", (*CATALOG, curated))
+    await sign_in(service, ALICE)
+    assert [t.name for t in await service.tools(ALICE)] == [
+        "fake__search"
+    ]  # create_item and fill exist on the server but were not chosen
+
+
 async def test_one_person_never_gets_another_persons_connection(service):
     await sign_in(service, ALICE)
     assert await service.tools(BOB) == []
@@ -147,29 +156,80 @@ async def test_erasing_a_person_removes_their_connections(service):
     assert await service.status(ALICE) == []
 
 
-def test_a_tool_schema_loses_the_keywords_model_providers_reject():
+def test_a_tool_schema_keeps_only_what_model_providers_accept():
     from loamz.server.agents.features.people.connections.service import model_safe
 
     schema = {
+        "$schema": "x",
         "type": "object",
         "properties": {
-            "pages": {
+            "rich_text": {
                 "type": "array",
                 "items": {
-                    "type": "object",
-                    "properties": {
-                        "properties": {
+                    "allOf": [
+                        {
                             "type": "object",
-                            "propertyNames": {"pattern": "^a"},
-                            "additionalProperties": {"type": "string"},
-                        }
-                    },
+                            "properties": {"text": {"type": "string"}},
+                            "required": ["text"],
+                        },
+                        {"properties": {"bold": {"type": "boolean"}}},
+                    ]
                 },
-            }
+            },
+            "options": {
+                "type": "object",
+                "propertyNames": {"pattern": "^a"},
+                "additionalProperties": {"type": "string"},
+            },
+            "odd": {
+                "type": [{"type": "array"}],
+                "oneOf": [{"type": "string"}, {"type": "integer"}],
+            },
+            "properties": {"type": "string", "unknownKeyword": 1},
         },
-        "$schema": "x",
     }
-    cleaned = model_safe(schema)
-    assert "$schema" not in cleaned
-    inner = cleaned["properties"]["pages"]["items"]["properties"]["properties"]
-    assert "propertyNames" not in inner and inner["additionalProperties"] == {"type": "string"}
+    out = model_safe(schema)
+    item = out["properties"]["rich_text"]["items"]
+    assert (
+        "allOf" not in item
+        and set(item["properties"]) == {"text", "bold"}
+        and item["required"] == ["text"]
+    )
+    assert "propertyNames" not in out["properties"]["options"] and out["properties"]["options"][
+        "additionalProperties"
+    ] == {"type": "string"}
+    assert "type" not in out["properties"]["odd"] and out["properties"]["odd"]["anyOf"][1] == {
+        "type": "integer"
+    }
+    assert set(out["properties"]) == {
+        "rich_text",
+        "options",
+        "odd",
+        "properties",
+    }  # a property that is named like a keyword stays
+    assert out["properties"]["properties"] == {"type": "string"} and "$schema" not in out
+
+
+def test_every_tool_of_the_live_notion_server_is_reduced_to_accepted_keywords():
+    """The same check as the one a provider makes: only whitelisted keywords remain anywhere in the schema."""
+    import json
+    from pathlib import Path
+
+    from loamz.server.agents.features.people.connections.service import _KEEP, model_safe
+
+    path = Path(__file__).with_name("notion_tools.json")
+    for tool in json.loads(path.read_text()):
+
+        def walk(node, names=False, tool=tool):  # noqa: ANN001, ANN202
+            if isinstance(node, dict):
+                for key, value in node.items():
+                    if names:
+                        walk(value, tool=tool)
+                    else:
+                        assert key in _KEEP, (tool["name"], key)
+                        walk(value, names=key in {"properties", "$defs", "definitions"}, tool=tool)
+            elif isinstance(node, list):
+                for v in node:
+                    walk(v, tool=tool)
+
+        walk(model_safe(tool["inputSchema"]))
