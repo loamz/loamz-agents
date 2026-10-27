@@ -119,7 +119,10 @@ async def test_there_is_nothing_to_rejoin_when_no_run_is_in_progress_or_it_is_so
 # ── an approval whose run cannot continue is not left waiting ────────────────
 class Waiting(Runtime):
     def __init__(self, live):
-        super().__init__([SimpleNamespace(run_id="r1", agent="assistant/t1", tenant="acme")], live)
+        super().__init__(
+            [SimpleNamespace(run_id="r1", agent="assistant/t1", tenant="acme", thread_id="t1")],
+            live,
+        )
 
     async def pending_approvals(self, run_id):
         return [
@@ -147,3 +150,28 @@ async def test_answering_an_approval_the_server_can_no_longer_continue_says_so()
     with pytest.raises(ConflictError, match="restarted"):
         await service(runtime).respond_hitl(CALLER, "q1", HitlResponse(action="deny"))
     assert runtime.cancelled == ["r1"]
+
+
+class OwnedBy(Threads):
+    """Only `owner` may open the thread, as in the real service."""
+
+    def __init__(self, owner):
+        super().__init__()
+        self.owner = owner
+
+    async def require(self, caller, thread_id):
+        if caller.user_id != self.owner:
+            raise NotFoundError("Thread not found")
+        return await super().require(caller, thread_id)
+
+
+async def test_a_person_in_the_same_organization_cannot_list_or_answer_anothers_approval():
+    from loamz.server.agents.features.conversations.chat.model import HitlResponse
+
+    runtime = Waiting({"assistant/t1"})
+    svc = service(runtime, OwnedBy("alice"))
+    mallory = Caller(tenant_id="acme", user_id="mallory")
+    assert await svc.list_approvals(mallory) == []
+    assert [a.request_id for a in await svc.list_approvals(CALLER)] == ["q1"]
+    with pytest.raises(NotFoundError):
+        await svc.respond_hitl(mallory, "q1", HitlResponse(action="approve"))
