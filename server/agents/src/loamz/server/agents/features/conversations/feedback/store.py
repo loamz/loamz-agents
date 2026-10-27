@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import time
 
-from loamz.runtime.kernel.types.ids import new_id
 from loamz.engine.sql import Database, migrate
+from loamz.runtime.kernel.types.ids import new_id
 from loamz.server.agents.features.conversations.feedback.model import FeedbackOut
 
 COMPONENT = "conversations.feedback"

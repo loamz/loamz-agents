@@ -10,10 +10,10 @@ from __future__ import annotations
 import hashlib
 import io
 
+from loamz.engine.errors import InvalidRequestError, QuotaExceededError
 from loamz.runtime.kernel.caller import Caller
 from loamz.runtime.kernel.ports.files import FileStore
 from loamz.runtime.stores.workspace.layout import workspace_avatar_key
-from loamz.engine.errors import InvalidRequestError, QuotaExceededError
 from loamz.server.agents.bootstrap.container import Container
 
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024

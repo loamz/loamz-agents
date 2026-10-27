@@ -168,7 +168,7 @@ def _interpreter_prefixes(python_bin: str) -> tuple[str, ...]:
             timeout=15,
         )
         candidates += [line.strip() for line in probe.stdout.splitlines() if line.strip()]
-    except (OSError, subprocess.SubprocessError):
+    except OSError, subprocess.SubprocessError:
         pass
 
     # Walk the symlink chain, collecting the prefix of every hop as written.

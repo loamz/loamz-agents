@@ -5,10 +5,10 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
+from loamz.engine.sql import Tx
 from loamz.runtime.kernel.runtime.store import Spend
 from loamz.runtime.kernel.types.run_status import RunId
 from loamz.runtime.kernel.types.supervision import ExecutionBudget
-from loamz.engine.sql import Tx
 
 
 def _micros(usd: float | None) -> int | None:

@@ -16,8 +16,8 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from loamz.runtime.kernel.errors import AuthError, ContentFilterError, ContextLengthError
 from loamz.engine.errors import LoamzError, PermanentError, RateLimitedError
+from loamz.runtime.kernel.errors import AuthError, ContentFilterError, ContextLengthError
 
 _PERMANENT_STATUS = frozenset({400, 401, 403, 404, 413, 422})
 
@@ -88,7 +88,7 @@ def retry_after_of(chain: list[BaseException]) -> float | None:
         if raw is not None:
             try:
                 seconds = float(raw) * scale
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 continue
             if seconds >= 0:
                 return seconds

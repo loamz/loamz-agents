@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import pytest
 
+from loamz.engine.errors import PermanentError, TransientError
 from loamz.runtime.kernel.errors import BudgetExhaustedError, MiddlewareTermination
 from loamz.runtime.kernel.middleware import (
     MaxTokenMiddleware,
@@ -21,7 +22,6 @@ from loamz.runtime.kernel.types.content import (
     ToolResultBlock,
     ToolUseBlock,
 )
-from loamz.engine.errors import PermanentError, TransientError
 
 
 async def _pass() -> None:

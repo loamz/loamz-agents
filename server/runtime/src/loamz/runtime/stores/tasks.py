@@ -15,8 +15,8 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, TypeVar
 from uuid import uuid4
 
-from loamz.runtime.kernel.ports.tasks import Task, TaskList, TaskStatus
 from loamz.engine.sql import Row, Tx, under
+from loamz.runtime.kernel.ports.tasks import Task, TaskList, TaskStatus
 
 if TYPE_CHECKING:
     from loamz.runtime.stores.store import AgentStore

@@ -15,10 +15,10 @@ from pathlib import Path
 
 import pytest
 
-from loamz.runtime.kernel.runtime import Runtime
-from loamz.runtime.stores import AgentStore
 from loamz.engine.errors import SchemaVersionError
 from loamz.engine.sql import migrate
+from loamz.runtime.kernel.runtime import Runtime
+from loamz.runtime.stores import AgentStore
 from tests._stores import agent_store_at, open_runtime
 
 COUNTER = ["CREATE TABLE IF NOT EXISTS counter (name TEXT PRIMARY KEY, n INTEGER NOT NULL);"]

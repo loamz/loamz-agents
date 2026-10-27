@@ -22,10 +22,10 @@ from pathlib import Path
 from types import TracebackType
 from typing import TYPE_CHECKING
 
+from loamz.engine.sql import Database, Tx, migrate, sqlite
 from loamz.runtime.kernel.ports.files import FileStore
 from loamz.runtime.kernel.types.scope import Scope
 from loamz.runtime.stores.tenant import Tenant
-from loamz.engine.sql import Database, Tx, migrate, sqlite
 
 if TYPE_CHECKING:
     from loamz.runtime.stores.graph import Graph

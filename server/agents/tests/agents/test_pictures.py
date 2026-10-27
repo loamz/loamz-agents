@@ -5,8 +5,8 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from loamz.runtime.kernel.caller import Caller
 from loamz.engine.errors import InvalidRequestError, NotFoundError
+from loamz.runtime.kernel.caller import Caller
 from loamz.server.agents.bootstrap import Container, Settings
 from loamz.server.agents.bootstrap.http import caller as caller_dependency
 from loamz.server.agents.features.conversations.pictures.service import PictureProxy, public

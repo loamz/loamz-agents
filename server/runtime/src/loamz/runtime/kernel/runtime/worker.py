@@ -32,6 +32,7 @@ import random
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
+from loamz.engine.errors import LoamzError, RateLimitedError
 from loamz.runtime.kernel.errors import (
     AgentCrashError,
     BudgetExhaustedError,
@@ -64,7 +65,6 @@ from loamz.runtime.kernel.telemetry.tracing import span
 from loamz.runtime.kernel.types.error_info import ErrorInfo
 from loamz.runtime.kernel.types.run import RunMeta
 from loamz.runtime.kernel.types.run_log import RunLogKind
-from loamz.engine.errors import LoamzError, RateLimitedError
 
 if TYPE_CHECKING:
     from loamz.runtime.kernel.runtime.resolver import ActorResolver

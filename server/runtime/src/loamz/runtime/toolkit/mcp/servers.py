@@ -123,7 +123,7 @@ class Link:
             stop.set()
         try:
             await asyncio.wait_for(asyncio.shield(owner), 5)
-        except (TimeoutError, asyncio.CancelledError, Exception):  # noqa: BLE001 - a connection that will not close is abandoned
+        except TimeoutError, asyncio.CancelledError, Exception:  # noqa: BLE001 - a connection that will not close is abandoned
             owner.cancel()
             with contextlib.suppress(BaseException):
                 await owner

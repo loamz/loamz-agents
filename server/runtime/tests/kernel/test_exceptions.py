@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+from loamz.engine.errors import LoamzError, PermanentError
 from loamz.runtime.kernel.errors import (
     ContextLengthError,
     SuspendInterrupt,
     ToolDeclarationError,
     UnroutableMessageError,
 )
-from loamz.engine.errors import LoamzError, PermanentError
 
 
 def test_deterministic_errors_inherit_from_permanent_error() -> None:
@@ -31,8 +31,8 @@ def test_kernel_exceptions_module() -> None:
     """loamz.runtime.kernel.errors must export all L0 exceptions with correct semantic tiering."""
     from types import SimpleNamespace
 
-    import loamz.runtime.kernel.errors as agent_errors
     import loamz.engine.errors as storage_errors
+    import loamz.runtime.kernel.errors as agent_errors
 
     ke = SimpleNamespace(
         **{

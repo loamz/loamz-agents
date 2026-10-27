@@ -10,9 +10,9 @@ from datetime import datetime
 
 from loamz.core import tenancy
 from loamz.core.exceptions import NotFoundError as ClientNotFoundError
+from loamz.engine.errors import NotFoundError
 from loamz.runtime.data._connection import DataServiceConnection, TokenProvider, mint
 from loamz.runtime.kernel.ports.files import FileStore
-from loamz.engine.errors import NotFoundError
 
 DEFAULT_CONTENT_TYPE = "application/octet-stream"
 

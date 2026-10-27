@@ -15,6 +15,8 @@ from __future__ import annotations
 from typing import Any
 from urllib.parse import quote
 
+from loamz.engine.errors import InvalidRequestError
+from loamz.engine.memory import ShortTermMemory
 from loamz.runtime.kernel.errors import DAGIntegrityError
 from loamz.runtime.kernel.ports.files import FileStore
 from loamz.runtime.kernel.ports.graph import Entity, GraphStore, Relationship, SubGraph
@@ -26,8 +28,6 @@ from loamz.runtime.kernel.ports.threads import (
     ThreadStore,
 )
 from loamz.runtime.kernel.types.scope import Scope
-from loamz.engine.errors import InvalidRequestError
-from loamz.engine.memory import ShortTermMemory
 
 
 def _tenant(scope: Scope) -> str:

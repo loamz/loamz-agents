@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from loamz.engine.errors import InvalidRequestError
 from loamz.runtime.kernel.events import (
     AUDITED,
     CATALOG,
@@ -14,7 +15,6 @@ from loamz.runtime.kernel.events import (
     parse_event,
 )
 from loamz.runtime.testing.conformance.event_bus import EventBusConformance
-from loamz.engine.errors import InvalidRequestError
 
 
 class TestInMemoryEventBus(EventBusConformance):

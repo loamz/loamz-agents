@@ -118,7 +118,7 @@ async def _drive(
         kinds: list[str] = []
         try:
             run_id = await runtime.submit(root.id, boot_message(root.id), retry_policy=RETRY_NOW)
-        except (InjectedStoreFailure, WorkerDied):
+        except InjectedStoreFailure, WorkerDied:
             kinds = ["<submit-failed>"]
         else:
             terminal, kinds = await observe_run(runtime, run_id)

@@ -6,10 +6,10 @@ import json
 import httpx
 import pytest
 
+from loamz.engine.errors import NotFoundError
 from loamz.runtime.kernel.caller import Caller
 from loamz.runtime.kernel.runtime.channel import EntryKind, ParticipantKind
 from loamz.runtime.kernel.types.identity import Actor
-from loamz.engine.errors import NotFoundError
 from loamz.server.agents.bootstrap import Container, Settings
 from loamz.server.agents.bootstrap.http import caller as caller_dependency
 from loamz.server.agents.features.messaging.chats.service import chats

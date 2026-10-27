@@ -13,6 +13,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
+from loamz.engine.errors import InvalidRequestError
 from loamz.runtime.kernel.ports.graph import Entity, Relationship
 from loamz.runtime.kernel.ports.threads import HistoryCheckpoint, MessageNode
 from loamz.runtime.kernel.types.content import ChatMessage, Role
@@ -23,7 +24,6 @@ from loamz.runtime.testing.conformance.graph_store import GraphStoreConformance
 from loamz.runtime.testing.conformance.short_term_memory import ShortTermMemoryConformance
 from loamz.runtime.testing.conformance.task_store import TaskStoreConformance
 from loamz.runtime.testing.conformance.thread_store import ThreadStoreConformance
-from loamz.engine.errors import InvalidRequestError
 from tests._stores import agent_store_at
 
 A, B = Scope(tenant_id="acme"), Scope(tenant_id="evilcorp")

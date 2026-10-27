@@ -398,7 +398,7 @@ class TaskManagerTool:
                 return subset[idx].id
             if 0 <= idx < len(task_list.tasks):
                 return task_list.tasks[idx].id
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             pass
 
         needle = task_id.lower()

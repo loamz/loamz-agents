@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import logging
 
-from loamz.runtime.kernel.caller import Caller
 from loamz.engine.errors import NotFoundError
+from loamz.runtime.kernel.caller import Caller
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.bootstrap.settings import NotificationSettings
 from loamz.server.agents.features.people.notifications.model import (

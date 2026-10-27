@@ -6,15 +6,15 @@ from types import SimpleNamespace
 
 import pytest
 
-from loamz.runtime.kernel.types.content import content_blocks_to_str
-from loamz.runtime.kernel.types.run import RunScope
-from loamz.runtime.toolkit.memory import MemoryTool
 from loamz.engine.memory import (
     MemoryMatch,
     MemoryNamespace,
     MemoryQuery,
     MemoryRecord,
 )
+from loamz.runtime.kernel.types.content import content_blocks_to_str
+from loamz.runtime.kernel.types.run import RunScope
+from loamz.runtime.toolkit.memory import MemoryTool
 
 
 class FakeShortTermMemory:

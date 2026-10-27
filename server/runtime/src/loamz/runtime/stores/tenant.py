@@ -13,6 +13,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING
 
+from loamz.engine.memory import ShortTermMemory
 from loamz.runtime.kernel.ports.files import FileStore
 from loamz.runtime.kernel.ports.graph import GraphStore
 from loamz.runtime.kernel.ports.tasks import TaskStore
@@ -26,7 +27,6 @@ from loamz.runtime.stores.scoped import (
     bind_threads,
     fence_objects,
 )
-from loamz.engine.memory import ShortTermMemory
 
 if TYPE_CHECKING:
     from loamz.runtime.stores.store import AgentStore

@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 import time
 
-from loamz.runtime.kernel.types.ids import new_id
 from loamz.engine.sql import Database
+from loamz.runtime.kernel.types.ids import new_id
 from loamz.server.agents.features.automation.pipelines.model import PipelineDef
 
 SCHEMA = [

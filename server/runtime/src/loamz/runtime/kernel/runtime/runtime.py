@@ -26,6 +26,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
+from loamz.engine.sql import Database
 from loamz.runtime.kernel.errors import ThreadBusyError
 from loamz.runtime.kernel.ports.threads import ThreadStore
 from loamz.runtime.kernel.runtime.message import ChatPayload, Message
@@ -43,7 +44,6 @@ from loamz.runtime.kernel.types.run_log import RunLogEntry, RunLogKind
 from loamz.runtime.kernel.types.run_status import RunId, RunStatus
 from loamz.runtime.kernel.types.supervision import Priority
 from loamz.runtime.kernel.types.trace import TraceContext
-from loamz.engine.sql import Database
 
 if TYPE_CHECKING:
     from loamz.runtime.kernel.agents.orchestrator import SubAgentConfig

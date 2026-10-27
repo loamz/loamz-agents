@@ -16,8 +16,8 @@ from __future__ import annotations
 
 from pydantic import Field
 
-from loamz.runtime.kernel.types.content import JsonObject, KernelModel
 from loamz.engine.errors import LoamzError
+from loamz.runtime.kernel.types.content import JsonObject, KernelModel
 
 
 class ErrorInfo(KernelModel):

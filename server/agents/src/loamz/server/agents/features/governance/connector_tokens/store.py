@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import time
 
-from loamz.runtime.kernel.runtime.sealing import PlainSealer, Sealer
 from loamz.engine.sql import Database, migrate
+from loamz.runtime.kernel.runtime.sealing import PlainSealer, Sealer
 from loamz.server.agents.features.governance.connector_tokens.model import TokenPush
 
 COMPONENT = "governance.connector_tokens"

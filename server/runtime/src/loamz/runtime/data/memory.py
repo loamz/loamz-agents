@@ -8,7 +8,6 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from loamz.core.exceptions import NotFoundError as ClientNotFoundError
-from loamz.runtime.data._connection import DataServiceConnection, TokenProvider, mint
 from loamz.engine.memory import (
     MemoryMatch,
     MemoryNamespace,
@@ -16,6 +15,7 @@ from loamz.engine.memory import (
     MemoryRecord,
     MemoryStore,
 )
+from loamz.runtime.data._connection import DataServiceConnection, TokenProvider, mint
 
 
 class DataMemoryStore(MemoryStore):

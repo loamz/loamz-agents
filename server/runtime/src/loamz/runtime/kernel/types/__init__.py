@@ -2,6 +2,15 @@
 
 from __future__ import annotations
 
+from loamz.engine.errors import (
+    LoamzError,
+    NotFoundError,
+    PermanentError,
+    RateLimitedError,
+    ServiceUnavailableError,
+    TransientError,
+    VectorSpaceError,
+)
 from loamz.runtime.kernel.errors import (
     AgentCrashError,
     AuthError,
@@ -81,15 +90,6 @@ from loamz.runtime.kernel.types.supervision import (
 from loamz.runtime.kernel.types.trace import TraceContext
 from loamz.runtime.kernel.types.usage import Usage
 from loamz.runtime.kernel.types.wakeup import Wakeup
-from loamz.engine.errors import (
-    LoamzError,
-    NotFoundError,
-    PermanentError,
-    RateLimitedError,
-    ServiceUnavailableError,
-    TransientError,
-    VectorSpaceError,
-)
 
 __all__ = [
     "Actor",

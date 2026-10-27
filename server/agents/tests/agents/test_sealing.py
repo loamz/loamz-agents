@@ -71,9 +71,9 @@ async def test_a_chat_is_sealed_in_the_database_and_readable_through_the_api(tmp
             )
             await container.runtime.store.channel_append(
                 f"group/{group['id']}",
-                sender=__import__(
-                    "loamz.runtime.kernel.types.identity", fromlist=["Actor"]
-                ).Actor("member", "bot@g"),
+                sender=__import__("loamz.runtime.kernel.types.identity", fromlist=["Actor"]).Actor(
+                    "member", "bot@g"
+                ),
                 text="a plan",
                 data={"ui": shown},
             )

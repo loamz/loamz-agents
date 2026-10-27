@@ -1,10 +1,10 @@
 """Rebuild a channel member from saved membership, so queued wakes survive server restarts."""
 
+from loamz.engine.errors import NotFoundError
 from loamz.runtime.kernel.agents.channel import ChannelMemberConfig
 from loamz.runtime.kernel.caller import Caller
 from loamz.runtime.kernel.tools.approval import DurableApproval
 from loamz.runtime.kernel.types.identity import Actor
-from loamz.engine.errors import NotFoundError
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.directory.agents.service import agents
 from loamz.server.agents.features.messaging.chats.service import chats, member_actor
