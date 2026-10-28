@@ -5,7 +5,7 @@ import time
 from typing import Any
 
 from loamz.engine.sql import Database, Row, Tx, migrate
-from loamz.server.agents.features.directory.agents.model import AgentProfile
+from loamz.server.agents.features.directory.agents.model import AgentProfile, Look
 
 COMPONENT = "directory.agents"
 SCRIPTS = [
@@ -34,11 +34,15 @@ SCRIPTS = [
         PRIMARY KEY (tenant_id, agent_id, contact_id)
     );
     """,
+    # Each agent's own marketplace skills, tools and connectors (a JSON list of listing ids).
+    "ALTER TABLE directory_agents ADD COLUMN abilities TEXT;",
+    # Which tools of each connector this agent may use (a JSON object: connector id -> tool name -> allow | ask).
+    "ALTER TABLE directory_agents ADD COLUMN tool_access TEXT;",
+    # Its icon and colour when it has no photo (a JSON object: {"icon": ..., "color": ...}).
+    "ALTER TABLE directory_agents ADD COLUMN look TEXT;",
 ]
 
-_COLUMNS = (
-    "id, tenant_id, user_id, name, role, instructions, allowed_tools, model, avatar_key, created_at"
-)
+_COLUMNS = "id, tenant_id, user_id, name, role, instructions, allowed_tools, abilities, tool_access, model, avatar_key, look, created_at"
 
 
 def _profile(row: Row) -> AgentProfile:
@@ -51,8 +55,11 @@ def _profile(row: Row) -> AgentProfile:
         role=row["role"],
         instructions=row["instructions"],
         allowed_tools=None if tools is None else tuple(json.loads(tools)),
+        abilities=tuple(json.loads(row["abilities"] or "[]")),
+        tool_access=json.loads(row["tool_access"] or "{}"),
         model=row["model"],
         avatar_key=row["avatar_key"],
+        look=Look.model_validate_json(row["look"]) if row["look"] else None,
         created_at=row["created_at"],
     )
 
@@ -77,7 +84,7 @@ class AgentsStore:
         async with await self._tx() as tx:
             await tx.execute(
                 f"INSERT INTO directory_agents ({_COLUMNS}, updated_at) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 profile.id,
                 profile.tenant_id,
                 profile.user_id,
@@ -85,8 +92,11 @@ class AgentsStore:
                 profile.role,
                 profile.instructions,
                 None if profile.allowed_tools is None else json.dumps(profile.allowed_tools),
+                json.dumps(profile.abilities),
+                json.dumps(profile.tool_access),
                 profile.model,
                 profile.avatar_key,
+                None if profile.look is None else profile.look.model_dump_json(),
                 profile.created_at,
                 profile.created_at,
             )
@@ -131,13 +141,16 @@ class AgentsStore:
         async with await self._tx() as tx:
             await tx.execute(
                 "UPDATE directory_agents SET name = ?, role = ?, instructions = ?, allowed_tools = ?, "
-                "model = ?, avatar_key = ?, updated_at = ? WHERE tenant_id = ? AND user_id = ? AND id = ?",
+                "abilities = ?, tool_access = ?, model = ?, avatar_key = ?, look = ?, updated_at = ? WHERE tenant_id = ? AND user_id = ? AND id = ?",
                 profile.name,
                 profile.role,
                 profile.instructions,
                 None if profile.allowed_tools is None else json.dumps(profile.allowed_tools),
+                json.dumps(profile.abilities),
+                json.dumps(profile.tool_access),
                 profile.model,
                 profile.avatar_key,
+                None if profile.look is None else profile.look.model_dump_json(),
                 time.time(),
                 profile.tenant_id,
                 profile.user_id,
@@ -167,7 +180,7 @@ class AgentsStore:
         async with await self._tx() as tx:
             rows = await tx.fetchall(
                 "SELECT a.id, a.tenant_id, a.user_id, a.name, a.role, a.instructions, a.allowed_tools, "
-                "a.model, a.avatar_key, a.created_at, c.note FROM directory_contacts c "
+                "a.abilities, a.tool_access, a.model, a.avatar_key, a.look, a.created_at, c.note FROM directory_contacts c "
                 "JOIN directory_agents a ON a.tenant_id = c.tenant_id AND a.id = c.contact_id "
                 "WHERE c.tenant_id = ? AND c.agent_id = ? ORDER BY a.created_at, a.id",
                 tenant_id,

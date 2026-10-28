@@ -59,7 +59,17 @@ class DefaultContextBuilder(ContextBuilder):
         if checkpoint is not None and checkpoint.summary.strip():
             summary_msg = ChatMessage(
                 role=Role.USER,
-                content=[TextBlock(text=f"[Conversation Summary]:\n{checkpoint.summary}")],
+                content=[
+                    TextBlock(
+                        text=(
+                            "[Conversation Summary]:\n"
+                            f"{checkpoint.summary}\n\n"
+                            "(Earlier messages were summarized above. Every message is kept: when a detail matters, such as a number, "
+                            "a name, a date or exactly what the person said, look it up with the conversation_history tool "
+                            "instead of guessing. The numbers in brackets are message numbers.)"
+                        )
+                    )
+                ],
                 metadata={
                     "is_checkpoint_summary": True,
                     "checkpoint_id": checkpoint.id,

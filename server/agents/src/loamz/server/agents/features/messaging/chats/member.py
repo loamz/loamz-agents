@@ -22,21 +22,59 @@ async def build_member(container: Container, actor: Actor):
     caller = Caller(tenant_id=member.tenant, user_id=member.owner)
     directory = container.get(agents)
     profile = await directory.get_owned(caller, agent_id)
+    # What the agent has in a conversation of its own, here too. The tool-server and data tools it was named for go through its allow-list;
+    # everything else it has been given (built-ins, the code tool, the date and time, skills, connectors, memory) is added after it, because
+    # the allow-list only ever speaks of tool-server tools. Nobody can be asked to approve a call from inside a group, so what asks first is left out.
     tools = list(container.tool_servers.tools(profile.allowed_tools or []))
     for name in profile.allowed_tools or []:
         if name in container.data_tool_set:
             tools.append(container.data_tool_set[name])
-        if name == "code_interpreter" and container.code_tool:
-            tools.append(container.code_tool)
+    from loamz.runtime.kernel.tools import ToolRisk
+    from loamz.server.agents.features.conversations.chat.builtin import current_time, tools_for
+    from loamz.server.agents.features.people.connections.service import connections
+    from loamz.server.agents.features.people.marketplace.service import marketplace
+    from loamz.server.agents.features.people.skills.service import UseSkillTool
+    from loamz.server.agents.features.people.skills.service import skills as skills_feature
+
+    market = container.get(marketplace)
+    only = set(profile.abilities)
+    extra: list = []
+    if container.code_tool:  # every agent can run code on its own files
+        extra.append(container.code_tool)
+    extra.extend(
+        t
+        for t in tools_for(container, await market.tool_choices(caller, only))
+        if getattr(t, "risk", None) is ToolRisk.SAFE
+    )
+    extra.append(current_time())
+    extra.extend(
+        await container.get(connections).tools(caller, only, profile.tool_access, asking=False)
+    )
+    own = container.get(skills_feature)
+    skill_lines = [*await market.skill_lines(caller, only), *await own.lines(caller, only)]
+    skills = ""
+    if skill_lines:
+        from loamz.server.agents.features.people.marketplace.service import SKILLS_INTRO
+
+        skills = SKILLS_INTRO + "\n".join(skill_lines)
+
+        async def load(name: str) -> str | None:
+            return await market.skill_instructions(caller, name, only) or await own.instructions_of(
+                caller, name, only
+            )
+
+        extra.append(UseSkillTool(load))
     names = {str(member_actor(m.member, chat_id)): m.name for m in roster}
     return directory.build_member(
         caller,
         profile,
         tools=tools,
+        extra_tools=extra,
         name_of=lambda t: t.name,
         name="member",
         session_id=actor.key,
-        extra_instructions=(
+        extra_instructions=skills
+        + (
             "\nYou are a visible AI participant in a shared chat. Reply when addressed or when you can help. "
             "If the conversation needs no answer, reply with exactly [PASS]. "
             "Do not repeat another participant's answer."

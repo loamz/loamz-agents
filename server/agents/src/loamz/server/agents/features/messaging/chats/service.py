@@ -18,7 +18,9 @@ from loamz.runtime.kernel.runtime.channel import (
 from loamz.runtime.kernel.types.identity import Actor
 from loamz.runtime.kernel.types.supervision import ExecutionBudget
 from loamz.server.agents.bootstrap.container import Container
+from loamz.server.agents.features.directory.agents.looks import Look
 from loamz.server.agents.features.directory.agents.service import agents
+from loamz.server.agents.features.directory.avatars.service import avatars
 from loamz.server.agents.features.directory.pins.service import pins
 from loamz.server.agents.features.messaging.chats.model import (
     GroupIn,
@@ -167,6 +169,7 @@ class ChatsService:
             budget_usd=row.budget_usd,
             breaker=row.breaker,
             avatar=row.avatar_key,
+            look=Look.model_validate_json(row.look) if row.look else None,
             pinned_at=pinned.get(row.id),
         )
 
@@ -204,8 +207,12 @@ class ChatsService:
 
     async def patch(self, caller: Caller, chat: str, body: GroupPatch) -> GroupOut:
         await self.require(caller, chat, admin=True)
-        values = body.model_dump(exclude_unset=True)
-        if any(v is None for k, v in values.items() if k != "budget_usd"):
+        values = body.model_dump(exclude_unset=True, exclude={"look", "clear_look"})
+        if body.clear_look:
+            values["look"] = None
+        elif body.look is not None:
+            values["look"] = body.look.model_dump_json()
+        if any(v is None for k, v in values.items() if k not in ("budget_usd", "look")):
             raise InvalidRequestError("Chat settings cannot be null")
         if values.get("budget_usd") == 0:
             values["budget_usd"] = None
@@ -225,15 +232,15 @@ class ChatsService:
 
     async def set_avatar(self, caller: Caller, chat: str, data: bytes) -> GroupOut:
         await self.require(caller, chat, admin=True)
-        if len(data) > 5 * 1024 * 1024 or not data.startswith(b"\x89PNG\r\n\x1a\n"):
-            raise InvalidRequestError("Use a PNG picture under 5 MiB")
-        key = f"tenants/{caller.tenant_id}/groups/{chat}/avatar.png"
-        await self._c.file_store.upload(key, data, content_type="image/png")
+        row = await self.require(caller, chat)
+        # The same picture rules as an agent's (PNG, JPEG or WebP, made a 256 px square); members read it through `serve_object`.
+        key = await self._c.get(avatars).replace(caller, f"group-{chat}", row.avatar_key, data)
         await self._store.update(chat, {"avatar_key": key})
         return await self.get(caller, chat)
 
     async def clear_avatar(self, caller: Caller, chat: str) -> GroupOut:
-        await self.require(caller, chat, admin=True)
+        row = await self.require(caller, chat, admin=True)
+        await self._c.get(avatars).remove(row.avatar_key)
         await self._store.update(chat, {"avatar_key": None})
         return await self.get(caller, chat)
 

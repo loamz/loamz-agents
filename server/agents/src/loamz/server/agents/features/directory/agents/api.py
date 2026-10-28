@@ -4,8 +4,11 @@ from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Query, Response, UploadFile
+from pydantic import BaseModel, Field
 
 from loamz.server.agents.bootstrap.http import CallerDep, use
+from loamz.server.agents.features.directory.agents.draft import MAX_PROMPT, AgentDraft
+from loamz.server.agents.features.directory.agents.looks import catalog
 from loamz.server.agents.features.directory.agents.model import (
     AgentIn,
     AgentList,
@@ -36,10 +39,26 @@ async def create_agent(body: AgentIn, caller: CallerDep, service: Service) -> Ag
     return await service.create(caller, body)
 
 
+class DraftBody(BaseModel):
+    prompt: str = Field(min_length=3, max_length=MAX_PROMPT)
+
+
+@router.post("/draft", response_model=AgentDraft)
+async def draft_agent(body: DraftBody, caller: CallerDep, service: Service) -> AgentDraft:
+    """A draft agent for a sentence like "an email triage agent": the form to start from. Nothing is created."""
+    return await service.draft(caller, body.prompt)
+
+
 @router.get("/tools", response_model=ToolList)
 async def available_tools(caller: CallerDep, service: Service) -> ToolList:
     tools = service.known_tools()
     return ToolList(items=[ToolInfo(name=k, description=v) for k, v in sorted(tools.items())])
+
+
+@router.get("/looks")
+async def looks(caller: CallerDep) -> dict[str, object]:
+    """The icons and colours a picture can have (one file on the server, `looks.json`)."""
+    return {k: v for k, v in catalog().items() if not k.startswith("_")}
 
 
 @router.get("/{agent_id}", response_model=AgentOut)

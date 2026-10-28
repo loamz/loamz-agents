@@ -25,7 +25,9 @@ CREATE TABLE chat_members (
     PRIMARY KEY (chat_id, member)
 );
 CREATE INDEX chat_members_lookup ON chat_members (tenant, member, chat_id);
-"""
+""",
+    # Its icon and colour when it has no photo (a JSON object: {"icon": ..., "color": ...}).
+    "ALTER TABLE chats ADD COLUMN look TEXT;",
 ]
 
 
@@ -38,6 +40,7 @@ class ChatRecord:
     kind: str
     e2ee: int
     avatar_key: str | None
+    look: str | None
     token_cap: int
     budget_usd: float | None
     breaker: int
@@ -162,7 +165,7 @@ class ChatsStore:
             )
 
     async def update(self, chat: str, values: dict[str, object]) -> None:
-        allowed = {"name", "avatar_key", "token_cap", "budget_usd", "breaker"}
+        allowed = {"name", "avatar_key", "look", "token_cap", "budget_usd", "breaker"}
         if not values.keys() <= allowed:
             raise ValueError("Unknown chat field")
         async with self._db.transaction() as tx:

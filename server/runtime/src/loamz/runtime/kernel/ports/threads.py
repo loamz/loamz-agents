@@ -157,6 +157,10 @@ class ThreadStore(Protocol):
         """
         ...
 
+    async def session_nodes(self, session_id: str) -> list[MessageNode]:
+        """Every message of the session in the order it was said, in one read (for searching and reading the whole conversation)."""
+        ...
+
     # ── Checkpoint Operations ────────────────────────────────────────────────
 
     async def save_checkpoint(self, checkpoint: HistoryCheckpoint) -> None:

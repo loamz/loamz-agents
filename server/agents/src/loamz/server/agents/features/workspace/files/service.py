@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import mimetypes
+import re
 
 from loamz.engine.errors import NotFoundError
 from loamz.runtime.kernel.caller import Caller
@@ -17,6 +18,11 @@ from loamz.server.agents.features.workspace.files.model import (
     FileStatusResponse,
     FileUploadResponse,
     FileUrlResponse,
+)
+
+# Where an admin's stored picture for a group lives (`group-<chat>` is the folder an agent's `dot-<id>` is elsewhere).
+GROUP_PICTURE = re.compile(
+    r"^tenants/[^/]+/users/[^/]+/conversations/group-([^/]+)/avatar/[0-9a-f]+\.png$"
 )
 
 
@@ -113,10 +119,24 @@ class FilesService:
         return []
 
     async def serve_object(self, caller: Caller, key: str) -> bytes:
-        expected_prefix = user_prefix(caller.tenant_id, caller.user_id)
-        if not key.startswith(expected_prefix):
+        if not key.startswith(
+            user_prefix(caller.tenant_id, caller.user_id)
+        ) and not await self._is_group_picture(caller, key):
             raise NotFoundError("Object not found")
         return await self._files.download(key)
+
+    async def _is_group_picture(self, caller: Caller, key: str) -> bool:
+        """A group's picture is stored under its admin's folder but is for everyone in the group."""
+        found = GROUP_PICTURE.match(key)
+        if found is None:
+            return False
+        from loamz.server.agents.features.messaging.chats.service import chats
+
+        try:
+            await self._c.get(chats).require(caller, found.group(1))
+        except NotFoundError:
+            return False
+        return True
 
     async def erase(self, tenant_id: str, user_id: str | None = None) -> int:
         return 0

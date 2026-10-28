@@ -24,7 +24,7 @@ router = APIRouter(prefix="/api/v1", tags=["marketplace"])
 async def list_marketplace(
     caller: CallerDep,
     service: Service,
-    kind: Annotated[str | None, Query(pattern="^(skill|tool|connector|agent)$")] = None,
+    kind: Annotated[str | None, Query(pattern="^(skill|tool|connector|agent|plugin)$")] = None,
     category: str | None = None,
     q: Annotated[str | None, Query(max_length=100)] = None,
     sort: Annotated[str, Query(pattern="^(recommended|popular|newest|name)$")] = "recommended",

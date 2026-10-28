@@ -2,21 +2,35 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from loamz.server.agents.features.directory.agents.looks import Look
+
 MAX_AGENTS_PER_USER = 20
 MAX_NAME_CHARS = 60
+
+
+MAX_TOOL_ACCESS_NAMES = 200
+ToolAccess = dict[str, dict[str, Literal["allow", "ask"]]]
 
 
 class AgentIn(BaseModel):
     name: str = Field(min_length=1, max_length=MAX_NAME_CHARS)
     role: str = Field(default="", max_length=160)
     instructions: str = Field(default="", max_length=8000)
-    allowed_tools: list[str] | None = None
-    """`None`: every tool the deployment offers."""
+    allowed_tools: list[str] | None = Field(default_factory=list)
+    """The built-in tools it may use. A new agent starts with none; `None` (every tool) is only for agents made before abilities."""
+    abilities: list[str] = Field(default_factory=list, max_length=50)
+    """Marketplace skills, tools and connectors this agent uses (by listing id). Only these reach its runs."""
+    tool_access: ToolAccess = Field(default_factory=dict)
+    """Which tools of each connector it may use, and how: `{connector id: {tool name: allow | ask}}`. A connector with no entry here
+    offers every tool the person's own choices allow; one with an entry offers only the tools listed."""
     model: str | None = Field(default=None, max_length=120)
     """`provider/name`; `None`: the deployment's own."""
+    look: Look | None = None
+    """Its icon and colour, shown when it has no photo; `None`: its first letter."""
 
 
 class AgentPatch(BaseModel):
@@ -26,9 +40,14 @@ class AgentPatch(BaseModel):
     allowed_tools: list[str] | None = None
     all_tools: bool = False
     """`allowed_tools: null` is "leave as it is", so going back to every tool needs its own flag."""
+    abilities: list[str] | None = Field(default=None, max_length=50)
+    tool_access: ToolAccess | None = None
     model: str | None = Field(default=None, max_length=120)
     default_model: bool = False
     """Likewise `model: null` leaves it as it is, so going back to the deployment's own needs a flag."""
+    look: Look | None = None
+    clear_look: bool = False
+    """Likewise `look: null` leaves it as it is, so going back to its first letter needs a flag."""
 
 
 class AgentProfile(BaseModel):
@@ -44,8 +63,13 @@ class AgentProfile(BaseModel):
     role: str = ""
     instructions: str = ""
     allowed_tools: tuple[str, ...] | None = None
+    abilities: tuple[str, ...] = ()
+    """Marketplace listing ids (skills, tools, connectors) this agent uses."""
+    tool_access: dict[str, dict[str, str]] = Field(default_factory=dict)
+    """Per connector, the tools this agent may use (see `AgentIn.tool_access`)."""
     model: str | None = None
     avatar_key: str | None = None
+    look: Look | None = None
     created_at: float = 0.0
 
     @property
@@ -60,6 +84,8 @@ class AgentOut(BaseModel):
     role: str
     instructions: str
     allowed_tools: list[str] | None = None
+    abilities: list[str] = Field(default_factory=list)
+    tool_access: dict[str, dict[str, str]] = Field(default_factory=dict)
     workspace_id: str
     created_at: datetime
     thread_id: str | None = None
@@ -69,6 +95,7 @@ class AgentOut(BaseModel):
     last_message: str | None = None
     working: bool = False
     avatar: str | None = None
+    look: Look | None = None
     pinned_at: datetime | None = None
     model: str | None = None
     sees: bool | None = None

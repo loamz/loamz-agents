@@ -534,6 +534,16 @@ class Threads:
 
         return await self._run(op)
 
+    async def session_nodes(self, session_id: str) -> list[MessageNode]:
+        async def op(tx: Tx) -> list[MessageNode]:
+            rows = await tx.fetchall(
+                f"SELECT {_NODE} FROM thread_nodes WHERE session_id = ? ORDER BY created_at, id",
+                session_id,
+            )
+            return [_node(row) for row in rows]
+
+        return await self._run(op)
+
     async def list_checkpoints(self, session_id: str) -> list[HistoryCheckpoint]:
         async def op(tx: Tx) -> list[HistoryCheckpoint]:
             rows = await tx.fetchall(

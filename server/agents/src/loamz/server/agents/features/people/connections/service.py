@@ -8,6 +8,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from urllib.parse import parse_qs, urlparse
+from uuid import uuid4
 
 import httpx
 from mcp import ClientSession
@@ -22,8 +23,14 @@ from loamz.runtime.kernel.types.content import TextBlock
 from loamz.runtime.toolkit.mcp.servers import exposed
 from loamz.runtime.toolkit.mcp.tool import MCPTool
 from loamz.server.agents.bootstrap.container import Container
+from loamz.server.agents.features.people.connections.guard import PublicOnly, check_url
 from loamz.server.agents.features.people.connections.store import ConnectionStore
-from loamz.server.agents.features.people.marketplace.model import InstallBody, Listing
+from loamz.server.agents.features.people.marketplace.model import (
+    CUSTOM_PREFIX,
+    InstallBody,
+    Listing,
+    Permission,
+)
 from loamz.server.agents.features.people.marketplace.service import MarketplaceService, marketplace
 
 logger = logging.getLogger(__name__)
@@ -33,6 +40,7 @@ LISTING_TTL = 600.0  # how long a connector's tool list is reused
 MAX_RESULT_CHARS = 20_000  # what the model reads from one tool call
 MAX_PARAM_TEXT = 240  # the longest description of one parameter shown to the model
 MAX_TOOL_TEXT = 600  # the longest description of one tool shown to the model
+MAX_CUSTOM = 10  # connectors one person can add by address
 
 
 # What a model provider accepts in a tool's parameters is a small part of JSON Schema (OpenAI answers 400 for the whole request when one
@@ -187,11 +195,77 @@ class ConnectionsService:
             token_endpoint_auth_method="none",
         )
 
-    def _listing(self, item_id: str) -> Listing:
+    async def _listing(self, caller: Caller, item_id: str) -> Listing:
+        if item_id.startswith(CUSTOM_PREFIX):
+            found = {c.id: c for c in await self.custom_listings(caller)}.get(item_id)
+            if found is None:
+                raise NotFoundError("That connector does not exist.")
+            return found
         listing = self._market.listing(item_id)
         if listing.kind != "connector" or not listing.mcp_url:
             raise InvalidRequestError(f"{listing.name} cannot be connected yet.")
         return listing
+
+    # ── connectors added by address ─────────────────────────────────────────
+    async def custom_listings(self, caller: Caller) -> list[Listing]:
+        """The connectors this person added by address. Each is theirs alone and was not checked by Loamz."""
+        out = []
+        for row in await self._store.customs(caller.tenant_id, caller.user_id):
+            host = urlparse(row["url"]).hostname or row["url"]
+            out.append(
+                Listing(
+                    id=row["id"],
+                    kind="connector",
+                    name=row["name"],
+                    tagline=f"Your own connector at {host}"[:80],
+                    description=(
+                        f"A server you added at {row['url']}. Loamz has not checked it: it receives what the assistant sends it, "
+                        "and what it sends back is treated as untrusted text. Its tools ask before they run unless you allow them."
+                    ),
+                    icon="Plug",
+                    category="Your connectors",
+                    publisher="You",
+                    trust="community",
+                    permissions=[Permission(group="write", label="Use its tools", default="ask")],
+                    data_seen_by=["Loamz", "OpenAI", host],
+                    mcp_url=row["url"],
+                    added_at=time.strftime("%Y-%m-%d"),
+                )
+            )
+        return out
+
+    async def add_custom(
+        self, caller: Caller, name: str, url: str, token: str | None = None
+    ) -> Listing:
+        """Add a connector by the address of its MCP server. Only public https addresses; the optional access token is kept sealed."""
+        name = " ".join(name.split())
+        if not 1 <= len(name) <= 40:
+            raise InvalidRequestError("Give it a name of up to 40 characters.")
+        if len(await self._store.customs(caller.tenant_id, caller.user_id)) >= MAX_CUSTOM:
+            raise InvalidRequestError(f"You can add up to {MAX_CUSTOM} connectors of your own.")
+        clean = await check_url(url)
+        item = f"{CUSTOM_PREFIX}{uuid4().hex[:10]}"
+        secret = (token or "").strip() or None
+        if secret and len(secret) > 4000:
+            raise InvalidRequestError("That access token is too long.")
+        await self._store.add_custom(caller.tenant_id, caller.user_id, item, name, clean, secret)
+        return next(c for c in await self.custom_listings(caller) if c.id == item)
+
+    async def _client(
+        self, caller: Caller, listing: Listing, provider: OAuthClientProvider
+    ) -> httpx.AsyncClient:
+        """The web client for a connector. One a person added by address goes only to the public internet and, when they gave an
+        access token, uses it instead of the sign-in."""
+        if not listing.id.startswith(CUSTOM_PREFIX):
+            return httpx.AsyncClient(auth=provider, timeout=30, follow_redirects=True)
+        secret = await self._store.custom_secret(caller.tenant_id, caller.user_id, listing.id)
+        return httpx.AsyncClient(
+            auth=None if secret else provider,
+            headers={"Authorization": f"Bearer {secret}"} if secret else None,
+            transport=PublicOnly(),
+            timeout=30,
+            follow_redirects=True,
+        )
 
     def _provider(
         self, caller: Caller, listing: Listing, redirect, callback
@@ -211,7 +285,7 @@ class ConnectionsService:
     # ── signing in ──────────────────────────────────────────────────────────
     async def start(self, caller: Caller, item_id: str) -> dict[str, str]:
         """Begin (or refresh) a connection. Returns the vendor's sign-in address, or `connected` when the saved sign-in still works."""
-        listing = self._listing(item_id)
+        listing = await self._listing(caller, item_id)
         loop = asyncio.get_running_loop()
         flow = _Flow(caller, item_id, loop.create_future(), loop.create_future())
         flow.task = loop.create_task(self._run(flow, listing), name=f"connect-{item_id}")
@@ -243,7 +317,7 @@ class ConnectionsService:
         provider = self._provider(caller, listing, redirect, callback)
         try:
             async with (
-                httpx.AsyncClient(auth=provider, timeout=30, follow_redirects=True) as http,
+                await self._client(caller, listing, provider) as http,
                 streamable_http_client(listing.mcp_url or "", http_client=http) as (read, write, _),
                 ClientSession(read, write) as session,
             ):
@@ -256,7 +330,7 @@ class ConnectionsService:
             with contextlib.suppress(
                 Exception
             ):  # already added: the choices the person made are kept
-                await self._market.install(caller, listing.id, InstallBody())
+                await self._market.install(caller, listing.id, InstallBody(), listing=listing)
         except BaseException as error:
             if not flow.url.done():
                 flow.url.set_exception(
@@ -292,6 +366,7 @@ class ConnectionsService:
     async def disconnect(self, caller: Caller, item_id: str) -> None:
         self._cache.pop((caller.tenant_id, caller.user_id, item_id), None)
         await self._store.remove(caller.tenant_id, caller.user_id, item_id)
+        await self._store.remove_custom(caller.tenant_id, caller.user_id, item_id)
         await self._market.remove(caller, item_id)
 
     async def erase(self, tenant_id: str, user_id: str | None = None) -> int:
@@ -305,7 +380,7 @@ class ConnectionsService:
     @asynccontextmanager
     async def session(self, caller: Caller, item_id: str) -> AsyncIterator[ClientSession]:
         """An MCP session signed in as this person. It never opens a sign-in page: a lost sign-in means "connect again"."""
-        listing = self._listing(item_id)
+        listing = await self._listing(caller, item_id)
 
         async def no_redirect(url: str) -> None:  # noqa: ARG001
             raise NeedsReconnect
@@ -316,7 +391,7 @@ class ConnectionsService:
         provider = self._provider(caller, listing, no_redirect, no_callback)
         try:
             async with (
-                httpx.AsyncClient(auth=provider, timeout=30, follow_redirects=True) as http,
+                await self._client(caller, listing, provider) as http,
                 streamable_http_client(listing.mcp_url or "", http_client=http) as (read, write, _),
                 ClientSession(read, write) as session,
             ):
@@ -337,12 +412,59 @@ class ConnectionsService:
         self._cache[key] = _Cached(time.monotonic(), tools)
         return tools
 
-    async def tools(self, caller: Caller) -> list[MCPTool]:
+    async def list_tools(self, caller: Caller, item_id: str) -> list[dict[str, object]]:
+        """What one connector offers, for the page where a person picks the tools an agent may use: each tool's name, what it says it does, the
+        group we file it under (read, write, delete) and whether the server itself calls it read-only (a hint to pre-tick, never a reason to trust)."""
+        listing = await self._listing(caller, item_id)
+        if item_id not in {
+            c["id"]
+            for c in await self._store.list(caller.tenant_id, caller.user_id)
+            if c["status"] == "connected"
+        }:
+            raise InvalidRequestError(f"Connect {listing.name} first to see its tools.")
+        try:
+            listed = await self._tools_of(caller, item_id)
+        except NeedsReconnect as why:
+            raise InvalidRequestError(f"{listing.name} needs to be signed in again.") from why
+        except Exception as why:  # noqa: BLE001
+            raise InvalidRequestError(
+                f"{listing.name} did not answer. Try again in a moment."
+            ) from why
+        out: list[dict[str, object]] = []
+        for tool in listed:
+            name = str(tool["name"])
+            if listing.tools and name not in listing.tools:
+                continue
+            note = tool.get("annotations") or {}
+            out.append(
+                {
+                    "name": name,
+                    "description": str(tool.get("description") or "")[:MAX_TOOL_TEXT],
+                    "group": listing.tools.get(name, "write"),
+                    "read_hint": bool(note.get("readOnlyHint"))
+                    if isinstance(note, dict)
+                    else False,
+                }
+            )
+        return sorted(out, key=lambda t: (str(t["group"]) != "read", str(t["name"])))
+
+    async def tools(
+        self,
+        caller: Caller,
+        only: set[str] | None = None,
+        access: dict[str, dict[str, str]] | None = None,
+        *,
+        asking: bool = True,
+    ) -> list[MCPTool]:
         """The tools of every connector this person connected and switched on, shaped by their choices.
 
         Blocked groups are left out. A tool whose group is on `allow` and reads only runs without asking; anything else asks
         each time. When the catalog lists tools, only those are offered; otherwise every tool counts as writing, because what a server says
-        about itself is never trusted.
+        about itself is never trusted. With `only` (an agent's own abilities), just those connectors.
+
+        `access` is what the agent's owner ticked for it (`{connector: {tool: allow | ask}}`): a connector with an entry offers only those
+        tools, and "ask" makes a tool ask even where the person's own choice would let it run. It can narrow what the person allowed, never widen it.
+        With `asking=False` (a place where nobody can be asked, such as a group chat) only the tools that run without asking are offered.
         """
         out: list[MCPTool] = []
         connected = {
@@ -351,25 +473,40 @@ class ConnectionsService:
             if c["status"] == "connected"
         }
         for install in (await self._market.installed(caller)).items:
-            if not install.enabled or install.id not in connected:
+            if (
+                not install.enabled
+                or install.id not in connected
+                or (only is not None and install.id not in only)
+            ):
                 continue
             try:
-                listing = self._listing(install.id)
+                listing = await self._listing(caller, install.id)
                 listed = await self._tools_of(caller, install.id)
             except NeedsReconnect:
                 continue
             except Exception:  # noqa: BLE001 - one vendor being down must not stop the run
                 logger.warning("connector %s unavailable", install.id, exc_info=True)
                 continue
+            ticked = access.get(install.id) if access and only is not None else None
             for tool in listed:
                 remote = str(tool["name"])
                 if listing.tools and remote not in listing.tools:
                     continue  # a curated entry offers only the tools we chose; a server cannot add its own
+                if ticked is not None and remote not in ticked:
+                    continue  # this agent's owner did not tick it
                 group = listing.tools.get(remote, "write")
                 choice = install.permissions.get(group, "ask")
                 if choice == "block":
                     continue
-                risk = ToolRisk.SAFE if (group == "read" and choice == "allow") else ToolRisk.HIGH
+                # A connector the person added themselves has no curated list, so it asks each time unless they allowed it.
+                safe = (
+                    choice == "allow"
+                    and (group == "read" or install.id.startswith(CUSTOM_PREFIX))
+                    and (ticked is None or ticked.get(remote) == "allow")
+                )
+                risk = ToolRisk.SAFE if safe else ToolRisk.HIGH
+                if risk is not ToolRisk.SAFE and not asking:
+                    continue
                 out.append(
                     ConnectionTool(
                         self,

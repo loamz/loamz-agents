@@ -54,18 +54,14 @@ class ChatService:
             return None
 
     def _tool_server_tools(self, profile) -> list[object]:
-        """Tool-server tools an agent has, only those its `allowed_tools` names: never every tool of a server."""
-        if profile is None or not profile.allowed_tools:
+        """The tools an agent has: the code interpreter (with its own files) always, and tool-server tools only where its
+        `allowed_tools` names them, never every tool of a server."""
+        if profile is None:
             return []
-        data = [
-            self._c.data_tool_set[n] for n in profile.allowed_tools if n in self._c.data_tool_set
-        ]
-        code = (
-            [self._c.code_tool]
-            if "code_interpreter" in profile.allowed_tools and self._c.code_tool
-            else []
-        )
-        return [*self._c.tool_servers.tools(profile.allowed_tools), *data, *code]
+        code = [self._c.code_tool] if self._c.code_tool else []
+        named = profile.allowed_tools or ()
+        data = [self._c.data_tool_set[n] for n in named if n in self._c.data_tool_set]
+        return [*self._c.tool_servers.tools(list(named)), *data, *code]
 
     async def admit(self, caller: Caller, req: ChatRequest) -> None:
         """Everything that can refuse a message, checked before the response starts streaming, so a refusal is a proper error
@@ -75,6 +71,7 @@ class ChatService:
             raise InvalidRequestError(header.locked_reason or "This conversation is locked.")
         if not req.prompt_text():
             raise InvalidRequestError("Message prompt cannot be empty.")
+        self._c.require_model(req.model)
         for run in await self._rt.find_runs(thread_id=req.thread_id, active_only=True):
             # A chat agent is built for each message and lives only in the process that built it, so a run whose agent is gone
             # (the server restarted while it ran) can never finish: close it rather than block the conversation for ever.
@@ -112,20 +109,65 @@ class ChatService:
         from loamz.server.agents.features.people.marketplace.service import marketplace
 
         market = self._c.get(marketplace)
-        skills = await market.skills_text(caller)
-        if "code-interpreter" in await market.tools_on(caller) and self._c.code_tool:
+        # An agent uses only the skills, tools and connectors it was given; the plain assistant uses everything switched on.
+        only = set(profile.abilities) if profile else None
+        # Skills (the shipped ones switched on, and the person's own): name and description in the prompt, the full instructions
+        # loaded when the agent uses one with `use_skill`.
+        from loamz.server.agents.features.people.marketplace.service import SKILLS_INTRO
+        from loamz.server.agents.features.people.skills.service import UseSkillTool
+        from loamz.server.agents.features.people.skills.service import skills as skills_feature
+
+        own = self._c.get(skills_feature)
+        skill_lines = [*await market.skill_lines(caller, only), *await own.lines(caller, only)]
+        skills = SKILLS_INTRO + "\n".join(skill_lines) if skill_lines else ""
+        if skill_lines:
+
+            async def load(name: str) -> str | None:
+                return await market.skill_instructions(
+                    caller, name, only
+                ) or await own.instructions_of(caller, name, only)
+
+            tools = [*tools, UseSkillTool(load)]
+        from loamz.server.agents.features.conversations.chat.builtin import current_time, tools_for
+
+        choices = await market.tool_choices(caller, only)
+        if "code-interpreter" in choices and self._c.code_tool and self._c.code_tool not in tools:
             tools = [*tools, self._c.code_tool]
+        tools = [*tools, *tools_for(self._c, choices)]
+        if profile:
+            tools = [*tools, current_time()]
         # Tools of the connectors this person signed in to (Notion, Todoist, ...), each called with their own token.
         from loamz.server.agents.features.people.connections.service import connections
 
-        tools = [*tools, *await self._c.get(connections).tools(caller)]
+        tools = [
+            *tools,
+            *await self._c.get(connections).tools(
+                caller, only, profile.tool_access if profile else None
+            ),
+        ]
+        # Every agent remembers: a `memory` tool to remember and recall what the person shares, and what it already knows as background.
+        remembered = ""
+        if profile:
+            from loamz.server.agents.features.people.memory.service import memory, memory_tool
+
+            people_memory = self._c.get(memory)
+            recall = memory_tool(req.thread_id, None, people_memory.store)
+            if recall is not None:
+                tools = [*tools, recall]
+            remembered = await people_memory.user_context_block(caller.tenant_id, caller.user_id)
+        threads = self._c.agent_store.threads
+        recall, summarizer = self._c.conversation_memory(
+            threads, req.thread_id, req.model or (profile.model if profile else None)
+        )
         agent = create_assistant_agent(
             model_client=self._c.model_client(req.model or (profile.model if profile else None)),
-            history=self._c.agent_store.threads,
-            tools=tools or None,
+            history=threads,
+            summarizer=summarizer,
+            tools=[*tools, recall],
             system_instructions=(req.system_instructions or "")
             + (instructions_block(profile) if profile else "")
-            + skills,
+            + skills
+            + (f"\n\n{remembered}" if remembered else ""),
             # One actor per conversation (the activity tracker looks for `assistant/<thread id>`). Sharing one actor
             # between conversations would fold a message sent while another run is going into that run.
             session_id=req.thread_id,
