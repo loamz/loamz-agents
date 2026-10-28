@@ -15,6 +15,11 @@ class PreferencesService:
     async def get(self, caller: Caller) -> Preferences:
         return await self._store.get(caller.tenant_id, caller.user_id) or Preferences()
 
+    async def zone(self, caller: Caller) -> str:
+        """The person's time zone (an IANA name), or UTC when they have not chosen one. Times are stored as UTC moments; this is the zone to
+        note beside them and to read them in."""
+        return (await self.get(caller)).timezone or "UTC"
+
     async def replace(self, caller: Caller, preferences: Preferences) -> Preferences:
         await self._store.put(caller.tenant_id, caller.user_id, preferences)
         return preferences

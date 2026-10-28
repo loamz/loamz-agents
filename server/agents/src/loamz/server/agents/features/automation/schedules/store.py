@@ -1,332 +1,354 @@
 from __future__ import annotations
 
 import time
+from dataclasses import dataclass
 
-from loamz.engine.sql import Database, Row
+from loamz.engine.sql import Database, Row, migrate
 from loamz.runtime.kernel.types.ids import new_id
-from loamz.server.agents.features.automation.schedules.model import (
-    ScheduledTaskOut,
-    ScheduledTaskRunOut,
-)
 
-SCHEMA = [
+COMPONENT = "automation.schedules"
+SCRIPTS = [
     """
-    CREATE TABLE IF NOT EXISTS scheduled_tasks (
-        id TEXT PRIMARY KEY,
+    DROP TABLE IF EXISTS scheduled_task_runs;
+    DROP TABLE IF EXISTS scheduled_tasks;
+    CREATE TABLE IF NOT EXISTS agent_schedules (
         tenant_id TEXT NOT NULL,
-        user_id TEXT,
+        id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        agent_id TEXT NOT NULL,
         name TEXT NOT NULL,
         prompt TEXT NOT NULL,
-        cron_expression TEXT NOT NULL,
         kind TEXT NOT NULL,
-        thread_id TEXT NOT NULL,
+        cron TEXT NOT NULL,
+        interval_seconds INTEGER NOT NULL,
+        run_at DOUBLE PRECISION,
+        timezone TEXT NOT NULL,
         status TEXT NOT NULL,
-        lookback_runs INTEGER NOT NULL,
-        task_type TEXT NOT NULL,
-        auto_disable INTEGER NOT NULL,
-        email_results INTEGER NOT NULL,
-        ask_before_acting INTEGER NOT NULL,
-        created_at REAL NOT NULL,
-        updated_at REAL NOT NULL,
-        last_run_at REAL,
-        next_run_at REAL
+        quiet INTEGER NOT NULL DEFAULT 0,
+        email_results INTEGER NOT NULL DEFAULT 0,
+        approval_timeout_s INTEGER NOT NULL,
+        thread_id TEXT,
+        failures INTEGER NOT NULL DEFAULT 0,
+        next_run_at DOUBLE PRECISION,
+        last_run_at DOUBLE PRECISION,
+        created_at DOUBLE PRECISION NOT NULL,
+        updated_at DOUBLE PRECISION NOT NULL,
+        PRIMARY KEY (tenant_id, id)
     );
-    CREATE INDEX IF NOT EXISTS scheduled_tasks_tenant_idx ON scheduled_tasks (tenant_id, user_id);
-    """,
-    """
-    CREATE TABLE IF NOT EXISTS scheduled_task_runs (
-        id TEXT PRIMARY KEY,
-        task_id TEXT NOT NULL,
+    CREATE INDEX IF NOT EXISTS agent_schedules_owner_idx ON agent_schedules (tenant_id, user_id, agent_id);
+    CREATE INDEX IF NOT EXISTS agent_schedules_due_idx ON agent_schedules (status, next_run_at);
+    CREATE TABLE IF NOT EXISTS schedule_firings (
         tenant_id TEXT NOT NULL,
+        id TEXT NOT NULL,
+        schedule_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        due_at DOUBLE PRECISION NOT NULL,
         status TEXT NOT NULL,
-        output_summary TEXT NOT NULL,
-        executed_at REAL NOT NULL,
-        duration_ms INTEGER NOT NULL,
-        was_silent INTEGER NOT NULL,
-        error_message TEXT,
-        tokens INTEGER NOT NULL,
-        cost_usd REAL NOT NULL
+        lease_until DOUBLE PRECISION,
+        attempt INTEGER NOT NULL DEFAULT 0,
+        started_at DOUBLE PRECISION,
+        finished_at DOUBLE PRECISION,
+        summary TEXT NOT NULL DEFAULT '',
+        error TEXT,
+        PRIMARY KEY (tenant_id, id)
     );
-    CREATE INDEX IF NOT EXISTS scheduled_task_runs_task_idx ON scheduled_task_runs (task_id, executed_at DESC);
+    CREATE UNIQUE INDEX IF NOT EXISTS schedule_firings_once_idx ON schedule_firings (tenant_id, schedule_id, due_at);
+    CREATE INDEX IF NOT EXISTS schedule_firings_open_idx ON schedule_firings (status, lease_until);
     """,
+    # The time zone the schedule was in when each run was due, so a run shows in the zone it was set for (the moment itself is UTC).
+    "ALTER TABLE schedule_firings ADD COLUMN zone TEXT NOT NULL DEFAULT 'UTC';",
+    # Where "e-mail me the result" goes: the address the person had when they asked (a run has no sign-in to read it from).
+    "ALTER TABLE agent_schedules ADD COLUMN owner_email TEXT NOT NULL DEFAULT '';",
 ]
+
+_S = (
+    "id, user_id, agent_id, name, prompt, kind, cron, interval_seconds, run_at, timezone, status, quiet, email_results, "
+    "approval_timeout_s, thread_id, failures, next_run_at, last_run_at, created_at, updated_at, owner_email, tenant_id"
+)
+_F = "id, schedule_id, user_id, tenant_id, due_at, zone, status, lease_until, attempt, started_at, finished_at, summary, error"
+
+
+@dataclass(frozen=True)
+class Schedule:
+    id: str
+    tenant_id: str
+    user_id: str
+    agent_id: str
+    name: str
+    prompt: str
+    kind: str
+    cron: str
+    interval_seconds: int
+    run_at: float | None
+    timezone: str
+    status: str
+    quiet: bool
+    email_results: bool
+    approval_timeout_s: int
+    thread_id: str | None
+    failures: int
+    next_run_at: float | None
+    last_run_at: float | None
+    created_at: float
+    updated_at: float
+    owner_email: str = ""
+
+
+@dataclass(frozen=True)
+class Firing:
+    id: str
+    schedule_id: str
+    tenant_id: str
+    user_id: str
+    due_at: float
+    zone: str
+    status: str
+    lease_until: float | None
+    attempt: int
+    started_at: float | None
+    finished_at: float | None
+    summary: str
+    error: str | None
+
+
+def _schedule(r: Row) -> Schedule:
+    return Schedule(
+        id=r["id"], tenant_id=r["tenant_id"], user_id=r["user_id"], agent_id=r["agent_id"], name=r["name"], prompt=r["prompt"],
+        kind=r["kind"], cron=r["cron"], interval_seconds=r["interval_seconds"], run_at=r["run_at"], timezone=r["timezone"],
+        status=r["status"], quiet=bool(r["quiet"]), email_results=bool(r["email_results"]), approval_timeout_s=r["approval_timeout_s"],
+        thread_id=r["thread_id"], failures=r["failures"], next_run_at=r["next_run_at"], last_run_at=r["last_run_at"],
+        created_at=r["created_at"], updated_at=r["updated_at"], owner_email=r["owner_email"],
+    )  # fmt: skip
+
+
+def _firing(r: Row) -> Firing:
+    return Firing(
+        id=r["id"], schedule_id=r["schedule_id"], tenant_id=r["tenant_id"], user_id=r["user_id"], due_at=r["due_at"], zone=r["zone"], status=r["status"],
+        lease_until=r["lease_until"], attempt=r["attempt"], started_at=r["started_at"], finished_at=r["finished_at"],
+        summary=r["summary"], error=r["error"],
+    )  # fmt: skip
 
 
 class SchedulesStore:
-    def __init__(self, db: Database) -> None:
-        self._db = db
-        self._migrated = False
+    """Schedules and their firings. Every statement is keyed by the tenant; a person's reads by the user too."""
 
-    async def _init(self) -> None:
-        if not self._migrated:
-            async with self._db.transaction() as tx:
-                for ddl in SCHEMA:
-                    for stmt in filter(None, (s.strip() for s in ddl.split(";"))):
-                        await tx.execute(stmt)
-            self._migrated = True
+    def __init__(self, database: Database) -> None:
+        self._db = database
+        self._ready = False
 
-    async def insert_task(
-        self,
-        tenant_id: str,
-        user_id: str,
-        name: str,
-        prompt: str,
-        cron_expression: str,
-        kind: str,
-        thread_id: str,
-        status: str = "active",
-        lookback_runs: int = 5,
-        task_type: str = "report",
-        auto_disable: bool = False,
-        email_results: bool = False,
-        ask_before_acting: bool = True,
-        next_run_at: float | None = None,
-    ) -> ScheduledTaskOut:
-        await self._init()
-        now = time.time()
-        task_id = new_id()
-        async with self._db.transaction() as tx:
+    async def _tx(self):  # noqa: ANN202
+        if not self._ready:
+            await migrate(self._db, COMPONENT, SCRIPTS)
+            self._ready = True
+        return self._db.transaction()
+
+    # ── schedules ───────────────────────────────────────────────────────────
+    async def insert(self, s: Schedule) -> None:
+        async with await self._tx() as tx:
             await tx.execute(
-                """
-                INSERT INTO scheduled_tasks (
-                    id, tenant_id, user_id, name, prompt, cron_expression, kind, thread_id,
-                    status, lookback_runs, task_type, auto_disable, email_results, ask_before_acting,
-                    created_at, updated_at, last_run_at, next_run_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)
-                """,
-                task_id,
-                tenant_id,
-                user_id,
-                name,
-                prompt,
-                cron_expression,
-                kind,
-                thread_id,
-                status,
-                lookback_runs,
-                task_type,
-                1 if auto_disable else 0,
-                1 if email_results else 0,
-                1 if ask_before_acting else 0,
-                now,
-                now,
-                next_run_at,
-            )
-        return ScheduledTaskOut(
-            id=task_id,
-            user_id=user_id,
-            name=name,
-            prompt=prompt,
-            cron_expression=cron_expression,
-            kind=kind,
-            thread_id=thread_id,
-            status=status,
-            lookback_runs=lookback_runs,
-            task_type=task_type,
-            auto_disable=auto_disable,
-            email_results=email_results,
-            ask_before_acting=ask_before_acting,
-            created_at=now,
-            updated_at=now,
-            next_run_at=next_run_at,
-            recent_runs=[],
-        )
+                "INSERT INTO agent_schedules (tenant_id, id, user_id, agent_id, name, prompt, kind, cron, interval_seconds, run_at, timezone, "
+                "status, quiet, email_results, approval_timeout_s, thread_id, failures, next_run_at, last_run_at, created_at, updated_at, owner_email) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                s.tenant_id, s.id, s.user_id, s.agent_id, s.name, s.prompt, s.kind, s.cron, s.interval_seconds, s.run_at, s.timezone,
+                s.status, int(s.quiet), int(s.email_results), s.approval_timeout_s, s.thread_id, s.failures, s.next_run_at, s.last_run_at,
+                s.created_at, s.updated_at, s.owner_email,
+            )  # fmt: skip
 
-    async def get_task(self, tenant_id: str, task_id: str) -> ScheduledTaskOut | None:
-        await self._init()
-        async with self._db.transaction() as tx:
-            r = await tx.fetchone(
-                "SELECT * FROM scheduled_tasks WHERE tenant_id = ? AND id = ?",
-                tenant_id,
-                task_id,
+    async def get(self, tenant: str, user: str, schedule_id: str) -> Schedule | None:
+        async with await self._tx() as tx:
+            row = await tx.fetchone(
+                f"SELECT {_S} FROM agent_schedules WHERE tenant_id = ? AND user_id = ? AND id = ?",
+                tenant,
+                user,
+                schedule_id,
             )
-        if not r:
-            return None
-        recent = await self.recent_runs(tenant_id, task_id, limit=5)
-        return self._task_from_row(r, recent)
+        return _schedule(row) if row else None
 
-    async def list_tasks(self, tenant_id: str, user_id: str) -> list[ScheduledTaskOut]:
-        await self._init()
-        async with self._db.transaction() as tx:
+    async def by_id(self, tenant: str, schedule_id: str) -> Schedule | None:
+        async with await self._tx() as tx:
+            row = await tx.fetchone(
+                f"SELECT {_S} FROM agent_schedules WHERE tenant_id = ? AND id = ?",
+                tenant,
+                schedule_id,
+            )
+        return _schedule(row) if row else None
+
+    async def list(self, tenant: str, user: str, agent_id: str | None = None) -> list[Schedule]:
+        sql = f"SELECT {_S} FROM agent_schedules WHERE tenant_id = ? AND user_id = ?"
+        args: list[object] = [tenant, user]
+        if agent_id:
+            sql += " AND agent_id = ?"
+            args.append(agent_id)
+        async with await self._tx() as tx:
+            rows = await tx.fetchall(sql + " ORDER BY created_at, id", *args)
+        return [_schedule(r) for r in rows]
+
+    async def change(self, tenant: str, schedule_id: str, **values: object) -> None:
+        allowed = {
+            "name", "prompt", "kind", "cron", "interval_seconds", "run_at", "timezone", "status", "quiet", "email_results",
+            "approval_timeout_s", "thread_id", "failures", "next_run_at", "last_run_at", "owner_email",
+        }  # fmt: skip
+        if not values.keys() <= allowed:
+            raise ValueError("Unknown schedule field")
+        async with await self._tx() as tx:
+            for key, value in values.items():
+                if isinstance(value, bool):
+                    value = int(value)
+                await tx.execute(
+                    f"UPDATE agent_schedules SET {key} = ? WHERE tenant_id = ? AND id = ?",
+                    value,
+                    tenant,
+                    schedule_id,
+                )
+            await tx.execute(
+                "UPDATE agent_schedules SET updated_at = ? WHERE tenant_id = ? AND id = ?",
+                time.time(),
+                tenant,
+                schedule_id,
+            )
+
+    async def delete(self, tenant: str, user: str, schedule_id: str) -> bool:
+        async with await self._tx() as tx:
+            await tx.execute(
+                "DELETE FROM schedule_firings WHERE tenant_id = ? AND user_id = ? AND schedule_id = ?",
+                tenant,
+                user,
+                schedule_id,
+            )
+            return bool(
+                await tx.execute(
+                    "DELETE FROM agent_schedules WHERE tenant_id = ? AND user_id = ? AND id = ?",
+                    tenant,
+                    user,
+                    schedule_id,
+                )
+            )
+
+    async def delete_for_agent(self, tenant: str, user: str, agent_id: str) -> int:
+        async with await self._tx() as tx:
+            await tx.execute(
+                "DELETE FROM schedule_firings WHERE tenant_id = ? AND user_id = ? AND schedule_id IN "
+                "(SELECT id FROM agent_schedules WHERE tenant_id = ? AND user_id = ? AND agent_id = ?)",
+                tenant, user, tenant, user, agent_id,
+            )  # fmt: skip
+            return await tx.execute(
+                "DELETE FROM agent_schedules WHERE tenant_id = ? AND user_id = ? AND agent_id = ?",
+                tenant,
+                user,
+                agent_id,
+            )
+
+    # ── firings ─────────────────────────────────────────────────────────────
+    async def due(self, now: float, limit: int = 50) -> list[Schedule]:
+        async with await self._tx() as tx:
             rows = await tx.fetchall(
-                "SELECT * FROM scheduled_tasks WHERE tenant_id = ? AND user_id = ? ORDER BY created_at DESC",
-                tenant_id,
-                user_id,
-            )
-        res: list[ScheduledTaskOut] = []
+                f"SELECT {_S} FROM agent_schedules WHERE status = 'active' AND next_run_at IS NOT NULL AND next_run_at <= ? "
+                "ORDER BY next_run_at LIMIT ?",
+                now, limit,
+            )  # fmt: skip
+        return [_schedule(r) for r in rows]
+
+    async def begin_firing(
+        self, s: Schedule, due_at: float, next_at: float | None, *, advance: bool = True
+    ) -> str | None:
+        """Record that `s` is due and move it to its next time, in one step: a crash leaves a firing waiting (it is picked up again),
+        never a lost one. None when this firing already exists (another server recorded it first)."""
+        firing_id = new_id()
+        async with await self._tx() as tx:
+            made = await tx.execute(
+                "INSERT INTO schedule_firings (tenant_id, id, schedule_id, user_id, due_at, zone, status) VALUES (?, ?, ?, ?, ?, ?, 'pending') "
+                "ON CONFLICT (tenant_id, schedule_id, due_at) DO NOTHING",
+                s.tenant_id, firing_id, s.id, s.user_id, due_at, s.timezone,
+            )  # fmt: skip
+            if not made:
+                return None
+            if advance:
+                await tx.execute(
+                    "UPDATE agent_schedules SET next_run_at = ?, status = ?, updated_at = ? WHERE tenant_id = ? AND id = ?",
+                    next_at, "active" if next_at is not None else "completed", time.time(), s.tenant_id, s.id,
+                )  # fmt: skip
+        return firing_id
+
+    async def claim(self, now: float, lease_seconds: float, limit: int = 10) -> list[Firing]:
+        """Firings that are waiting, or whose worker went away, taken by this server for `lease_seconds`."""
+        async with await self._tx() as tx:
+            rows = await tx.fetchall(
+                f"SELECT {_F} FROM schedule_firings WHERE status = 'pending' OR (status = 'running' AND lease_until < ?) "
+                "ORDER BY due_at LIMIT ?",
+                now, limit,
+            )  # fmt: skip
+        taken: list[Firing] = []
         for r in rows:
-            recent = await self.recent_runs(tenant_id, str(r["id"]), limit=5)
-            res.append(self._task_from_row(r, recent))
-        return res
+            async with await self._tx() as tx:
+                won = await tx.execute(
+                    "UPDATE schedule_firings SET status = 'running', lease_until = ?, attempt = attempt + 1, started_at = COALESCE(started_at, ?) "
+                    "WHERE tenant_id = ? AND id = ? AND (status = 'pending' OR (status = 'running' AND lease_until < ?))",
+                    now + lease_seconds, now, r["tenant_id"], r["id"], now,
+                )  # fmt: skip
+            if won:
+                taken.append(_firing(r))
+        return taken
 
-    async def update_task(
-        self,
-        tenant_id: str,
-        task_id: str,
-        **fields: object,
-    ) -> ScheduledTaskOut | None:
-        await self._init()
-        if not fields:
-            return await self.get_task(tenant_id, task_id)
-
-        fields["updated_at"] = time.time()
-        clauses: list[str] = []
-        values: list[object] = []
-        for k, v in fields.items():
-            clauses.append(f"{k} = ?")
-            if isinstance(v, bool):
-                values.append(1 if v else 0)
-            else:
-                values.append(v)
-        values.extend([tenant_id, task_id])
-        query = f"UPDATE scheduled_tasks SET {', '.join(clauses)} WHERE tenant_id = ? AND id = ?"
-        async with self._db.transaction() as tx:
-            await tx.execute(query, *values)
-        return await self.get_task(tenant_id, task_id)
-
-    async def delete_task(self, tenant_id: str, task_id: str) -> bool:
-        await self._init()
-        async with self._db.transaction() as tx:
+    async def extend(self, tenant: str, firing_id: str, until: float) -> None:
+        async with await self._tx() as tx:
             await tx.execute(
-                "DELETE FROM scheduled_task_runs WHERE tenant_id = ? AND task_id = ?",
-                tenant_id,
-                task_id,
+                "UPDATE schedule_firings SET lease_until = ? WHERE tenant_id = ? AND id = ?",
+                until,
+                tenant,
+                firing_id,
             )
-            await tx.execute(
-                "DELETE FROM scheduled_tasks WHERE tenant_id = ? AND id = ?",
-                tenant_id,
-                task_id,
-            )
-        return True
 
-    async def insert_run(
+    async def finish(
         self,
-        tenant_id: str,
-        task_id: str,
+        tenant: str,
+        firing_id: str,
         status: str,
-        output_summary: str = "",
-        duration_ms: int = 0,
-        was_silent: bool = False,
-        error_message: str | None = None,
-        tokens: int = 0,
-        cost_usd: float = 0.0,
-    ) -> ScheduledTaskRunOut:
-        await self._init()
-        run_id = new_id()
-        now = time.time()
-        async with self._db.transaction() as tx:
+        *,
+        summary: str = "",
+        error: str | None = None,
+    ) -> None:
+        async with await self._tx() as tx:
             await tx.execute(
-                """
-                INSERT INTO scheduled_task_runs (
-                    id, task_id, tenant_id, status, output_summary, executed_at,
-                    duration_ms, was_silent, error_message, tokens, cost_usd
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                run_id,
-                task_id,
-                tenant_id,
-                status,
-                output_summary,
-                now,
-                duration_ms,
-                1 if was_silent else 0,
-                error_message,
-                tokens,
-                cost_usd,
-            )
-            await tx.execute(
-                "UPDATE scheduled_tasks SET last_run_at = ?, updated_at = ? WHERE tenant_id = ? AND id = ?",
-                now,
-                now,
-                tenant_id,
-                task_id,
-            )
-        return ScheduledTaskRunOut(
-            id=run_id,
-            task_id=task_id,
-            status=status,
-            output_summary=output_summary,
-            executed_at=now,
-            duration_ms=duration_ms,
-            was_silent=was_silent,
-            error_message=error_message,
-            tokens=tokens,
-            cost_usd=cost_usd,
-        )
+                "UPDATE schedule_firings SET status = ?, summary = ?, error = ?, finished_at = ?, lease_until = NULL WHERE tenant_id = ? AND id = ?",
+                status, summary[:2000], error, time.time(), tenant, firing_id,
+            )  # fmt: skip
 
-    async def recent_runs(
-        self, tenant_id: str, task_id: str, limit: int = 5
-    ) -> list[ScheduledTaskRunOut]:
-        await self._init()
-        async with self._db.transaction() as tx:
+    async def firings(
+        self, tenant: str, user: str, schedule_id: str, limit: int = 20
+    ) -> list[Firing]:
+        async with await self._tx() as tx:
             rows = await tx.fetchall(
-                "SELECT * FROM scheduled_task_runs WHERE tenant_id = ? AND task_id = ? ORDER BY executed_at DESC LIMIT ?",
-                tenant_id,
-                task_id,
-                limit,
+                f"SELECT {_F} FROM schedule_firings WHERE tenant_id = ? AND user_id = ? AND schedule_id = ? ORDER BY due_at DESC LIMIT ?",
+                tenant, user, schedule_id, limit,
+            )  # fmt: skip
+        return [_firing(r) for r in rows]
+
+    async def running_for(self, tenant: str, schedule_id: str, now: float, exclude: str) -> bool:
+        async with await self._tx() as tx:
+            row = await tx.fetchone(
+                "SELECT 1 AS x FROM schedule_firings WHERE tenant_id = ? AND schedule_id = ? AND status = 'running' AND lease_until >= ? AND id != ?",
+                tenant, schedule_id, now, exclude,
+            )  # fmt: skip
+        return row is not None
+
+    async def started_since(self, tenant: str, user: str, since: float) -> int:
+        async with await self._tx() as tx:
+            row = await tx.fetchone(
+                "SELECT COUNT(*) AS n FROM schedule_firings WHERE tenant_id = ? AND user_id = ? AND started_at >= ?",
+                tenant,
+                user,
+                since,
             )
-        return [self._run_from_row(r) for r in rows]
+        return int(row["n"]) if row else 0
 
-    async def list_runs(
-        self,
-        tenant_id: str,
-        task_id: str,
-        limit: int = 20,
-        offset: int = 0,
-        include_silent: bool = True,
-    ) -> list[ScheduledTaskRunOut]:
-        await self._init()
-        async with self._db.transaction() as tx:
-            if include_silent:
-                rows = await tx.fetchall(
-                    "SELECT * FROM scheduled_task_runs WHERE tenant_id = ? AND task_id = ? ORDER BY executed_at DESC LIMIT ? OFFSET ?",
-                    tenant_id,
-                    task_id,
-                    limit,
-                    offset,
-                )
-            else:
-                rows = await tx.fetchall(
-                    "SELECT * FROM scheduled_task_runs WHERE tenant_id = ? AND task_id = ? AND was_silent = 0 ORDER BY executed_at DESC LIMIT ? OFFSET ?",
-                    tenant_id,
-                    task_id,
-                    limit,
-                    offset,
-                )
-        return [self._run_from_row(r) for r in rows]
-
-    def _task_from_row(self, r: Row, recent: list[ScheduledTaskRunOut]) -> ScheduledTaskOut:
-        return ScheduledTaskOut(
-            id=str(r["id"]),
-            user_id=str(r["user_id"]) if r["user_id"] is not None else None,
-            name=str(r["name"]),
-            prompt=str(r["prompt"]),
-            cron_expression=str(r["cron_expression"]),
-            kind=str(r["kind"]),
-            thread_id=str(r["thread_id"]),
-            status=str(r["status"]),
-            lookback_runs=int(r["lookback_runs"]),  # type: ignore[arg-type]
-            task_type=str(r["task_type"]),
-            auto_disable=bool(r["auto_disable"]),
-            email_results=bool(r["email_results"]),
-            ask_before_acting=bool(r["ask_before_acting"]),
-            created_at=float(r["created_at"]),  # type: ignore[arg-type]
-            updated_at=float(r["updated_at"]),  # type: ignore[arg-type]
-            last_run_at=float(r["last_run_at"]) if r["last_run_at"] is not None else None,  # type: ignore[arg-type]
-            next_run_at=float(r["next_run_at"]) if r["next_run_at"] is not None else None,  # type: ignore[arg-type]
-            recent_runs=recent,
-        )
-
-    def _run_from_row(self, r: Row) -> ScheduledTaskRunOut:
-        return ScheduledTaskRunOut(
-            id=str(r["id"]),
-            task_id=str(r["task_id"]),
-            status=str(r["status"]),
-            output_summary=str(r["output_summary"] or ""),
-            executed_at=float(r["executed_at"]),  # type: ignore[arg-type]
-            duration_ms=int(r["duration_ms"]),  # type: ignore[arg-type]
-            was_silent=bool(r["was_silent"]),
-            error_message=str(r["error_message"]) if r["error_message"] is not None else None,
-            tokens=int(r["tokens"]),  # type: ignore[arg-type]
-            cost_usd=float(r["cost_usd"]),  # type: ignore[arg-type]
-        )
+    async def erase(self, tenant: str, user: str | None = None) -> int:
+        async with await self._tx() as tx:
+            if user is None:
+                await tx.execute("DELETE FROM schedule_firings WHERE tenant_id = ?", tenant)
+                return await tx.execute("DELETE FROM agent_schedules WHERE tenant_id = ?", tenant)
+            await tx.execute(
+                "DELETE FROM schedule_firings WHERE tenant_id = ? AND user_id = ?", tenant, user
+            )
+            return await tx.execute(
+                "DELETE FROM agent_schedules WHERE tenant_id = ? AND user_id = ?", tenant, user
+            )

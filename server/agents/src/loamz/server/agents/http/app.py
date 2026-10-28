@@ -43,6 +43,18 @@ def create_app(
 
         register_members(container)
         await container.start(wanted)
+        from loamz.server.agents.features.automation.schedules.service import schedules
+
+        container.get(schedules)  # built now so that deleting an agent also deletes its schedules
+        if wanted & container.WORKER_ROLES:
+            from loamz.server.agents.features.automation.schedules.runner import start_runner
+
+            container.on_close(start_runner(container))
+        if wanted & container.WORKER_ROLES and container.settings.context.idle_minutes > 0:
+            from loamz.server.agents.features.conversations.memory.sweeper import start_sweeper
+
+            # Long conversations left idle are summarized in the background, so the next message is not a huge uncached prompt.
+            container.on_close(start_sweeper(container))
         await container.get(feed).start()
         await container.get(push).start()
         try:
