@@ -2094,6 +2094,7 @@ name = "loamz-agents-server"
 version = "0.1.0"
 source = { editable = "server/agents" }
 dependencies = [
+    { name = "beautifulsoup4" },
     { name = "cryptography" },
     { name = "fastapi" },
     { name = "httpx" },
@@ -2134,6 +2135,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "beautifulsoup4", specifier = ">=4.12" },
     { name = "cryptography", specifier = ">=44" },
     { name = "fastapi", specifier = ">=0.128" },
     { name = "httpx", specifier = ">=0.28,<1" },
