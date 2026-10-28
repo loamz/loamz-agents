@@ -1,8 +1,5 @@
 # Workspace-wide. Each package also has its own .gitignore.
 .venv/
-node_modules/
-.pnpm-store/
-.next/
 __pycache__/
 *.py[cod]
 .pytest_cache/
@@ -36,3 +33,4 @@ loamz-rs/target/
 
 # Terraform
 .terraform/
+model.env

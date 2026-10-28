@@ -14,9 +14,6 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  NODE_VERSION: "22"
-
 jobs:
   # ── Path filter: what changed, including what depends on it ───────────────
   changes:
@@ -27,7 +24,6 @@ jobs:
       pull-requests: read
     outputs:
       python: ${{ steps.plan.outputs.python }}
-      js: ${{ steps.plan.outputs.js }}
       deploy: ${{ steps.plan.outputs.deploy }}
       server: ${{ steps.plan.outputs.server }}
     steps:
@@ -52,13 +48,6 @@ jobs:
             server:
               - 'server/**'
               - 'specs/**'
-            js:
-              - 'apps/**'
-              - 'sdk/js/**'
-              - 'package.json'
-              - 'pnpm-workspace.yaml'
-              - 'pnpm-lock.yaml'
-              - '.github/workflows/ci.yml'
             deploy:
               - 'deploy/**'
               - '.dockerignore'
@@ -71,13 +60,11 @@ jobs:
           EVENT: ${{ github.event_name }}
           PYTHON: ${{ steps.filter.outputs.python }}
           SERVER: ${{ steps.filter.outputs.server }}
-          JS: ${{ steps.filter.outputs.js }}
           DEPLOY: ${{ steps.filter.outputs.deploy }}
         run: |
           flag() { if [ "$EVENT" != "pull_request" ]; then echo true; else echo "${1:-false}"; fi; }
           echo "python=$(flag "$PYTHON")" >> "$GITHUB_OUTPUT"
           echo "server=$(flag "$SERVER")" >> "$GITHUB_OUTPUT"
-          echo "js=$(flag "$JS")" >> "$GITHUB_OUTPUT"
           echo "deploy=$(flag "$DEPLOY")" >> "$GITHUB_OUTPUT"
 
   # ── Style and architecture: ruff, and the import contracts in .importlinter ─
@@ -176,40 +163,6 @@ jobs:
       - name: Integration tests
         run: make test-slow
 
-  # ── JavaScript packages (pnpm workspace) ──────────────────────────────────
-  js:
-    name: JS / ${{ matrix.dir }}
-    needs: changes
-    if: needs.changes.outputs.js == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        dir: [apps/agents-console, sdk/js/oidc-bff]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4 # pnpm version comes from "packageManager" in the root package.json
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - name: Lint
-        run: pnpm --filter "./${{ matrix.dir }}" --if-present lint
-      - name: Typecheck
-        run: pnpm --filter "./${{ matrix.dir }}" --if-present typecheck
-      - name: Design-system ratchet
-        if: matrix.dir == 'apps/agents-console'
-        run: pnpm --filter "./${{ matrix.dir }}" check:design
-      - name: Unit tests (vitest)
-        run: pnpm --filter "./${{ matrix.dir }}" --if-present test
-      - name: Build
-        if: startsWith(matrix.dir, 'apps/')
-        env:
-          NEXT_PUBLIC_API_URL: ""
-        run: pnpm --filter "./${{ matrix.dir }}" build
-
   # Validate the standalone Agents deployment artifacts.
   deploy:
     name: Agents deployment configuration
@@ -235,7 +188,7 @@ jobs:
   ci-ok:
     name: ci-ok
     if: always()
-    needs: [changes, lint, python, integration, js, deploy]
+    needs: [changes, lint, python, integration, deploy]
     runs-on: ubuntu-latest
     steps:
       - name: Fail if any needed job failed or was cancelled (skipped is fine)

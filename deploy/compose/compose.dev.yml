@@ -1,5 +1,5 @@
-# Development: run your checkout instead of rebuilt images. A Python change reloads the agent server in seconds; the console
-# runs `next dev` with hot reload. Only the agent server and the console change; everything else is the normal cell.
+# Development: run your checkout instead of rebuilt images. A Python change reloads the agent server in seconds; everything else is
+# the normal cell, and only the agent server changes.
 #
 #   make cell-dev          # start (or switch) the cell into development mode
 #   make cell              # back to the built images
@@ -25,15 +25,3 @@ services:
       - ${LOAMZ_PYTHON_DIR:-../../../loamz-python}/sdk/python/identity/src/loamz/identity:/app/.venv/lib/python3.14/site-packages/loamz/identity:ro
       - ${LOAMZ_PYTHON_DIR:-../../../loamz-python}/sdk/python/data/src/loamz/data:/app/.venv/lib/python3.14/site-packages/loamz/data:ro
 
-  agents-console:
-    # `next dev` against the checkout; uses the node_modules installed on the host (`pnpm install` at the repo root).
-    image: node:22-bookworm-slim
-    working_dir: /repo/apps/agents-console
-    command: ["./node_modules/.bin/next", "dev", "-H", "0.0.0.0", "-p", "3000"]
-    environment:
-      NEXT_TELEMETRY_DISABLED: "1"
-      WATCHPACK_POLLING: "true"
-    volumes:
-      - ../..:/repo
-    healthcheck:
-      disable: true

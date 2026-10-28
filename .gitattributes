@@ -6,7 +6,6 @@
 
 # Lockfiles: generated, collapse in diffs, never merge by hand.
 uv.lock         linguist-generated=true -diff -merge
-pnpm-lock.yaml  linguist-generated=true -diff -merge
 package-lock.json linguist-generated=true -diff -merge
 
 # Binary assets

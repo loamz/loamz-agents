@@ -4,8 +4,8 @@ Run::
 
     uv run python -m loamz.runtime.kernel.wire.export
 
-Writes ``protocol.schema.json`` next to this file. The UI's ``pnpm gen:protocol``
-reads that file and generates ``src/protocol/protocol.gen.ts``. Re-run both
+Writes ``protocol.schema.json`` next to this file. The chat app's ``pnpm gen:protocol`` (loamz-chat/web)
+reads that file and generates ``src/agents/console/protocol/protocol.gen.ts``. Re-run both
 whenever ``events.py`` or ``requests.py`` change.
 
 The schema bundles every wire event (via the ``WireEvent`` discriminated union)

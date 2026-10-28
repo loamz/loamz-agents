@@ -22,7 +22,8 @@ mode: monolith
 # Where the cell is reachable. Browsers and services must see the same Keycloak address: it is the token issuer.
 publicUrls:
   keycloak: "http://keycloak.localtest.me"
-  ui: "http://ui.localtest.me"
+  # The Loamz Chat app: where connector sign-in and notification links send people.
+  app: "http://app.localtest.me"
   dataWeb: "http://data.localtest.me"
   agentApi: "http://api.localtest.me"
   dataApi: "http://data-api.localtest.me"
@@ -33,10 +34,10 @@ publicUrls:
 secrets:
   # production: name of a Secret you manage (External Secrets, Sealed Secrets, Vault CSI...). Required keys:
   #   postgres-password redis-password keycloak-admin-password
-  #   ui-client-secret data-web-client-secret cell-admin-client-secret membership-client-secret directory-client-secret
+  #   data-web-client-secret cell-admin-client-secret membership-client-secret directory-client-secret
   #   control-s3-access-key-id control-s3-secret-access-key worker-s3-access-key-id worker-s3-secret-access-key
   #   agents-s3-access-key-id agents-s3-secret-access-key
-  #   controller-token worker-token web-session-secret ui-session-secret mask-salt
+  #   controller-token worker-token web-session-secret mask-salt
   # Optional: openai-api-key anthropic-api-key gemini-api-key openrouter-api-key accounts-broker-client-secret
   existingSecret: ""
   # With no existingSecret, create a Secret of random values (kept across upgrades through `lookup`).
@@ -58,8 +59,8 @@ postgres:
     # sslmode require | verify-ca | verify-full. loamz-data refuses anything weaker off-machine.
     sslmode: require
     # The databases must exist: agentdb (with pgvector and uuid-ossp), keycloak, loamz_data, data_retrieval (pgvector: the
-    # documents and memory index, ADR 0008), loamz_ui, and loamz_compute when data.controller.ha is on.
-  databases: { agent: agentdb, keycloak: keycloak, data: loamz_data, retrieval: data_retrieval, ui: loamz_ui, controller: loamz_compute }
+    # documents and memory index, ADR 0008), and loamz_compute when data.controller.ha is on.
+  databases: { agent: agentdb, keycloak: keycloak, data: loamz_data, retrieval: data_retrieval, controller: loamz_compute }
 
 redis:
   enabled: true
@@ -197,12 +198,7 @@ data:
       resources: { requests: { cpu: 250m, memory: 512Mi } }
       autoscaling: { enabled: false, minReplicas: 1, maxReplicas: 4, targetCPUUtilizationPercentage: 70 }
 
-# ── Web UIs ───────────────────────────────────────────────────────────────────
-console:
-  enabled: true
-  image: { repository: "ghcr.io/ravikumarchavva/loamz-agents-console", tag: "" }
-  replicas: 1
-  resources: { requests: { cpu: 100m, memory: 256Mi } }
+# ── Web UI ───────────────────────────────────────────────────────────────────
 dataWorkspace:
   enabled: true
   image: { repository: "ghcr.io/ravikumarchavva/loamz-data-workspace", tag: "" }

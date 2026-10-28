@@ -80,8 +80,6 @@ spec:
             - name: KC_DB_PASSWORD
               valueFrom: { {{ include "cell.secretRef" (dict "root" . "key" "postgres-password") }} }
             # Substituted into the realm file at import (an unset one would become literal text).
-            - name: AGENTS_CONSOLE_CLIENT_SECRET
-              valueFrom: { {{ include "cell.secretRef" (dict "root" . "key" "ui-client-secret") }} }
             - name: DATA_WORKSPACE_CLIENT_SECRET
               valueFrom: { {{ include "cell.secretRef" (dict "root" . "key" "data-web-client-secret") }} }
             - name: AGENT_MEMBERSHIP_CLIENT_SECRET
@@ -92,7 +90,6 @@ spec:
               valueFrom: { {{ include "cell.secretRef" (dict "root" . "key" "cell-admin-client-secret") }} }
             - name: ACCOUNTS_BROKER_CLIENT_SECRET
               valueFrom: { secretKeyRef: { name: {{ include "cell.secretName" . }}, key: accounts-broker-client-secret, optional: true } }
-            - { name: AGENTS_CONSOLE_URL, value: {{ .Values.publicUrls.ui | quote }} }
             - { name: DATA_WORKSPACE_URL, value: {{ .Values.publicUrls.dataWeb | quote }} }
             {{- with .Values.keycloak.extraEnv }}
             {{- toYaml . | nindent 12 }}

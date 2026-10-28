@@ -6,10 +6,10 @@
     "mode": { "enum": ["monolith", "microservices"] },
     "publicUrls": {
       "type": "object",
-      "required": ["keycloak", "ui", "dataWeb", "agentApi", "dataApi"],
+      "required": ["keycloak", "app", "dataWeb", "agentApi", "dataApi"],
       "properties": {
         "keycloak": { "type": "string", "pattern": "^https?://" },
-        "ui": { "type": "string", "pattern": "^https?://" },
+        "app": { "type": "string", "pattern": "^https?://" },
         "dataWeb": { "type": "string", "pattern": "^https?://" },
         "agentApi": { "type": "string", "pattern": "^https?://" },
         "dataApi": { "type": "string", "pattern": "^https?://" },

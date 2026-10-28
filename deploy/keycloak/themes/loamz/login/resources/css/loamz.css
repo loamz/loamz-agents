@@ -1,5 +1,5 @@
 /* Loamz sign-in. Keycloak's own flows and markup, with Loamz's layout, colour and type.
-   Tokens follow the console's design system (apps/agents-console/src/design): violet brand, 8px controls, 40px control height,
+   Tokens follow the Loamz Chat design system: violet brand, 8px controls, 40px control height,
    16px floating surfaces. Light and dark follow the browser. */
 
 :root {

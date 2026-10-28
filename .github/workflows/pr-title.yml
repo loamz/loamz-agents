@@ -32,8 +32,6 @@ jobs:
             loamz
             loamz-runtime
             loamz-agents-server
-            agents-console
-            oidc-bff
             specs
             deploy
             docs

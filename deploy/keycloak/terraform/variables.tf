@@ -18,21 +18,10 @@ variable "realm" {
   default = "loamz"
 }
 
-variable "ui_url" {
-  type        = string
-  description = "Origin of the agents console (agents-console)."
-  default     = "http://127.0.0.1:3000"
-}
-
 variable "data_web_url" {
   type        = string
   description = "Origin of the data workspace (data-workspace)."
   default     = "http://127.0.0.1:3011"
-}
-
-variable "ui_client_secret" {
-  type      = string
-  sensitive = true
 }
 
 variable "data_web_client_secret" {

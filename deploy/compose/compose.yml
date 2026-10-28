@@ -29,7 +29,7 @@ x-agent-env: &agent-env
   LOAMZ_AGENTS_PUSH__CONTACT: ${VAPID_CONTACT:-mailto:admin@example.invalid}
   LOAMZ_AGENTS_SEALING__KEYS__K1: ${CHAT_SEALING_KEY:-}
   LOAMZ_AGENTS_SEALING__PRIMARY: k1
-  LOAMZ_AGENTS_HTTP__FRONTEND_URL: ${AGENTS_CONSOLE_URL:-http://localhost:3000}
+  LOAMZ_AGENTS_HTTP__FRONTEND_URL: ${APP_URL:-http://localhost:5173}
   LOAMZ_AGENTS_SANDBOX__RUNTIME: ${SANDBOX_RUNTIME:-nsjail}
   LOAMZ_AGENTS_LLM__MODEL: ${CHAT_MODEL:-openai/gpt-5.4-mini}
   LOAMZ_AGENTS_LLM__OPENAI_API_KEY: ${OPENAI_API_KEY:-}
@@ -139,13 +139,11 @@ services:
       KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak?sslmode=require
       KC_DB_USERNAME: ${POSTGRES_USER:-loamz}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
-      # Substituted into the realm file at import. All three are required: an unset one becomes the literal text.
-      AGENTS_CONSOLE_CLIENT_SECRET: ${AGENTS_CONSOLE_CLIENT_SECRET:?run ./gen-env.sh}
+      # Substituted into the realm file at import. All are required: an unset one becomes the literal text.
       DATA_WORKSPACE_CLIENT_SECRET: ${DATA_WORKSPACE_CLIENT_SECRET:?}
       CELL_ADMIN_CLIENT_SECRET: ${CELL_ADMIN_CLIENT_SECRET:?}
       AGENT_MEMBERSHIP_CLIENT_SECRET: ${AGENT_MEMBERSHIP_CLIENT_SECRET:?}
       DIRECTORY_CLIENT_SECRET: ${DIRECTORY_CLIENT_SECRET:?run ./gen-env.sh}
-      AGENTS_CONSOLE_URL: ${AGENTS_CONSOLE_URL:-http://localhost:3000}
       DATA_WORKSPACE_URL: ${DATA_WORKSPACE_URL:-http://localhost:3011}
     volumes:
       - ../keycloak/realm-loamz.json:/opt/keycloak/data/import/realm-loamz.json:ro
@@ -213,25 +211,6 @@ services:
   agent-admin:
     <<: *microservice
     environment: { <<: *microservice-env, LOAMZ_SERVICE: admin }
-
-  # ── Web ─────────────────────────────────────────────────────────────────────
-  agents-console:
-    image: ${IMAGE_REGISTRY:-ghcr.io/ravikumarchavva}/loamz-agents-console:${IMAGE_TAG:-local}
-    build: { context: ../.., dockerfile: deploy/docker/loamz-agents-console.Dockerfile }
-    environment:
-      BACKEND_API_URL: http://${AGENT_UPSTREAM:-agent-server:8000}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-loamz}:${POSTGRES_PASSWORD}@postgres:5432/loamz_ui?sslmode=require
-      OIDC_ISSUER: ${KEYCLOAK_PUBLIC_URL:-http://keycloak.localhost:${PORT_KEYCLOAK:-8081}}/realms/loamz
-      OIDC_CLIENT_ID: agents-console
-      OIDC_CLIENT_SECRET: ${AGENTS_CONSOLE_CLIENT_SECRET:?}
-      SESSION_SECRET: ${UI_SESSION_SECRET:?}
-      PUBLIC_URL: ${AGENTS_CONSOLE_URL:-http://localhost:3000}
-      DATA_WORKSPACE_URL: ${DATA_WORKSPACE_URL:-http://localhost:3011}
-    ports:
-      - "${BIND_ADDR:-127.0.0.1}:${PORT_UI:-3000}:3000"
-    depends_on:
-      postgres: { condition: service_healthy }
-    restart: unless-stopped
 
   data-connection:
     extra_hosts: ["host.docker.internal:host-gateway"]
