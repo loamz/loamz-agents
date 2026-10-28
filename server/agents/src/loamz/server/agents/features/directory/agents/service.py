@@ -35,6 +35,7 @@ from loamz.server.agents.features.directory.agents.activity import (
     RuntimeActivity,
     ThreadActivity,
 )
+from loamz.server.agents.features.directory.agents.draft import AgentDraft
 from loamz.server.agents.features.directory.agents.model import (
     MAX_AGENTS_PER_USER,
     AgentIn,
@@ -159,8 +160,8 @@ RICH_UI = "rich_ui"  # not a tool either: listing it teaches the agent to write 
 
 @cache
 def rich_ui_prompt() -> str:
-    """How to write a rich answer in a reply (OpenUI Lang and its chat library). Generated from the console's library by
-    `pnpm openui:prompt` in apps/agents-console; a test there fails when the two differ."""
+    """How to write a rich answer in a reply (OpenUI Lang and its chat library). Generated from the app's library by
+    `pnpm openui:prompt` in loamz-chat/web; a test there fails when the two differ."""
     return (resources.files(__package__) / "openui_prompt.md").read_text(encoding="utf-8")
 
 
@@ -200,6 +201,53 @@ class AgentsService:
         self.hooks = hooks
         self._catalog = catalog
 
+    async def draft(self, caller: Caller, request: str) -> AgentDraft:
+        """A draft agent for a sentence of description: what the person could start from. Nothing is saved."""
+        from loamz.server.agents.features.directory.agents.draft import draft_agent, limit_drafts
+        from loamz.server.agents.features.people.connections.service import connections
+        from loamz.server.agents.features.people.marketplace.catalog import CATALOG
+        from loamz.server.agents.features.people.skills.service import PREFIX
+        from loamz.server.agents.features.people.skills.service import skills as skills_feature
+
+        self._c.require_model()
+        await limit_drafts(self._c.counters, self._c.settings.llm, caller)
+        every_agent = {
+            "documents",
+            "code-interpreter",
+        }  # Files and the code interpreter come with every agent anyway
+        connected = {
+            c["id"]
+            for c in await self._c.get(connections).status(caller)
+            if c["status"] == "connected"
+        }
+        offered = {
+            i.id: f"{i.name}: {i.tagline}"
+            + (f" [gives: {', '.join(i.provides)}]" if i.provides else "")
+            + (
+                f" (app, {'connected' if i.id in connected else 'not connected yet'})"
+                if i.kind == "connector"
+                else ""
+            )
+            for i in CATALOG
+            if i.kind in {"skill", "tool", "connector"}
+            and i.id not in every_agent
+            and (i.kind != "connector" or (i.mcp_url and not i.needs))
+        }
+        for own in await self._c.get(skills_feature).list(caller):
+            offered[f"{PREFIX}{own.id}"] = (
+                f"{own.name} (the person's own skill): {own.description[:120]}"
+            )
+        customs = await self._c.get(connections).custom_listings(caller)
+        for mine in customs:
+            offered[mine.id] = (
+                f"{mine.name} (app the person added, {'connected' if mine.id in connected else 'not connected yet'})"
+            )
+        apps = {
+            i.id: i.id in connected for i in CATALOG if i.kind == "connector" and i.id in offered
+        }
+        apps.update({mine.id: mine.id in connected for mine in customs})
+        return await draft_agent(self._c.chat_model(), request, offered, apps)
+
     # ── plumbing ────────────────────────────────────────────────────────────
     @property
     def _agent_store(self) -> AgentStore:
@@ -225,6 +273,47 @@ class AgentsService:
             detect_provider(model), self._c.settings.llm.api_keys()
         ):
             raise InvalidRequestError(f"This deployment has no credentials for {model}.")
+
+    async def _check_abilities(self, caller: Caller, ids: list[str]) -> None:
+        """Only skills, tools and connectors from the catalog, or the person's own skills: an agent is never given something
+        nobody reviewed, or another person's skill."""
+        from loamz.server.agents.features.people.marketplace.catalog import CATALOG
+        from loamz.server.agents.features.people.skills.service import PREFIX
+        from loamz.server.agents.features.people.skills.service import skills as skills_feature
+
+        kinds = {i.id: i.kind for i in CATALOG}
+        from loamz.server.agents.features.people.connections.service import connections
+
+        mine = {f"{PREFIX}{s.id}" for s in await self._c.get(skills_feature).list(caller)}
+        mine |= {c.id for c in await self._c.get(connections).custom_listings(caller)}
+        unknown = sorted(
+            i for i in ids if kinds.get(i) not in {"skill", "tool", "connector"} and i not in mine
+        )
+        if unknown:
+            raise InvalidRequestError(f"Unknown skill, tool or connector: {', '.join(unknown)}.")
+
+    @staticmethod
+    def _check_tool_access(
+        access: dict[str, dict[str, str]], abilities: list[str] | tuple[str, ...]
+    ) -> dict[str, dict[str, str]]:
+        """Only connectors the agent has, at most MAX names in all, with plain tool names: what the person ticked, nothing else."""
+        from loamz.server.agents.features.directory.agents.model import MAX_TOOL_ACCESS_NAMES
+
+        have = set(abilities)
+        unknown = sorted(set(access) - have)
+        if unknown:
+            raise InvalidRequestError(
+                f"Tools were chosen for something this agent does not have: {', '.join(unknown)}."
+            )
+        if sum(len(tools) for tools in access.values()) > MAX_TOOL_ACCESS_NAMES:
+            raise InvalidRequestError(
+                "That is too many tools to choose from. Untick the ones it does not need."
+            )
+        for tools in access.values():
+            for name in tools:
+                if not name or len(name) > 120 or not name.isprintable():
+                    raise InvalidRequestError("A tool name is not valid.")
+        return {k: dict(v) for k, v in access.items()}
 
     def _check_tools(self, names: list[str] | None) -> None:
         if names is None:
@@ -302,6 +391,8 @@ class AgentsService:
             role=profile.role,
             instructions=profile.instructions,
             allowed_tools=None if profile.allowed_tools is None else list(profile.allowed_tools),
+            abilities=list(profile.abilities),
+            tool_access=profile.tool_access,
             workspace_id=profile.workspace_id,
             created_at=_when(profile.created_at),  # type: ignore[arg-type]
             thread_id=thread_id,
@@ -309,6 +400,7 @@ class AgentsService:
             last_message=last.text if last else None,
             working=working,
             avatar=profile.avatar_key,
+            look=profile.look,
             pinned_at=pinned,
             model=profile.model,
             sees=None if not profile.model else model_supports_vision(profile.model),
@@ -350,6 +442,8 @@ class AgentsService:
                 f"You can have {MAX_AGENTS_PER_USER} agents. Delete one to add another."
             )
         self._check_tools(body.allowed_tools)
+        await self._check_abilities(caller, body.abilities)
+        access = self._check_tool_access(body.tool_access, body.abilities)
         self._check_model(body.model)
         profile = AgentProfile(
             id=new_id(),
@@ -359,7 +453,10 @@ class AgentsService:
             role=body.role.strip(),
             instructions=body.instructions,
             allowed_tools=None if body.allowed_tools is None else tuple(body.allowed_tools),
+            abilities=tuple(dict.fromkeys(body.abilities)),
+            tool_access=access,
             model=body.model or None,
+            look=body.look,
             created_at=time.time(),
         )
         await self._store.insert(profile)
@@ -368,6 +465,8 @@ class AgentsService:
     async def patch(self, caller: Caller, agent_id: str, body: AgentPatch) -> AgentOut:
         profile = await self.get_owned(caller, agent_id)
         self._check_tools(body.allowed_tools)
+        if body.abilities is not None:
+            await self._check_abilities(caller, body.abilities)
         self._check_model(body.model)
         change: dict[str, object] = {}
         if body.name is not None:
@@ -376,6 +475,10 @@ class AgentsService:
             change["role"] = body.role.strip()
         if body.instructions is not None:
             change["instructions"] = body.instructions
+        if body.clear_look:
+            change["look"] = None
+        elif body.look is not None:
+            change["look"] = body.look
         if body.default_model:
             change["model"] = None
         elif body.model is not None:
@@ -384,6 +487,16 @@ class AgentsService:
             change["allowed_tools"] = None
         elif body.allowed_tools is not None:
             change["allowed_tools"] = tuple(body.allowed_tools)
+        if body.abilities is not None:
+            change["abilities"] = tuple(dict.fromkeys(body.abilities))
+        if body.tool_access is not None or body.abilities is not None:
+            # Taking a connector away takes its tool choices with it; new choices must be for connectors the agent has.
+            kept = body.tool_access if body.tool_access is not None else profile.tool_access
+            have = change.get("abilities", profile.abilities)
+            change["tool_access"] = self._check_tool_access(
+                {k: v for k, v in kept.items() if k in have} if body.tool_access is None else kept,
+                have,  # type: ignore[arg-type]
+            )
         profile = profile.model_copy(update=change)
         await self._store.update(profile)
         if (
@@ -564,13 +677,17 @@ class AgentsService:
         )
         allowed = narrow_tools([t for t in tools if name_of(t) not in drop_tools], profile, name_of)
         chat = self._c.settings.chat
+        history = self._agent_store.tenant(profile.tenant_id).threads
+        # Every agent can look back through its own conversation, and a long one is summarized rather than cut.
+        recall, summarizer = self._c.conversation_memory(history, session_id, model)
         return create_assistant_agent(
             model_client=self._c.chat_model(model),
-            tools=[*allowed, *extra_tools],
+            summarizer=summarizer,
+            tools=[*allowed, *extra_tools, recall],
             system_instructions=base_instructions
             + instructions_block(profile, drives)
             + extra_instructions,
-            history=self._agent_store.tenant(profile.tenant_id).threads,
+            history=history,
             model_context_window=chat.context_window,
             max_iterations=chat.max_iterations,
             name=name,

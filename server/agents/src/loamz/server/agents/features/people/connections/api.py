@@ -5,9 +5,11 @@ from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, Response
 from fastapi.responses import JSONResponse, RedirectResponse
+from pydantic import BaseModel, Field
 
 from loamz.server.agents.bootstrap.http import CallerDep, use
 from loamz.server.agents.features.people.connections.service import ConnectionsService, connections
+from loamz.server.agents.features.people.marketplace.model import Listing
 
 Service = Annotated[ConnectionsService, Depends(use(connections))]
 
@@ -19,10 +21,34 @@ async def my_connections(caller: CallerDep, service: Service) -> dict[str, objec
     return {"items": await service.status(caller)}
 
 
+class CustomBody(BaseModel):
+    name: Annotated[str, Field(min_length=1, max_length=60)]
+    url: Annotated[str, Field(min_length=8, max_length=500)]
+    token: Annotated[str | None, Field(max_length=4000)] = None
+
+
+@router.get("/me/connectors/custom")
+async def my_custom(caller: CallerDep, service: Service) -> dict[str, object]:
+    """The connectors this person added by the address of their MCP server."""
+    return {"items": await service.custom_listings(caller)}
+
+
+@router.post("/me/connectors/custom", status_code=201)
+async def add_custom(body: CustomBody, caller: CallerDep, service: Service) -> Listing:
+    """Add a connector by address. Then connect it with `/me/connections/{id}/start`."""
+    return await service.add_custom(caller, body.name, body.url, body.token)
+
+
 @router.post("/me/connections/{item_id}/start")
 async def start(item_id: str, caller: CallerDep, service: Service) -> dict[str, str]:
     """Where to send the person to sign in on the vendor's page, or `connected` when the saved sign-in still works."""
     return await service.start(caller, item_id)
+
+
+@router.get("/me/connections/{item_id}/tools")
+async def connector_tools(item_id: str, caller: CallerDep, service: Service) -> dict[str, object]:
+    """The tools a connected connector offers, for choosing which ones an agent may use."""
+    return {"items": await service.list_tools(caller, item_id)}
 
 
 @router.delete("/me/connections/{item_id}", status_code=204)

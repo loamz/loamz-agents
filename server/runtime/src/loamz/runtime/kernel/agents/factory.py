@@ -94,6 +94,7 @@ def create_assistant_agent(
     approval_required_risk: ToolRisk | None = None,
     reasoning: ReasoningEffort | None = None,
     channel: ChannelMemberConfig | None = None,
+    summarizer: object | None = None,
 ) -> ReActAgent:
     """Create a configured ``ReActAgent`` (a ``ChannelMemberAgent`` when ``channel`` is given: one that
     lives in channels, woken by what is said there and choosing whether to answer).
@@ -126,6 +127,8 @@ def create_assistant_agent(
             ``RetryMiddleware``/``LLMJudgeMiddleware`` (CHAT),
             ``PIIDetectionMiddleware``/``ToolCallValidationMiddleware``/
             ``CacheMiddleware``/``ContentTruncatorMiddleware`` (TOOL).
+        summarizer: Satisfies the compaction coordinator's summarizer (``SummaryCheckpointer``): after a turn it may save a checkpoint that
+            replaces the older part of a long conversation with a summary. ``None``: history is only ever cut by the window.
         reasoning: How hard a reasoning-capable model thinks before answering (``None`` = the provider default).
         initial_tool_choice: Forces this exact tool name on the agent's
             first LLM call only; dropped after (see ``ReActAgent``).
@@ -147,9 +150,15 @@ def create_assistant_agent(
         [SlidingWindowCompaction(max_messages=model_context_window)]
     )
 
+    coordinator = None
+    if summarizer is not None:
+        from loamz.runtime.kernel.context.compaction.coordinator import DefaultCompactionCoordinator
+
+        coordinator = DefaultCompactionCoordinator(summarizer=summarizer)
     ctx = ContextConfig(
         history,
         pipeline=pipeline,
+        coordinator=coordinator,
     )
 
     toolbox = Toolbox()

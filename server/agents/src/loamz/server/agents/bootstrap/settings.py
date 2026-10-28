@@ -87,6 +87,14 @@ class LlmSettings(BaseModel):
     groq_api_key: str = ""
     openrouter_api_key: str = ""
     nvidia_api_key: str = ""
+    drafts_per_10_minutes: int = Field(
+        default=5,
+        ge=1,
+        description="How many times one person may ask to have an agent written for them within ten minutes (each asks the model).",
+    )
+    drafts_per_day: int = Field(
+        default=30, ge=1, description="The same, in a day (UTC): a cap on what drafting can cost."
+    )
 
     @model_validator(mode="before")
     @classmethod
@@ -147,8 +155,8 @@ class TelemetrySettings(BaseModel):
 class HttpSettings(BaseModel):
     cors_origins: list[str] = Field(default_factory=list)
     frontend_url: str = Field(
-        default="http://127.0.0.1:3000",
-        description="Where links in notifications and e-mails point.",
+        default="http://127.0.0.1:5173",
+        description="The address of the Loamz Chat app: links in notifications and e-mails, and where connector sign-in sends people back to.",
     )
     public_url: str = Field(
         default="http://127.0.0.1:8010",
@@ -160,7 +168,7 @@ class HttpSettings(BaseModel):
     @classmethod
     def _fallback_env(cls, data: object) -> object:
         if isinstance(data, dict) and (
-            not data.get("frontend_url") or data.get("frontend_url") == "http://127.0.0.1:3000"
+            not data.get("frontend_url") or data.get("frontend_url") == "http://127.0.0.1:5173"
         ):
             import os
 
@@ -184,9 +192,45 @@ class FilesSettings(BaseModel):
     )
 
 
+class ContextSettings(BaseModel):
+    """How a long conversation stays inside the model's window: older messages are summarized, never deleted."""
+
+    max_tokens: int = Field(
+        default=128_000,
+        ge=8_000,
+        description="The most a request may carry, at most the model's own window (newer models take far more; this caps what a long conversation costs).",
+    )
+    output_reserve: int = Field(default=8_000, ge=0, description="Tokens kept free for the reply.")
+    trigger_ratio: float = Field(
+        default=0.8,
+        gt=0,
+        le=1,
+        description="Summarize once a request would reach this share of the budget.",
+    )
+    tail_ratio: float = Field(
+        default=0.2,
+        gt=0,
+        lt=1,
+        description="The share of the budget kept word for word after a summary.",
+    )
+    min_tail_turns: int = Field(
+        default=6, ge=1, description="Fewest recent turns kept word for word."
+    )
+    rebuild_every: int = Field(
+        default=3,
+        ge=2,
+        description="Every this many summaries, make it again from the original messages so nothing is lost for good.",
+    )
+    summary_model: str = Field(
+        default="", description="The model that writes summaries; empty: the agent's own."
+    )
+
+
 class ChatSettings(BaseModel):
     context_window: int = Field(
-        default=40, ge=1, description="Messages of history the model is shown."
+        default=200,
+        ge=1,
+        description="The most messages the model is shown: a safety limit. A conversation is summarized long before it (see `context`).",
     )
     max_iterations: int = Field(default=30, ge=1)
     max_concurrent_runs: int = Field(
@@ -359,6 +403,7 @@ class Settings(BaseSettings):
     redis: RedisSettings = Field(default_factory=RedisSettings)
     files: FilesSettings = Field(default_factory=FilesSettings)
     chat: ChatSettings = Field(default_factory=ChatSettings)
+    context: ContextSettings = Field(default_factory=ContextSettings)
     audio: AudioSettings = Field(default_factory=AudioSettings)
     documents: DocumentSettings = Field(default_factory=DocumentSettings)
     notifications: NotificationSettings = Field(default_factory=NotificationSettings)

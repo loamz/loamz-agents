@@ -5,6 +5,7 @@ from loamz.runtime.kernel.caller import Caller
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features.people.marketplace.catalog import CATALOG, CATEGORIES
 from loamz.server.agents.features.people.marketplace.model import (
+    CUSTOM_PREFIX,
     Catalog,
     Install,
     InstallBody,
@@ -12,7 +13,13 @@ from loamz.server.agents.features.people.marketplace.model import (
     InstallPatch,
     Listing,
 )
+from loamz.server.agents.features.people.marketplace.shipped import shipped_instructions
 from loamz.server.agents.features.people.marketplace.store import InstallStore
+
+SKILLS_INTRO = (
+    "\n\nThe person has these skills. When a task matches one, call use_skill with its name to load the full instructions, "
+    "then follow them:\n"
+)
 
 
 class MarketplaceService:
@@ -58,11 +65,18 @@ class MarketplaceService:
                 return i
         raise NotFoundError("That listing does not exist.")
 
+    def bundled(self, plugin: Listing) -> list[Listing]:
+        """What a plugin bundles, in the order it lists them."""
+        return [self.listing(i) for i in plugin.includes if any(c.id == i for c in CATALOG)]
+
     async def installed(self, caller: Caller) -> InstallList:
         return InstallList(items=await self._store.list(caller.tenant_id, caller.user_id))
 
-    async def install(self, caller: Caller, item_id: str, body: InstallBody) -> Install:
-        item = self.listing(item_id)
+    async def install(
+        self, caller: Caller, item_id: str, body: InstallBody, listing: Listing | None = None
+    ) -> Install:
+        """Add an item. `listing` is the person's own connector, which is not in the catalog."""
+        item = listing or self.listing(item_id)
         if item.needs:
             raise InvalidRequestError(
                 f"{item.name} needs a connected account first, and connecting is not available yet."
@@ -71,30 +85,79 @@ class MarketplaceService:
         chosen = {p.group: body.permissions.get(p.group, p.default) for p in item.permissions}
         record = Install(id=item.id, permissions=chosen)
         await self._store.put(caller.tenant_id, caller.user_id, record)
+        if item.kind == "plugin":
+            # A plugin adds what it bundles, each with the safe starting choices. Apps wait for their sign-in, so they are not added here.
+            have = {i.id for i in await self._store.list(caller.tenant_id, caller.user_id)}
+            for inner in self.bundled(item):
+                if inner.kind != "connector" and inner.id not in have:
+                    start = Install(
+                        id=inner.id, permissions={p.group: p.default for p in inner.permissions}
+                    )
+                    await self._store.put(caller.tenant_id, caller.user_id, start)
         return record
 
-    async def skills_text(self, caller: Caller) -> str:
-        """What the assistant is told about the skills this person switched on (nothing when none): a short instruction per skill."""
+    async def _skills_on(self, caller: Caller, only: set[str] | None) -> list[Listing]:
+        if only is not None:
+            # An agent was given these by name: that is enough, whether or not the person switched them on for themselves.
+            return [i for i in CATALOG if i.kind == "skill" and i.id in only]
         on = {i.id for i in (await self._store.list(caller.tenant_id, caller.user_id)) if i.enabled}
-        skills = [i for i in CATALOG if i.kind == "skill" and i.id in on]
-        if not skills:
-            return ""
-        lines = "\n".join(f"- {i.name}: {i.description}" for i in skills)
-        return (
-            f"\n\nThe person turned on these skills. Use them when they fit what is asked:\n{lines}"
-        )
+        return [i for i in CATALOG if i.kind == "skill" and i.id in on]
 
-    async def tools_on(self, caller: Caller) -> dict[str, dict[str, str]]:
-        """The tools this person switched on (not blocked entirely), with the choice for each group."""
+    async def skill_lines(self, caller: Caller, only: set[str] | None = None) -> list[str]:
+        """One line per shipped skill this person switched on: its name and description. With `only` (an agent's own abilities), just those."""
+        return [f"- {i.name}: {i.description}" for i in await self._skills_on(caller, only)]
+
+    async def skills_text(self, caller: Caller, only: set[str] | None = None) -> str:
+        """What the assistant is told about the skills this person switched on (nothing when none)."""
+        lines = await self.skill_lines(caller, only)
+        return SKILLS_INTRO + "\n".join(lines) if lines else ""
+
+    async def skill_instructions(
+        self, caller: Caller, name: str, only: set[str] | None = None
+    ) -> str | None:
+        """The full instructions of one of the shipped skills this person switched on, by its name; None when there is no such skill."""
+        wanted = name.strip().lower()
+        for skill in await self._skills_on(caller, only):
+            if wanted in {skill.name.lower(), skill.id}:
+                return shipped_instructions(skill.id)
+        return None
+
+    async def tools_on(
+        self, caller: Caller, only: set[str] | None = None
+    ) -> dict[str, dict[str, str]]:
+        """The tools this person switched on (not blocked entirely), with the choice for each group. With `only`, just those."""
         out: dict[str, dict[str, str]] = {}
         kinds = {i.id: i.kind for i in CATALOG}
         for record in await self._store.list(caller.tenant_id, caller.user_id):
             if (
-                record.enabled
+                (only is None or record.id in only)
+                and record.enabled
                 and kinds.get(record.id) == "tool"
                 and any(c != "block" for c in record.permissions.values())
             ):
                 out[record.id] = dict(record.permissions)
+        return out
+
+    async def tool_choices(
+        self, caller: Caller, only: set[str] | None = None
+    ) -> dict[str, dict[str, str]]:
+        """The tools to build and what the person allows each: for an agent, those it was given (the person's own choices where they
+        added one, the safe starting choices otherwise); for the plain assistant, those switched on."""
+        if only is None:
+            return await self.tools_on(caller)
+        have = {i.id: i for i in await self._store.list(caller.tenant_id, caller.user_id)}
+        out: dict[str, dict[str, str]] = {}
+        for item in CATALOG:
+            if item.kind != "tool" or item.id not in only:
+                continue
+            record = have.get(item.id)
+            if record is not None and not record.enabled:
+                continue
+            out[item.id] = (
+                dict(record.permissions)
+                if record
+                else {p.group: p.default for p in item.permissions}
+            )
         return out
 
     async def change(self, caller: Caller, item_id: str, body: InstallPatch) -> Install:
@@ -107,7 +170,11 @@ class MarketplaceService:
         if body.enabled is not None:
             current.enabled = body.enabled
         if body.permissions is not None:
-            allowed = {p.group for p in self.listing(item_id).permissions}
+            allowed = (
+                {"write"}
+                if item_id.startswith(CUSTOM_PREFIX)
+                else {p.group for p in self.listing(item_id).permissions}
+            )
             current.permissions = {g: c for g, c in body.permissions.items() if g in allowed} | {
                 g: c for g, c in current.permissions.items() if g not in body.permissions
             }

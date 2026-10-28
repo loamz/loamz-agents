@@ -8,6 +8,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field, model_validator
 
 from loamz.runtime.kernel.runtime.channel import Mode
+from loamz.server.agents.features.directory.agents.looks import Look
 
 
 class MemberIn(BaseModel):
@@ -33,6 +34,9 @@ class GroupPatch(BaseModel):
     token_cap: int | None = Field(default=None, ge=0)
     budget_usd: float | None = Field(default=None, ge=0, allow_inf_nan=False)
     breaker: int | None = Field(default=None, ge=1, le=1000)
+    look: Look | None = None
+    clear_look: bool = False
+    """`look: null` leaves it as it is, so going back to the first letter needs a flag."""
 
 
 class MemberPatch(BaseModel):
@@ -75,6 +79,7 @@ class GroupOut(BaseModel):
     cost_usd: float = 0
     breaker: int = 40
     avatar: str | None = None
+    look: Look | None = None
     pinned_at: datetime | None = None
 
 

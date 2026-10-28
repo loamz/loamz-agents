@@ -11,5 +11,6 @@ FEATURES: tuple[Feature, ...] = (
     feature("people.usage", "gateway"),
     feature("people.marketplace", "gateway"),
     feature("people.connections", "gateway"),
+    feature("people.skills", "gateway"),
     feature("people.export", "gateway"),
 )

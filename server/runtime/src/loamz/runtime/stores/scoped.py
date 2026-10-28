@@ -173,6 +173,9 @@ class _ScopedThreadStore:
         cp = await self._inner.get_checkpoint(checkpoint_id)
         return self._cp_out(cp) if cp is not None and self._p.owns(cp.session_id) else None
 
+    async def session_nodes(self, session_id: str) -> list[MessageNode]:
+        return [self._node_out(n) for n in await self._inner.session_nodes(self._p.add(session_id))]
+
     async def list_checkpoints(self, session_id: str) -> list[HistoryCheckpoint]:
         return [
             self._cp_out(c) for c in await self._inner.list_checkpoints(self._p.add(session_id))

@@ -252,6 +252,51 @@ class Container:
 
     model_client = chat_model
 
+    def conversation_memory(
+        self, history: object, session_id: str, model: str | None = None
+    ) -> tuple[object, object]:
+        """The tool that searches and reads this conversation's original messages, and the summarizer that keeps it inside the budget."""
+        from loamz.runtime.kernel.context.compaction.checkpointing import SummaryCheckpointer
+        from loamz.runtime.kernel.models.registry import get_context_length
+        from loamz.runtime.toolkit.conversation_history import ConversationHistoryTool
+
+        cfg = self.settings.context
+        name = model or self.settings.llm.model
+        budget = min(get_context_length(name), cfg.max_tokens) - cfg.output_reserve
+        writer = cfg.summary_model or name
+        return (
+            ConversationHistoryTool(history, session_id),  # type: ignore[arg-type]
+            SummaryCheckpointer(
+                history,  # type: ignore[arg-type]
+                self.chat_model(writer),
+                budget_tokens=budget,
+                trigger_ratio=cfg.trigger_ratio,
+                tail_ratio=cfg.tail_ratio,
+                min_tail_turns=cfg.min_tail_turns,
+                rebuild_every=cfg.rebuild_every,
+                model_name=writer,
+            ),
+        )
+
+    def require_model(self, model: str | None = None) -> None:
+        """Says plainly that no AI model is connected, instead of letting a message fail later with the provider's refusal."""
+        from loamz.engine.errors import InvalidRequestError, ServiceUnavailableError
+        from loamz.runtime.providers.llm.factory import detect_provider, has_provider_api_key
+
+        llm = self.settings.llm
+        name = model or llm.model
+        try:
+            provider = detect_provider(name)
+        except ValueError as why:
+            raise InvalidRequestError(str(why)) from why
+        if has_provider_api_key(provider, llm.api_keys()) or (
+            provider == "openai" and llm.openai_base_url
+        ):
+            return
+        raise ServiceUnavailableError(
+            "No AI model is connected to this server yet, so agents cannot answer. The person who runs the server needs to add a model key."
+        )
+
     @cached_property
     def runtime(self) -> Runtime:
         """The durable engine over `agent_store`. Its worker runs only in processes that serve runs (see `start`)."""

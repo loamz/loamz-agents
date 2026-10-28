@@ -23,6 +23,18 @@ SCRIPTS = [
         PRIMARY KEY (tenant_id, user_id, item_id)
     )
     """,
+    """
+    CREATE TABLE IF NOT EXISTS people_custom_connectors (
+        tenant_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        item_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        url TEXT NOT NULL,
+        secret TEXT,
+        created_at DOUBLE PRECISION NOT NULL,
+        PRIMARY KEY (tenant_id, user_id, item_id)
+    )
+    """,
 ]
 
 
@@ -81,15 +93,17 @@ class ConnectionStore:
         return self._sealer.open(self._scope(tenant, user, item), column, row[column])
 
     async def set_status(self, tenant: str, user: str, item: str, status: str) -> None:
+        """Record where a connection stands. A server that needs no sign-in has no tokens and so no row yet: it gets one here."""
         await self._ensure()
         async with self._db.transaction() as tx:
             await tx.execute(
-                "UPDATE people_connections SET status = ?, connected_at = ? WHERE tenant_id = ? AND user_id = ? AND item_id = ?",
-                status,
-                time.time(),
+                "INSERT INTO people_connections (tenant_id, user_id, item_id, status, connected_at) VALUES (?, ?, ?, ?, ?) "
+                "ON CONFLICT (tenant_id, user_id, item_id) DO UPDATE SET status = excluded.status, connected_at = excluded.connected_at",
                 tenant,
                 user,
                 item,
+                status,
+                time.time(),
             )
 
     async def list(self, tenant: str, user: str) -> list[dict[str, object]]:
@@ -104,6 +118,62 @@ class ConnectionStore:
             {"id": r["item_id"], "status": r["status"], "connected_at": r["connected_at"]}
             for r in rows
         ]
+
+    async def add_custom(
+        self, tenant: str, user: str, item: str, name: str, url: str, secret: str | None
+    ) -> None:
+        """A connector this person added by address. The access token they gave (if any) is sealed like the sign-in tokens."""
+        await self._ensure()
+        sealed = (
+            None
+            if not secret
+            else self._sealer.seal(self._scope(tenant, user, item), "secret", secret)
+        )
+        async with self._db.transaction() as tx:
+            await tx.execute(
+                "INSERT INTO people_custom_connectors (tenant_id, user_id, item_id, name, url, secret, created_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                tenant,
+                user,
+                item,
+                name,
+                url,
+                sealed,
+                time.time(),
+            )
+
+    async def customs(self, tenant: str, user: str) -> list[dict[str, str]]:
+        await self._ensure()
+        async with self._db.transaction() as tx:
+            rows = await tx.fetchall(
+                "SELECT item_id, name, url FROM people_custom_connectors WHERE tenant_id = ? AND user_id = ? ORDER BY created_at",
+                tenant,
+                user,
+            )
+        return [{"id": r["item_id"], "name": r["name"], "url": r["url"]} for r in rows]
+
+    async def custom_secret(self, tenant: str, user: str, item: str) -> str | None:
+        await self._ensure()
+        async with self._db.transaction() as tx:
+            row = await tx.fetchone(
+                "SELECT secret FROM people_custom_connectors WHERE tenant_id = ? AND user_id = ? AND item_id = ?",
+                tenant,
+                user,
+                item,
+            )
+        if row is None or row["secret"] is None:
+            return None
+        return self._sealer.open(self._scope(tenant, user, item), "secret", row["secret"])
+
+    async def remove_custom(self, tenant: str, user: str, item: str) -> int:
+        await self._ensure()
+        async with self._db.transaction() as tx:
+            return await tx.execute(
+                "DELETE FROM people_custom_connectors WHERE tenant_id = ? AND user_id = ? AND item_id = ?",
+                tenant,
+                user,
+                item,
+            )
 
     async def has_tokens(self, tenant: str, user: str, item: str) -> bool:
         return await self._get(tenant, user, item, "tokens") is not None
@@ -122,9 +192,15 @@ class ConnectionStore:
         await self._ensure()
         async with self._db.transaction() as tx:
             if user is None:
+                await tx.execute("DELETE FROM people_custom_connectors WHERE tenant_id = ?", tenant)
                 return await tx.execute(
                     "DELETE FROM people_connections WHERE tenant_id = ?", tenant
                 )
+            await tx.execute(
+                "DELETE FROM people_custom_connectors WHERE tenant_id = ? AND user_id = ?",
+                tenant,
+                user,
+            )
             return await tx.execute(
                 "DELETE FROM people_connections WHERE tenant_id = ? AND user_id = ?", tenant, user
             )
