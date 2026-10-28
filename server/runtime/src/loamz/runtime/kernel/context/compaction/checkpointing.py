@@ -101,9 +101,15 @@ class SummaryCheckpointer:
         return await self.checkpoint(context.session_id, context.leaf_node_id)
 
     async def checkpoint(
-        self, session_id: str, leaf_id: str, *, force: bool = False
+        self,
+        session_id: str,
+        leaf_id: str,
+        *,
+        force: bool = False,
+        trigger_ratio: float | None = None,
     ) -> HistoryCheckpoint | None:
-        """A new checkpoint when the conversation up to `leaf_id` is near the budget (or `force`), else None."""
+        """A new checkpoint when the conversation up to `leaf_id` is near the budget (or `force`), else None. `trigger_ratio` replaces
+        the usual one for this call (an idle conversation is worth summarizing sooner: its provider cache is cold anyway)."""
         nodes = await DefaultHistoryResolver(self._history).resolve_ancestry(leaf_id)
         current = await AncestryCheckpointResolver(self._history).find_applicable_checkpoint(
             leaf_id
@@ -120,7 +126,11 @@ class SummaryCheckpointer:
             else 0
         )
         size = int((carried + sum(estimate_message_tokens(n.payload) for n in live)) * SAFETY)
-        if not force and size < self._trigger * self._budget:
+        if (
+            not force
+            and size
+            < (trigger_ratio if trigger_ratio is not None else self._trigger) * self._budget
+        ):
             return None
         cut = self._cut(live)
         if cut <= 0:

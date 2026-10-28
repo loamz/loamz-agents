@@ -96,6 +96,4 @@ r = http.post(
     json={"tenant_id": org_id, "alias": tenant_alias(org_id)},
 )
 r.raise_for_status()
-print(
-    f"Sign in at {ENV.get('APP_URL', 'http://localhost:5173')} as {NAME} / {NAME}"
-)
+print(f"Sign in at {ENV.get('APP_URL', 'http://localhost:5173')} as {NAME} / {NAME}")
