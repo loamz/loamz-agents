@@ -22,54 +22,46 @@ async def test_schedules_crud_and_runs(app):
         async with httpx.AsyncClient(
             transport=httpx.ASGITransport(app=app), base_url="http://test"
         ) as client:
-            # 1. Parse natural language schedule
-            resp = await client.post(
-                "/api/v1/scheduled/parse",
-                json={"text": "Daily summary of stock market at 8am"},
+            agent = (await client.post("/api/v1/agents", json={"name": "Inbox"})).json()
+            body = {
+                "agent_id": agent["id"],
+                "name": "Daily Summary",
+                "prompt": "Check market data and summarize",
+                "kind": "recurring",
+                "cron_expression": "0 8 * * *",
+                "timezone": "Europe/London",
+            }
+            created = await client.post("/api/v1/schedules", json=body)
+            assert created.status_code == 201
+            task = created.json()
+            assert (
+                task["agent_name"] == "Inbox"
+                and task["timing"] == "Every day at 08:00 (Europe/London)"
             )
-            assert resp.status_code == 200
-            data = resp.json()
-            assert data["cron_expression"] == "0 8 * * *"
-
-            # 2. Create scheduled task
-            create_resp = await client.post(
-                "/api/v1/scheduled",
-                json={
-                    "name": "Daily Summary",
-                    "prompt": "Check market data and summarize",
-                    "cron_expression": "0 8 * * *",
-                    "kind": "cron",
-                },
-            )
-            assert create_resp.status_code == 201
-            task = create_resp.json()
             task_id = task["id"]
-            assert task["name"] == "Daily Summary"
 
-            # 3. List scheduled tasks
-            list_resp = await client.get("/api/v1/scheduled")
-            assert list_resp.status_code == 200
-            assert len(list_resp.json()) == 1
+            listed = await client.get("/api/v1/schedules", params={"agent_id": agent["id"]})
+            assert [s["id"] for s in listed.json()["items"]] == [task_id]
+            assert (await client.get("/api/v1/schedules", params={"agent_id": "other"})).json()[
+                "items"
+            ] == []
 
-            # 4. Trigger run now
-            run_resp = await client.post(f"/api/v1/scheduled/{task_id}/run")
-            assert run_resp.status_code == 202
+            paused = await client.patch(f"/api/v1/schedules/{task_id}", json={"status": "paused"})
+            assert paused.json()["status"] == "paused"
+            assert (await client.post(f"/api/v1/schedules/{task_id}/run")).status_code == 202
+            runs = await client.get(f"/api/v1/schedules/{task_id}/runs")
+            assert runs.status_code == 200 and runs.json()["items"][0]["status"] == "pending"
 
-            # 5. List runs
-            runs_resp = await client.get(f"/api/v1/scheduled/{task_id}/runs")
-            assert runs_resp.status_code == 200
-            assert len(runs_resp.json()) >= 1
-
-            # 6. Add feedback
-            fb_resp = await client.post(
-                f"/api/v1/scheduled/{task_id}/feedback",
-                json={"content": "Please include tech stocks in future runs"},
+            bad = await client.post(
+                "/api/v1/schedules", json={**body, "cron_expression": "every day"}
             )
-            assert fb_resp.status_code == 201
+            assert bad.status_code == 400
+            assert (
+                await client.post("/api/v1/schedules", json={**body, "agent_id": "nobody"})
+            ).status_code == 404
 
-            # 7. Delete task
-            del_resp = await client.delete(f"/api/v1/scheduled/{task_id}")
-            assert del_resp.status_code == 204
+            assert (await client.delete(f"/api/v1/schedules/{task_id}")).status_code == 204
+            assert (await client.get(f"/api/v1/schedules/{task_id}")).status_code == 404
 
 
 async def test_triggers_cron_webhooks_conditions(app):
