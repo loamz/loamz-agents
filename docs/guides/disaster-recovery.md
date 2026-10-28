@@ -26,7 +26,7 @@ What can be lost, how to bring it back, and how we prove it works.
 2. **Object storage.** Restore the buckets from replication or versions; no application step is needed.
 3. **PostgreSQL.** Restore to the chosen point in time (RDS point-in-time restore, Cloud SQL clone or restore, Azure flexible
    server restore), one database at a time or the whole instance. Create the databases that are missing
-   (`agentdb`, `keycloak`, `loamz_data`, `data_retrieval`, `loamz_compute`, `loamz_ui`).
+   (`agentdb`, `keycloak`, `loamz_data`, `data_retrieval`, `loamz_compute`).
 4. **Secrets.** Recreate the cell secret (or `existingSecret`), including the ticket keys and, if used, point the cell at
    the same KMS key.
 5. **Deploy** the chart at the version that wrote the data. The services run their schema upgrades on start.

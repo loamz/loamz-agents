@@ -173,37 +173,6 @@ resource "keycloak_openid_client_scope" "delegated" {
 }
 
 # ---------------------------------------------------------------- human-facing clients
-resource "keycloak_openid_client" "loamz_ui" {
-  realm_id                        = keycloak_realm.loamz.id
-  client_id                       = "agents-console"
-  name                            = "Loamz agents console"
-  enabled                         = true
-  access_type                     = "CONFIDENTIAL"
-  client_secret                   = var.ui_client_secret
-  standard_flow_enabled           = true
-  direct_access_grants_enabled    = false
-  pkce_code_challenge_method      = "S256"
-  root_url                        = var.ui_url
-  valid_redirect_uris             = ["${var.ui_url}/auth/callback"]
-  web_origins                     = [var.ui_url]
-  valid_post_logout_redirect_uris = ["${var.ui_url}/*"]
-}
-
-resource "keycloak_openid_client_default_scopes" "loamz_ui" {
-  realm_id       = keycloak_realm.loamz.id
-  client_id      = keycloak_openid_client.loamz_ui.id
-  default_scopes = ["basic", "web-origins", "acr", "profile", "roles", "email", keycloak_openid_client_scope.agents_api.name, keycloak_openid_client_scope.groups.name]
-}
-
-resource "keycloak_openid_client_optional_scopes" "loamz_ui" {
-  realm_id  = keycloak_realm.loamz.id
-  client_id = keycloak_openid_client.loamz_ui.id
-  optional_scopes = concat(
-    [keycloak_openid_client_scope.organization.name, keycloak_openid_client_scope.data_api.name],
-    [for s in keycloak_openid_client_scope.delegated : s.name],
-  )
-}
-
 resource "keycloak_openid_client" "loamz_data_web" {
   realm_id                        = keycloak_realm.loamz.id
   client_id                       = "data-workspace"

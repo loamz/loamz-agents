@@ -21,7 +21,7 @@
   valueFrom: { secretKeyRef: { name: {{ include "cell.secretName" . }}, key: vapid-public-key, optional: true } }
 - name: LOAMZ_AGENTS_PUSH__VAPID_PRIVATE_KEY
   valueFrom: { secretKeyRef: { name: {{ include "cell.secretName" . }}, key: vapid-private-key, optional: true } }
-- { name: LOAMZ_AGENTS_HTTP__FRONTEND_URL, value: {{ .Values.publicUrls.ui | quote }} }
+- { name: LOAMZ_AGENTS_HTTP__FRONTEND_URL, value: {{ .Values.publicUrls.app | quote }} }
 - { name: LOAMZ_AGENTS_LLM__MODEL, value: {{ .Values.agents.model | default "google/gemini-3.1-flash-lite" | quote }} }
 - { name: LOAMZ_AGENTS_SANDBOX__RUNTIME, value: {{ .Values.agents.sandbox.runtime | default "k8s" | quote }} }
 {{- with .Values.agents.sandbox.runtimeClassName }}

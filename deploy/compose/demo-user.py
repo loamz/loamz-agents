@@ -97,5 +97,5 @@ r = http.post(
 )
 r.raise_for_status()
 print(
-    f"Sign in at {ENV.get('AGENTS_CONSOLE_URL', 'http://localhost:3000')}/chat as {NAME} / {NAME}"
+    f"Sign in at {ENV.get('APP_URL', 'http://localhost:5173')} as {NAME} / {NAME}"
 )

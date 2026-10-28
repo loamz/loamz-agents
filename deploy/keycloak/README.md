@@ -10,12 +10,11 @@ request were checked against `loamz-identity` using OIDC discovery.
 ## Import
 
 ```sh
-export AGENTS_CONSOLE_CLIENT_SECRET=...          # all three are required, see "Secrets"
-export DATA_WORKSPACE_CLIENT_SECRET=...
+export DATA_WORKSPACE_CLIENT_SECRET=...          # both are required, see "Secrets"
 export CELL_ADMIN_CLIENT_SECRET=...
 docker run --rm -p 127.0.0.1:8080:8080 \
   -e KC_BOOTSTRAP_ADMIN_USERNAME -e KC_BOOTSTRAP_ADMIN_PASSWORD \
-  -e AGENTS_CONSOLE_CLIENT_SECRET -e DATA_WORKSPACE_CLIENT_SECRET -e CELL_ADMIN_CLIENT_SECRET \
+  -e DATA_WORKSPACE_CLIENT_SECRET -e CELL_ADMIN_CLIENT_SECRET \
   -v "$PWD/realm-loamz.json:/opt/keycloak/data/import/realm-loamz.json:ro" \
   quay.io/keycloak/keycloak:26.8.1 start-dev --import-realm
 ```
@@ -29,21 +28,18 @@ No secret is in the file. Keycloak substitutes `${NAME}` from the process enviro
 
 | Variable | Used by | Default |
 | --- | --- | --- |
-| `AGENTS_CONSOLE_CLIENT_SECRET` | `agents-console` client secret (the BFF's `clientSecret`) | none |
 | `DATA_WORKSPACE_CLIENT_SECRET` | `data-workspace` client secret (`WEB_CLIENT_SECRET`) | none |
 | `CELL_ADMIN_CLIENT_SECRET` | `cell-admin` service account | none |
-| `AGENTS_CONSOLE_URL` | UI origin for redirect/logout URIs | `http://127.0.0.1:3000` |
 | `DATA_WORKSPACE_URL` | data workspace origin | `http://127.0.0.1:3011` |
 
 **An unset secret variable is not an error**: Keycloak keeps the literal text `${CELL_ADMIN_CLIENT_SECRET}` and that
-becomes the secret (verified). Check that all three are set before importing, and rotate secrets after import
+becomes the secret (verified). Check that both are set before importing, and rotate secrets after import
 through the admin API or Terraform if they were ever wrong.
 
 ## What the realm contains
 
 | Clients | Type | Purpose |
 | --- | --- | --- |
-| `agents-console` | confidential, code + PKCE S256 | the agents console's backend-for-frontend (`@loamz/oidc-bff`) |
 | `data-workspace` | confidential, code + PKCE S256 | the data workspace's backend-for-frontend |
 | `agent-loamz`, `loamz-data` | bearer-only | the resource servers: their client ids are the token **audiences**, and they own the client roles `provision-tenant` and `erase-tenant` |
 | `cell-admin` | confidential, client credentials | the platform's service account for provisioning and erasure |

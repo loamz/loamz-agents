@@ -1,20 +1,20 @@
-# Root entry points. Python: one uv workspace (uv.lock); JavaScript: one pnpm workspace.
+# Root entry points. Python: one uv workspace (uv.lock).
 # The fast tier (`make test`) needs no infrastructure and finishes in a few minutes. PostgreSQL and Redis tests run when
 # LOAMZ_TEST_POSTGRES_URL / LOAMZ_TEST_REDIS_URL point at a server, and skip otherwise.
-.PHONY: cell cell-dev sync lint format imports test test-sdk test-runtime test-server test-slow js-check check e2e help
+.PHONY: cell cell-dev sync lint format imports test test-sdk test-runtime test-server test-slow check e2e help
 
 PY_DIRS := server/runtime server/agents
 PYTEST := -q -n 4 --timeout=120
 
 help:
-	@echo "make sync         install every Python package (uv) and the JS workspace (pnpm)"
+	@echo "make sync         install every Python package (uv)"
 	@echo "make lint         ruff check + format --check"
 	@echo "make imports      import-linter architecture contracts (.importlinter)"
 	@echo "make test         the fast tier: runtime and server"
 	@echo "make test-slow    the Docker/model-backed tests"
 	@echo "make e2e          the cell end-to-end test (needs the compose cell up: deploy/compose)"
 	@echo "make check        lint + imports + test"
-	@echo "make cell-dev     run the cell's agent server and console from this checkout, reloading on save"
+	@echo "make cell-dev     run the cell's agent server from this checkout, reloading on save"
 	@echo "make cell         run the cell from built images (rebuilds what changed)"
 
 COMPOSE := docker compose --project-directory deploy/compose -f deploy/compose/compose.yml --profile agents
@@ -23,11 +23,10 @@ cell:
 	$(COMPOSE) up -d --build
 
 cell-dev:
-	$(COMPOSE) -f deploy/compose/compose.dev.yml up -d agent-server agents-console
+	$(COMPOSE) -f deploy/compose/compose.dev.yml up -d agent-server
 
 sync:
 	uv sync --all-packages --all-extras --all-groups
-	pnpm install
 
 lint:
 	uv run ruff check .
@@ -51,11 +50,7 @@ test-slow:
 	cd server/agents && uv run --package loamz-agents-server --all-extras --all-groups pytest -q -m "slow or integration" --timeout=300
 	cd server/runtime && uv run --package loamz-runtime --all-extras --all-groups pytest -q -m "slow" --timeout=300
 
-js-check:
-	pnpm -r typecheck
-	pnpm -r test
-
 e2e:
 	uv run --package loamz-agents-server python deploy/compose/e2e.py deploy/compose/.env
 
-check: lint imports test js-check
+check: lint imports test

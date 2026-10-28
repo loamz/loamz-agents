@@ -1,8 +1,8 @@
 # Loamz Agents
 
 The agent runtime and its hosting: kernel, toolkit, providers, stores, evals (`server/runtime`, package `loamz.runtime`),
-the HTTP API, console, channels and automation (`server/agents`, package `loamz.server.agents`), the agents console
-(`apps/agents-console`) and the API contract (`specs/agents`).
+the HTTP API, console, channels and automation (`server/agents`, package `loamz.server.agents`) and the API contract
+(`specs/agents`). The app people use is [loamz-chat](https://github.com/loamz/loamz-chat), which talks to this server.
 
 Built on the storage engines of [loamz-data](https://github.com/loamz/loamz-data) (`loamz-engine`) and the token verifier
 of [loamz-python](https://github.com/loamz/loamz-python) (`loamz-identity[server]`). It reaches Loamz Data only through the

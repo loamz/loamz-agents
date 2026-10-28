@@ -450,51 +450,6 @@
   ],
   "clients": [
     {
-      "clientId": "agents-console",
-      "name": "Loamz Agents Console",
-      "description": "Backend-for-frontend of the agents UI: confidential, authorization code + PKCE (S256).",
-      "enabled": true,
-      "publicClient": false,
-      "secret": "${AGENTS_CONSOLE_CLIENT_SECRET}",
-      "standardFlowEnabled": true,
-      "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": false,
-      "serviceAccountsEnabled": false,
-      "frontchannelLogout": true,
-      "rootUrl": "${AGENTS_CONSOLE_URL:http://localhost:3000}",
-      "redirectUris": [
-        "${AGENTS_CONSOLE_URL:http://localhost:3000}/chat/auth/callback"
-      ],
-      "webOrigins": [
-        "${AGENTS_CONSOLE_URL:http://localhost:3000}"
-      ],
-      "attributes": {
-        "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "${AGENTS_CONSOLE_URL:http://localhost:3000}/chat/*"
-      },
-      "defaultClientScopes": [
-        "basic",
-        "web-origins",
-        "acr",
-        "profile",
-        "roles",
-        "email",
-        "agents-api",
-        "groups"
-      ],
-      "optionalClientScopes": [
-        "organization",
-        "data-api",
-        "data:read",
-        "files:read",
-        "files:write",
-        "documents:read",
-        "documents:write",
-        "memory:read",
-        "memory:write"
-      ]
-    },
-    {
       "clientId": "data-workspace",
       "name": "Loamz Data Workspace",
       "description": "Backend-for-frontend of the data workspace: confidential, authorization code + PKCE (S256).",
@@ -650,7 +605,7 @@
     {
       "clientId": "loamz-chat",
       "name": "Loamz Chat",
-      "description": "The chat web app: public client, authorization code + PKCE (S256). Work accounts sign in here with the same realm session as the console.",
+      "description": "The chat web app: public client, authorization code + PKCE (S256). Work accounts sign in here with the same realm session as the data workspace.",
       "enabled": true,
       "publicClient": true,
       "standardFlowEnabled": true,

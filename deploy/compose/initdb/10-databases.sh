@@ -3,7 +3,6 @@
 set -euo pipefail
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname postgres <<'SQL'
 CREATE DATABASE keycloak;
-CREATE DATABASE loamz_ui;
 SQL
 for db in "$POSTGRES_DB"; do
   psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$db" <<'SQL'

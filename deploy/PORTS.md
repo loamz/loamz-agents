@@ -9,9 +9,8 @@ on the cell's private network.
 
 | Port | Component | Compose | Notes |
 | --- | --- | --- | --- |
-| 3000 | agents-console (agents UI) | published (`PORT_UI`) | served under `/chat` |
 | 3011 | data-workspace (data workspace UI) | published (`PORT_DATA_WEB`) | |
-| 5432 | PostgreSQL | internal | TLS on; databases `agentdb`, `keycloak`, `loamz_data`, `loamz_ui` |
+| 5432 | PostgreSQL | internal | TLS on; databases `agentdb`, `keycloak`, `loamz_data` |
 | 6379 | Redis | internal | password required |
 | 8000 | agent server, monolith | published (`PORT_AGENT`) | in microservices mode `PORT_AGENT` maps to the gateway (8001) |
 | 8001 | agent gateway (microservices) | published as `PORT_AGENT` | the only microservice with a public port |

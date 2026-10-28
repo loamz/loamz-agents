@@ -21,6 +21,5 @@ Checked locally before the split was committed: loamz-data (engine 704 tests, da
 - Merge the loamz-python branch `identity-server` first.
 - `deploy/` (compose, Helm, Terraform, Keycloak realm, observability) still describes the combined platform in both copies.
   Product-specific parts should be pruned, and the shared parts moved to loamz-deploy.
-- CI workflows were renamed mechanically; prune the jobs for the other product (reader/data-workspace in agents,
-  agents-console in data) and fix the image workflows' Dockerfile list.
+- CI workflows were renamed mechanically; prune the jobs for the other product (reader in agents) and fix the image workflows' Dockerfile list.
 - Archive `loamz-server` once both pass the cross-product end-to-end run.

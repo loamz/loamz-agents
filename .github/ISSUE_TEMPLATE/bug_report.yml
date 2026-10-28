@@ -10,8 +10,6 @@ body:
         - loamz-engine
         - loamz-agents-server
         - loamz-reader
-        - agents-console
-        - data-workspace
         - deploy (compose, Helm, Terraform)
         - other / unsure
     validations:
