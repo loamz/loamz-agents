@@ -54,6 +54,40 @@ def _day(value: str) -> datetime | None:
     return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
 
 
+def search_messages(
+    nodes: list[MessageNode], query: str, *, from_date: str = "", to_date: str = "", who: str = ""
+) -> list[dict[str, object]]:
+    """The messages (numbered from 1 in the order said) that hold every word of `query`, in a day range, from one kind of speaker."""
+    words = [w for w in re.split(r"\s+", query.lower().strip()) if w]
+    since = _day(from_date) if from_date else None
+    until = _day(to_date) if to_date else None
+    hits: list[dict[str, object]] = []
+    for number, node in enumerate(nodes, start=1):
+        if who and _who(node) != who:
+            continue
+        when = node.created_at if node.created_at.tzinfo else node.created_at.replace(tzinfo=UTC)
+        if since and when < since:
+            continue
+        if until and when.date() > until.date():
+            continue
+        text = flatten(node.payload)
+        low = text.lower()
+        if not text or any(w not in low for w in words):
+            continue
+        at = low.find(words[0]) if words else 0
+        start = max(0, at - SNIPPET // 3)
+        snippet = text[start : start + SNIPPET].replace("\n", " ")
+        hits.append(
+            {
+                "number": number,
+                "at": when,
+                "who": _who(node),
+                "snippet": f"{'…' if start else ''}{snippet}{'…' if start + SNIPPET < len(text) else ''}",
+            }
+        )
+    return hits
+
+
 class ConversationHistoryTool:
     name = "conversation_history"
     risk = ToolRisk.SAFE
@@ -131,41 +165,21 @@ class ConversationHistoryTool:
     def _search(
         self, nodes: list[MessageNode], query: str, from_date: str, to_date: str, who: str
     ) -> str:
-        words = [w for w in re.split(r"\s+", query.lower().strip()) if w]
-        if not words and not (from_date or to_date):
+        if not query.strip() and not (from_date or to_date):
             return "Say what to search for, or give a date range."
-        since = _day(from_date) if from_date else None
-        until = _day(to_date) if to_date else None
-        hits: list[str] = []
-        for number, node in enumerate(nodes, start=1):
-            if who and _who(node) != who:
-                continue
-            when = (
-                node.created_at if node.created_at.tzinfo else node.created_at.replace(tzinfo=UTC)
-            )
-            if since and when < since:
-                continue
-            if until and when.date() > until.date():
-                continue
-            text = flatten(node.payload)
-            low = text.lower()
-            if not text or any(w not in low for w in words):
-                continue
-            at = low.find(words[0]) if words else 0
-            start = max(0, at - SNIPPET // 3)
-            snippet = text[start : start + SNIPPET].replace("\n", " ")
-            hits.append(
-                f"#{number} · {when:%Y-%m-%d %H:%M} · {_who(node)}: {'…' if start else ''}{snippet}{'…' if start + SNIPPET < len(text) else ''}"
-            )
+        hits = search_messages(nodes, query, from_date=from_date, to_date=to_date, who=who)
         if not hits:
             return "Nothing in this conversation matches."
         shown = hits[-MAX_HITS:]  # the most recent matches are the likeliest to be what is wanted
+        lines = [
+            f"#{h['number']} · {h['at']:%Y-%m-%d %H:%M} · {h['who']}: {h['snippet']}" for h in shown
+        ]
         more = (
             f"\n({len(hits) - len(shown)} older matches not shown: narrow it with a date range or more words.)"
             if len(hits) > len(shown)
             else ""
         )
-        return "\n".join(shown) + more
+        return "\n".join(lines) + more
 
     def _read(self, nodes: list[MessageNode], first: int, last: int) -> str:
         if first < 1 or first > len(nodes):

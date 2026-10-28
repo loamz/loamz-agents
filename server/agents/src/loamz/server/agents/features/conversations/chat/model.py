@@ -18,6 +18,8 @@ class ChatRequest(BaseModel):
     file_ids: list[str] = Field(default_factory=list)
     system_instructions: str | None = None
     prompt: str | None = None
+    helper: bool = False
+    """A helper's run (see `chat/helpers.py`): read-only tools, no approvals, and no helpers, schedules or notes of its own."""
 
     def prompt_text(self) -> str:
         if self.prompt:

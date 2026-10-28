@@ -64,6 +64,15 @@ async def build_member(container: Container, actor: Actor):
             )
 
         extra.append(UseSkillTool(load))
+    # Its notes for this chat (kept by a background writer and by the agent itself), as in a one-to-one chat.
+    from loamz.server.agents.features.conversations.memory.service import GUIDE
+    from loamz.server.agents.features.conversations.memory.service import (
+        memory as conversation_notes,
+    )
+
+    notes = container.get(conversation_notes)
+    extra.extend(notes.tools(caller, actor.key))
+    notes_block = await notes.block(caller, actor.key)
     names = {str(member_actor(m.member, chat_id)): m.name for m in roster}
     return directory.build_member(
         caller,
@@ -73,7 +82,12 @@ async def build_member(container: Container, actor: Actor):
         name_of=lambda t: t.name,
         name="member",
         session_id=actor.key,
+        wrap_summarizer=lambda inner, history: notes.summarizer(
+            caller, inner, history, actor.key, profile.model
+        ),
         extra_instructions=skills
+        + f"\n\n{GUIDE}"
+        + (f"\n\n{notes_block}" if notes_block else "")
         + (
             "\nYou are a visible AI participant in a shared chat. Reply when addressed or when you can help. "
             "If the conversation needs no answer, reply with exactly [PASS]. "

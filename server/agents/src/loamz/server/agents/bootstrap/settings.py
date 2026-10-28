@@ -224,6 +224,22 @@ class ContextSettings(BaseModel):
     summary_model: str = Field(
         default="", description="The model that writes summaries; empty: the agent's own."
     )
+    idle_minutes: int = Field(
+        default=30,
+        ge=0,
+        description="A long conversation idle this long is summarized in the background (its provider cache is cold by then). 0 turns it off.",
+    )
+    idle_ratio: float = Field(
+        default=0.5,
+        gt=0,
+        le=1,
+        description="How full the budget must be for an idle conversation to be worth a background summary.",
+    )
+    sweep_seconds: int = Field(
+        default=300,
+        ge=10,
+        description="How often the background pass looks for idle conversations.",
+    )
 
 
 class ChatSettings(BaseModel):

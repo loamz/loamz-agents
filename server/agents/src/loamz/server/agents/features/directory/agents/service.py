@@ -663,6 +663,7 @@ class AgentsService:
         name: str,
         channel: object = None,
         drop_tools: tuple[str, ...] = (),
+        wrap_summarizer: Callable[[object, object], object] | None = None,
         **options: object,
     ) -> ReActAgent:
         """The agent for `profile` (unregistered): its role, permitted tools plus `extra_tools`, its own model, keeping
@@ -680,6 +681,8 @@ class AgentsService:
         history = self._agent_store.tenant(profile.tenant_id).threads
         # Every agent can look back through its own conversation, and a long one is summarized rather than cut.
         recall, summarizer = self._c.conversation_memory(history, session_id, model)
+        if wrap_summarizer is not None:
+            summarizer = wrap_summarizer(summarizer, history)
         return create_assistant_agent(
             model_client=self._c.chat_model(model),
             summarizer=summarizer,

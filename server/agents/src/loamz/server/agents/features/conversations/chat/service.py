@@ -155,19 +155,46 @@ class ChatService:
             if recall is not None:
                 tools = [*tools, recall]
             remembered = await people_memory.user_context_block(caller.tenant_id, caller.user_id)
+        if req.helper:
+            tools = [
+                t for t in tools if getattr(t, "risk", None) == ToolRisk.SAFE
+            ]  # a helper only looks things up
         threads = self._c.agent_store.threads
-        recall, summarizer = self._c.conversation_memory(
-            threads, req.thread_id, req.model or (profile.model if profile else None)
+        model_name = req.model or (profile.model if profile else None)
+        recall, checkpointer = self._c.conversation_memory(threads, req.thread_id, model_name)
+        # The conversation's notes: shown to the agent each turn, kept by a background writer, and the agent's own tool for them.
+        from loamz.server.agents.features.conversations.memory.service import (
+            GUIDE,
         )
+        from loamz.server.agents.features.conversations.memory.service import (
+            memory as conversation_notes,
+        )
+
+        notes = self._c.get(conversation_notes)
+        summarizer = notes.summarizer(caller, checkpointer, threads, req.thread_id, model_name)
+        notes_block = await notes.block(caller, req.thread_id)
+        if profile and not req.helper:
+            # A chat agent (not the plain assistant of a session) can have schedules of its own: it sees them freely, changes need approval.
+            from loamz.server.agents.features.automation.schedules.service import schedules
+            from loamz.server.agents.features.automation.schedules.tool import schedule_tools
+            from loamz.server.agents.features.conversations.chat.helpers import StartHelpersTool
+
+            tools = [
+                *tools,
+                *schedule_tools(self._c.get(schedules), caller, profile.id),
+                StartHelpersTool(self._c, caller, profile.id),
+            ]
         agent = create_assistant_agent(
             model_client=self._c.model_client(req.model or (profile.model if profile else None)),
             history=threads,
             summarizer=summarizer,
-            tools=[*tools, recall],
+            tools=[*tools, recall, *([] if req.helper else notes.tools(caller, req.thread_id))],
             system_instructions=(req.system_instructions or "")
             + (instructions_block(profile) if profile else "")
             + skills
-            + (f"\n\n{remembered}" if remembered else ""),
+            + (f"\n\n{remembered}" if remembered else "")
+            + ("" if req.helper else f"\n\n{GUIDE}")
+            + (f"\n\n{notes_block}" if notes_block and not req.helper else ""),
             # One actor per conversation (the activity tracker looks for `assistant/<thread id>`). Sharing one actor
             # between conversations would fold a message sent while another run is going into that run.
             session_id=req.thread_id,
@@ -204,6 +231,8 @@ class ChatService:
 
         async for line in self._relay(run_id):
             yield line
+        if profile and not req.helper:
+            notes.keep_up(caller, req.thread_id, model_name)
 
     async def _relay(self, run_id: str, from_seq: int = 0) -> AsyncIterator[str]:
         """A run's events as the console's event stream, from `from_seq`, to the end of the run."""
