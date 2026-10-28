@@ -19,6 +19,7 @@ from mcp.server.auth.provider import (
 from mcp.server.auth.settings import AuthSettings, ClientRegistrationOptions
 from mcp.server.fastmcp import FastMCP
 from mcp.shared.auth import OAuthClientInformationFull, OAuthToken
+from mcp.types import ToolAnnotations
 from pydantic import Field
 
 
@@ -118,7 +119,7 @@ class FakeConnector:
             port=self.port,
         )
 
-        @mcp.tool()
+        @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True))
         def search(query: str) -> str:
             """Look things up."""
             self.calls.append(("search", {"query": query}))

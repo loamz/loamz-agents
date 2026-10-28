@@ -38,7 +38,10 @@ class Threads:
 
 
 def service(runtime, threads=None):
-    return ChatService(SimpleNamespace(runtime=runtime), threads or Threads())
+    return ChatService(
+        SimpleNamespace(runtime=runtime, require_model=lambda model=None: None),
+        threads or Threads(),
+    )
 
 
 def request(prompt="hello"):

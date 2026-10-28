@@ -415,3 +415,88 @@ async def test_a_message_posted_in_one_process_reaches_a_feed_in_another_through
                     assert time.monotonic() - started < 2.5  # Redis, not the 30 s poll
                 finally:
                     await stream.aclose()
+
+
+async def test_an_agent_in_a_group_has_what_it_has_alone_except_what_would_need_asking(messenger):
+    from loamz.server.agents.features.directory.agents.model import AgentIn
+    from loamz.server.agents.features.directory.agents.service import agents
+    from loamz.server.agents.features.messaging.chats.member import build_member
+
+    container, _, client = messenger
+    profile = await container.get(agents).create(
+        ALICE,
+        AgentIn(
+            name="Scout",
+            allowed_tools=[],
+            abilities=["web-search", "image-generation", "weather", "data-analysis"],
+        ),
+    )
+    group = await create(
+        client, members=[{"member": "user:bob"}, {"member": f"agent:{profile.id}", "mode": "all"}]
+    )
+    member = await build_member(container, Actor("member", f"{profile.id}@{group['id']}"))
+    names = set(member.tools.names())
+    # The built-ins it was given and the date and time are there although its allow-list of tool-server tools is empty ...
+    assert {"web_search", "weather", "get_current_time"} <= names
+    # ... but a tool that would stop and ask (a picture costs money) is not: nobody can answer from inside a group.
+    assert "image_generator" not in names
+    # Skills reach it too: it is told what it knows, and may load the instructions.
+    assert "use_skill" in names
+    assert "Data analysis" in member._system_instructions  # noqa: SLF001
+
+
+def _jpeg() -> bytes:
+    import io
+
+    from PIL import Image
+
+    out = io.BytesIO()
+    Image.new("RGB", (40, 30), (200, 60, 60)).save(out, "JPEG")
+    return out.getvalue()
+
+
+async def test_a_group_has_an_icon_or_a_photo_that_its_members_alone_can_open(messenger):
+    container, app, client = messenger
+    chat = (await create(client))["id"]
+    # The icon and colour come from the catalog, can be changed, and are cleared with a flag.
+    shown = await client.patch(
+        f"/api/v1/groups/{chat}", json={"look": {"icon": "users", "color": "teal"}}
+    )
+    assert shown.status_code == 200, shown.text
+    assert shown.json()["look"] == {"icon": "users", "color": "teal"}
+    assert (
+        await client.patch(
+            f"/api/v1/groups/{chat}", json={"look": {"icon": "skull", "color": "teal"}}
+        )
+    ).status_code == 422
+    assert (await client.patch(f"/api/v1/groups/{chat}", json={"name": "Eng"})).json()["look"][
+        "icon"
+    ] == "users"
+    assert (await client.patch(f"/api/v1/groups/{chat}", json={"clear_look": True})).json()[
+        "look"
+    ] is None
+    # A JPEG is accepted (it used to have to be a PNG) and made a square PNG; every member can read it, an outsider cannot.
+    done = await client.put(
+        f"/api/v1/groups/{chat}/avatar", files={"file": ("p.jpg", _jpeg(), "image/jpeg")}
+    )
+    key = done.json()["avatar"]
+    assert key and key.endswith(".png")
+    from loamz.server.agents.features.workspace.files.service import files
+
+    def read(who):
+        return container.get(files).serve_object(who, key)
+
+    assert (await read(ALICE))[:4] == b"\x89PNG"
+    assert (await read(BOB))[:4] == b"\x89PNG"
+    with pytest.raises(NotFoundError):
+        await read(MALLORY)
+    as_user(app, ALICE)
+
+
+async def test_the_picture_choices_come_from_one_json_file(messenger):
+    _, _, client = messenger
+    body = (await client.get("/api/v1/agents/looks")).json()
+    assert {"bot", "users"} <= {i["id"] for i in body["icons"]} and all(
+        c["tone"].startswith("#") for c in body["colors"]
+    )
+    assert "_about" not in body
