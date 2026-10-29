@@ -30,8 +30,10 @@ class PreferencesService:
         return updated
 
     async def replace(self, caller: Caller, preferences: Preferences) -> Preferences:
-        await self._store.put(caller.tenant_id, caller.user_id, preferences)
-        return preferences
+        # Saving the other choices never switches agents on or off: only `set_agents_paused` does.
+        kept = preferences.model_copy(update={"agents_paused": await self.agents_paused(caller)})
+        await self._store.put(caller.tenant_id, caller.user_id, kept)
+        return kept
 
     async def instructions_for(self, caller: Caller) -> str:
         return (await self.get(caller)).instructions()
