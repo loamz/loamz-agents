@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class EraseUserRequest(BaseModel):
@@ -18,4 +18,7 @@ class ErasureSummary(BaseModel):
     conversations_deleted: int = 0
     objects_deleted: int = 0
     memories_deleted: int = 0
+    removed: dict[str, int] = Field(default_factory=dict)
+    """What was removed, by feature (-1: that feature failed)."""
     status: str = "completed"
+    failed: list[str] = Field(default_factory=list)

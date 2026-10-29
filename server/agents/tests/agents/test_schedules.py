@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+from datetime import UTC, datetime
 
 import pytest
 
@@ -248,7 +249,16 @@ async def test_three_failures_in_a_row_pause_it_and_deleting_the_agent_deletes_i
 
     container.model_client = lambda name=None: Broken()
     service = container.get(schedules)
-    made = await service.create(ALEX, morning(agent.id))
+    # Twelve hours away, so the clock reaching the schedule's own time never adds a firing to the ones forced here.
+    far = ScheduleIn(
+        agent_id=agent.id,
+        name="Morning brief",
+        prompt="Tell me what needs a reply.",
+        kind="recurring",
+        cron_expression=f"0 {(datetime.now(UTC).hour + 12) % 24} * * *",
+        timezone="UTC",
+    )
+    made = await service.create(ALEX, far)
     for _ in range(3):
         await due_now(container, made.id)
         await asyncio.gather(*await tick(container))
