@@ -71,6 +71,12 @@ class ChatService:
             raise InvalidRequestError(header.locked_reason or "This conversation is locked.")
         if not req.prompt_text():
             raise InvalidRequestError("Message prompt cannot be empty.")
+        from loamz.server.agents.features.people.preferences.service import preferences
+
+        if await self._c.get(preferences).agents_paused(caller):
+            raise InvalidRequestError(
+                "Your agents are paused. Turn them back on in Settings, Privacy."
+            )
         self._c.require_model(req.model)
         for run in await self._rt.find_runs(thread_id=req.thread_id, active_only=True):
             # A chat agent is built for each message and lives only in the process that built it, so a run whose agent is gone

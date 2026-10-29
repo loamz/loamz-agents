@@ -20,6 +20,10 @@ async def build_member(container: Container, actor: Actor):
     if member is None:
         raise NotFoundError("Agent is no longer in the chat")
     caller = Caller(tenant_id=member.tenant, user_id=member.owner)
+    from loamz.server.agents.features.people.preferences.service import preferences
+
+    if await container.get(preferences).agents_paused(caller):
+        raise NotFoundError("This agent's owner has paused their agents")
     directory = container.get(agents)
     profile = await directory.get_owned(caller, agent_id)
     # What the agent has in a conversation of its own, here too. The tool-server and data tools it was named for go through its allow-list;

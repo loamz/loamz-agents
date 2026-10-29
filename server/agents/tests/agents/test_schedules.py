@@ -325,3 +325,45 @@ async def test_the_result_is_mailed_to_the_address_the_person_had_when_they_aske
     await due_now(container, plain.id)
     await asyncio.gather(*await tick(container))
     assert len(sent) == 1  # one that did not ask is not mailed
+
+
+async def test_pausing_all_agents_stops_their_schedules_which_run_again_when_it_is_lifted(world):
+    from loamz.server.agents.features.people.preferences.service import preferences
+
+    container, agent = world
+    reply(container, "Brief ready.")
+    made = await container.get(schedules).create(ALEX, morning(agent.id))
+    await container.get(preferences).set_agents_paused(ALEX, True)
+    await due_now(container, made.id)
+    await asyncio.gather(*await tick(container))
+    paused = await container.get(schedules).get(ALEX, made.id)
+    assert [f.status for f in paused.recent] == ["skipped"] and paused.recent[
+        0
+    ].summary == "Your agents are paused."
+    assert paused.status == "active" and paused.next_run_at > time.time()  # it keeps its place
+    assert await chat_texts(container, agent) == []  # and said nothing
+    await container.get(preferences).set_agents_paused(ALEX, False)
+    await due_now(container, made.id)
+    await asyncio.gather(*await tick(container))
+    assert [f.status for f in (await container.get(schedules).get(ALEX, made.id)).recent][:1] == [
+        "succeeded"
+    ]
+
+
+async def test_while_agents_are_paused_a_chat_with_one_is_refused_and_nobody_elses_is_touched(
+    world,
+):
+    from loamz.server.agents.features.conversations.chat.model import ChatRequest
+    from loamz.server.agents.features.conversations.chat.service import chat
+    from loamz.server.agents.features.people.preferences.service import preferences
+
+    container, agent = world
+    thread = await container.get(agents).open_thread(ALEX, agent.id)
+    await container.get(preferences).set_agents_paused(ALEX, True)
+    request = ChatRequest(thread_id=thread.id, prompt="hello", agent_id=agent.id)
+    with pytest.raises(InvalidRequestError, match="paused"):
+        await container.get(chat).admit(ALEX, request)
+    assert await container.get(preferences).agents_paused(SAM) is False
+    assert (
+        await container.get(preferences).get(ALEX)
+    ).timezone == ""  # nothing else about them changed
