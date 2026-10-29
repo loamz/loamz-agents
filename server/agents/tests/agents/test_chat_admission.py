@@ -37,9 +37,23 @@ class Threads:
         )
 
 
-def service(runtime, threads=None):
+class Preferences:
+    """Whether this person has paused their agents."""
+
+    def __init__(self, paused=False):
+        self.paused = paused
+
+    async def agents_paused(self, caller):
+        return self.paused
+
+
+def service(runtime, threads=None, paused=False):
     return ChatService(
-        SimpleNamespace(runtime=runtime, require_model=lambda model=None: None),
+        SimpleNamespace(
+            runtime=runtime,
+            require_model=lambda model=None: None,
+            get=lambda provider: Preferences(paused),
+        ),
         threads or Threads(),
     )
 
@@ -178,3 +192,8 @@ async def test_a_person_in_the_same_organization_cannot_list_or_answer_anothers_
     assert [a.request_id for a in await svc.list_approvals(CALLER)] == ["q1"]
     with pytest.raises(NotFoundError):
         await svc.respond_hitl(mallory, "q1", HitlResponse(action="approve"))
+
+
+async def test_a_message_to_an_agent_is_refused_while_the_person_has_paused_their_agents():
+    with pytest.raises(InvalidRequestError, match="paused"):
+        await service(Runtime([], set()), paused=True).admit(CALLER, request())
