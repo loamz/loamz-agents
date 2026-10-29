@@ -367,3 +367,15 @@ async def test_while_agents_are_paused_a_chat_with_one_is_refused_and_nobody_els
     assert (
         await container.get(preferences).get(ALEX)
     ).timezone == ""  # nothing else about them changed
+
+
+async def test_saving_other_preferences_does_not_switch_paused_agents_back_on(world):
+    from loamz.server.agents.features.people.preferences.model import Preferences
+    from loamz.server.agents.features.people.preferences.service import preferences
+
+    container, _ = world
+    service = container.get(preferences)
+    await service.set_agents_paused(ALEX, True)
+    saved = await service.replace(ALEX, Preferences(timezone="Europe/London", agents_paused=False))
+    assert saved.timezone == "Europe/London" and saved.agents_paused is True
+    assert await service.agents_paused(ALEX) is True
