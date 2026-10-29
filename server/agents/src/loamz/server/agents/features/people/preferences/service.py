@@ -20,6 +20,15 @@ class PreferencesService:
         note beside them and to read them in."""
         return (await self.get(caller)).timezone or "UTC"
 
+    async def agents_paused(self, caller: Caller) -> bool:
+        return (await self.get(caller)).agents_paused
+
+    async def set_agents_paused(self, caller: Caller, paused: bool) -> Preferences:
+        """Switches all of this person's agents off or on. Their schedules keep their place and run again once it is off."""
+        updated = (await self.get(caller)).model_copy(update={"agents_paused": paused})
+        await self._store.put(caller.tenant_id, caller.user_id, updated)
+        return updated
+
     async def replace(self, caller: Caller, preferences: Preferences) -> Preferences:
         await self._store.put(caller.tenant_id, caller.user_id, preferences)
         return preferences

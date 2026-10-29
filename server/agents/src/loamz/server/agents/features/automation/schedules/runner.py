@@ -104,6 +104,14 @@ async def execute(container: Container, firing: Firing) -> None:
         )
         return
     caller = Caller(tenant_id=s.tenant_id, user_id=s.user_id)
+    from loamz.server.agents.features.people.preferences.service import preferences
+
+    if await container.get(preferences).agents_paused(caller):
+        # The person switched all their agents off: the schedule keeps its place and runs at its next time once they are back on.
+        await store.finish(
+            firing.tenant_id, firing.id, "skipped", summary="Your agents are paused."
+        )
+        return
     now = time.time()
     try:
         agent = await service._agent(caller, s.agent_id)  # noqa: SLF001

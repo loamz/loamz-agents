@@ -17,6 +17,8 @@ class Preferences(BaseModel):
     timezone: str = Field(default="", max_length=64)
     display_name: str = Field(default="", max_length=MAX_NAME_CHARS)
     models: dict[str, Any] = Field(default_factory=dict)
+    agents_paused: bool = False
+    """All of this person's agents are switched off: no schedules run, no helpers start, and agents do not answer, until it is turned back off."""
 
     @field_validator("custom_instructions")
     @classmethod
