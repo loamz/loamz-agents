@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from collections.abc import AsyncIterator
 
 from loamz.engine.errors import ConflictError, InvalidRequestError, NotFoundError
@@ -250,8 +251,8 @@ class ChatService:
                 yield 'data: {"type": "run.completed"}\n\n'
                 break
             elif entry.kind == RunLogKind.RUN_FAILED:
-                err = (entry.payload or {}).get("error", "agent run failed")
-                yield f'data: {{"type": "run.failed", "error": "{err}"}}\n\n'
+                err = str((entry.payload or {}).get("error", "agent run failed"))
+                yield f"data: {json.dumps({'type': 'run.failed', 'error': err})}\n\n"
                 break
             elif entry.kind == RunLogKind.RUN_CANCELLED:
                 yield 'data: {"type": "run.cancelled"}\n\n'

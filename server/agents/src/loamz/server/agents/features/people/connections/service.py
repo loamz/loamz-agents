@@ -522,6 +522,18 @@ class ConnectionsService:
         return out
 
 
+def shortened(result: ToolExecutionResult) -> ToolExecutionResult:
+    """The result with any text longer than what the model should read cut short and marked. Blocks are immutable, so
+    the cut ones are replaced."""
+    content = [
+        TextBlock(text=b.text[:MAX_RESULT_CHARS] + "\n[shortened]")
+        if isinstance(b, TextBlock) and len(b.text) > MAX_RESULT_CHARS
+        else b
+        for b in result.content
+    ]
+    return result.model_copy(update={"content": content})
+
+
 class ConnectionTool(MCPTool):
     """One tool of a connector, called with the signed-in person's own token."""
 
@@ -546,11 +558,7 @@ class ConnectionTool(MCPTool):
         try:
             async with self._svc.session(self._caller, self._item) as s:
                 result = await asyncio.wait_for(s.call_tool(self.remote_name, kwargs), 90)
-            out = self.to_result(call_id, result)
-            for block in out.content:
-                if isinstance(block, TextBlock) and len(block.text) > MAX_RESULT_CHARS:
-                    block.text = block.text[:MAX_RESULT_CHARS] + "\n[shortened]"
-            return out
+            return shortened(self.to_result(call_id, result))
         except NeedsReconnect:
             message = "This connection needs to be signed in again. Ask the person to reconnect it in the Marketplace."
         except Exception as error:  # noqa: BLE001 - the model is told, the run goes on
