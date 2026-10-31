@@ -9,7 +9,7 @@ sentence in a docstring. A row is *enforced* when its test passes today, and
 marked `xfail(strict=True)`, so the build fails the moment one starts passing
 and the marker has to come off. That is what keeps this document honest.
 
-**122 enforced · 0 pending · 122 total**
+**123 enforced · 0 pending · 123 total**
 
 ## approvals
 
@@ -79,6 +79,8 @@ and the marker has to come off. That is what keeps this document honest.
   `test_redelivery_before_ack_is_deduplicated`
 - ✅ **The consumer committed (acked) the message; a later redelivery of the same id must not reach the agent again.**
   `test_i12_redelivery_after_ack_is_rejected`
+- ✅ **A message that arrives while a run is failing was never seen by it. Acknowledging it with the run's own would lose it for good; it must still be waiting for whoever handles the agent next.**
+  `test_i12_a_failing_run_does_not_consume_messages_it_never_read`
 
 ## journal
 

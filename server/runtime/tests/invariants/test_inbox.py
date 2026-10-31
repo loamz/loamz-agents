@@ -61,3 +61,39 @@ async def test_i12_redelivery_after_ack_is_rejected() -> None:
         )
     finally:
         await store.aclose()
+
+
+async def test_i12_a_failing_run_does_not_consume_messages_it_never_read() -> None:
+    """A message that arrives while a run is failing was never seen by it. Acknowledging it with the run's own would lose
+    it for good; it must still be waiting for whoever handles the agent next."""
+    import asyncio
+
+    from loamz.runtime.kernel.errors import PermanentError
+    from loamz.runtime.kernel.types.run_log import RunLogKind
+    from loamz.runtime.testing.runtime import ephemeral_runtime
+
+    late = _message()
+
+    class Failing:
+        id = AGENT
+
+        def __init__(self, rt_holder: dict) -> None:
+            self._rt = rt_holder
+
+        async def run(self, ctx, inbox) -> None:  # type: ignore[no-untyped-def]
+            # Arrives after this run drained its inbox, before it fails.
+            await self._rt["rt"].store.deliver(Delivery(agent=AGENT, msg=late), wake=False)
+            raise PermanentError("this agent cannot do that")
+
+    holder: dict = {}
+    async with ephemeral_runtime() as rt:
+        holder["rt"] = rt
+        await rt.register(Failing(holder))
+        run_id = await rt.submit(AGENT, _message(), max_retries=0)
+        async for entry in rt.tail(run_id):
+            if entry.kind in (RunLogKind.RUN_COMPLETED, RunLogKind.RUN_FAILED):
+                break
+        await asyncio.sleep(0.05)
+        waiting = await rt.store.drain(AGENT)
+
+    assert [m.id for m in waiting] == [late.id]

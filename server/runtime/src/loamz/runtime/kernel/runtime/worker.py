@@ -273,6 +273,7 @@ class Worker:
         if lease.thread_id:
             attributes[semconv.RUN_THREAD] = lease.thread_id
         heartbeat: asyncio.Task[None] | None = None
+        seen: list[Any] = []
         try:
             with span(semconv.SPAN_RUN, attributes=attributes, parent=lease.trace) as handle:
                 try:
@@ -342,6 +343,7 @@ class Worker:
                     )
 
                     drained = await self._journaled_drain(ctx, journal, lease)
+                    seen = drained
                     await agent.run(ctx, drained)
                     await self._finish(lease, agent, drained, Complete())
                 except SuspendInterrupt as signal:
@@ -354,7 +356,7 @@ class Worker:
                 except (asyncio.CancelledError, CancellationError) as stop:
                     outcome_label = await self._on_stop(lease, agent, stop, token)
                 except Exception as exc:  # noqa: BLE001
-                    outcome_label = await self._on_failure(lease, agent, exc)
+                    outcome_label = await self._on_failure(lease, agent, exc, seen)
                 handle.set_attribute(semconv.RUN_OUTCOME, outcome_label)
         finally:
             if heartbeat is not None:
@@ -463,14 +465,15 @@ class Worker:
         await self._commit_end(lease, Commit(outcome=Cancel(reason=why)))
         return "cancelled"
 
-    async def _on_failure(self, lease: Lease, agent: Any, exc: Exception) -> str:
+    async def _on_failure(self, lease: Lease, agent: Any, exc: Exception, seen: list[Any]) -> str:
         run_id = str(lease.run_id)
         error, retryable = classify_failure(exc, run_id=run_id, agent_id=agent.id)
         if retryable:
             logger.exception("agent %s crashed in run %s", agent.id, run_id)
         else:
             logger.warning("agent %s run %s stopped: %s", agent.id, run_id, exc)
-        inbox = await self._safe_drain(lease)
+        # Only what this run read is settled with it: a message that arrived since was never seen, and stays.
+        inbox = seen
         if retryable and lease.retry_count < lease.retry_policy.max_retries:
             # The messages stay in the inbox: the retry will find the same input.
             delay = backoff(lease.retry_policy, lease.retry_count)
@@ -488,12 +491,6 @@ class Worker:
                 lease, Commit(ack=tuple(m.id for m in inbox), outcome=Fail(error=error))
             )
         return "failed"
-
-    async def _safe_drain(self, lease: Lease) -> list[Any]:
-        try:
-            return await self._store.drain(lease.agent, limit=100)
-        except Exception:  # noqa: BLE001
-            return []
 
     async def _clear_run_history(self, agent: Any, run_id: str, handled: list[Any]) -> None:
         """Delete run-scoped history once the run has ended. After the commit, never
