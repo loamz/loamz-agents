@@ -6,20 +6,17 @@ enforced to prevent SSRF and limit network exposure.
 
 from __future__ import annotations
 
+from typing import Any
 from urllib.parse import urlparse
 
 from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk
 from loamz.runtime.kernel.types.content import TextBlock
 
-_DEFAULT_ALLOWED_DOMAINS: list[str] = [
-    "api.github.com",
-    "httpbin.org",
-    "jsonplaceholder.typicode.com",
-]
-
 
 class HttpRequestTool:
-    """Make HTTP GET/POST/PUT/DELETE requests with domain allowlisting."""
+    """Make HTTP GET/POST/PUT/DELETE requests with domain allowlisting.
+
+    It reaches no host until the operator names some: ``HttpRequestTool(allowed_domains=[...])``."""
 
     risk = ToolRisk.HIGH  # POST/PUT/DELETE change things on someone else's server
     idempotent = False
@@ -28,7 +25,7 @@ class HttpRequestTool:
         self,
         allowed_domains: list[str] | None = None,
     ) -> None:
-        self._allowed_domains = set(allowed_domains or _DEFAULT_ALLOWED_DOMAINS)
+        self._allowed_domains = set(allowed_domains or ())
 
     def _is_allowed(self, url: str) -> bool:
         parsed = urlparse(url)
@@ -42,6 +39,7 @@ class HttpRequestTool:
         method: str = "GET",
         headers: dict[str, str] | None = None,
         body: str = "",
+        ctx: Any = None,
     ) -> ToolExecutionResult:
         if not self._is_allowed(url):
             parsed = urlparse(url)
@@ -50,7 +48,11 @@ class HttpRequestTool:
                     TextBlock(
                         text=(
                             f"Domain '{parsed.hostname}' is not in the allowed list. "
-                            f"Allowed: {', '.join(sorted(self._allowed_domains))}"
+                            + (
+                                f"Allowed: {', '.join(sorted(self._allowed_domains))}"
+                                if self._allowed_domains
+                                else "No domain is allowed: the operator has not named any."
+                            )
                         )
                     )
                 ],

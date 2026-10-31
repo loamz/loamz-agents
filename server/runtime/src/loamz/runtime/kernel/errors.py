@@ -211,6 +211,10 @@ class UnsupportedContentError(InvalidRequestError, ValueError):
     """A client cannot process this mix of content."""
 
 
+class UnsupportedToolError(InvalidRequestError, ValueError):
+    """A client was asked to send a tool it cannot (a provider-hosted tool its vendor integration does not implement)."""
+
+
 class BranchNotFoundError(NotFoundError, KeyError):
     """The requested branch does not exist."""
 
@@ -312,6 +316,7 @@ __all__ = [
     "SuspendInterrupt",
     "ThreadBusyError",
     "ToolDeclarationError",
+    "UnsupportedToolError",
     "UnroutableMessageError",
     "UnsupportedContentError",
     "WorkspacePathError",

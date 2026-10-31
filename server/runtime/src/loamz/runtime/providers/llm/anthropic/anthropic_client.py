@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 from collections.abc import AsyncIterator
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from anthropic import AsyncAnthropic
 
@@ -19,7 +19,6 @@ from loamz.runtime.kernel.models import (
 from loamz.runtime.kernel.models.modalities import fit_to_capabilities
 from loamz.runtime.kernel.models.registry import resolve_capabilities
 from loamz.runtime.kernel.models.tool_arguments import parse_tool_arguments
-from loamz.runtime.kernel.tools import Tool, is_hosted_tool, is_provider_defined_tool
 from loamz.runtime.kernel.types.content import (
     ChatMessage,
     ContentBlock,
@@ -32,6 +31,7 @@ from loamz.runtime.kernel.types.finish_reason import FinishReason
 from loamz.runtime.kernel.types.run import RunMeta
 from loamz.runtime.kernel.types.stream import CompletionEvent, ReasoningDelta, TextDelta
 from loamz.runtime.kernel.types.usage import Usage
+from loamz.runtime.providers.llm._tools import function_specs
 from loamz.runtime.providers.llm.encoders.anthropic import encode_messages as _encode_messages
 from loamz.runtime.providers.llm.encoders.anthropic import encode_tools as _encode_tools
 
@@ -42,22 +42,7 @@ logger = logging.getLogger(__name__)
 
 
 def _tools_from_options(options: GenerationOptions) -> list[dict[str, Any]] | None:
-    if not options.tools:
-        return None
-    # HostedTool / ProviderDefinedTool have no input_schema — this client only
-    # advertises local Tool schemas here; hosted/provider-defined tools aren't
-    # wired into this code path yet.
-    local_tools = [
-        cast(Tool, t)
-        for t in options.tools
-        if not is_hosted_tool(t) and not is_provider_defined_tool(t)
-    ]
-    if not local_tools:
-        return None
-    return [
-        {"name": t.name, "description": t.description, "parameters": t.input_schema}
-        for t in local_tools
-    ]
+    return function_specs(options.tools, client="anthropic")
 
 
 _ANTHROPIC_FINISH = {

@@ -42,8 +42,10 @@ class WebSurferTool:
     """
 
     name: str = "web_surfer"
-    risk = ToolRisk.SAFE
-    idempotent = True
+    risk = (
+        ToolRisk.HIGH
+    )  # it clicks, fills forms and runs scripts in pages: that acts, it does not only read
+    idempotent = False
     description: str = (
         "Advanced web browsing tool for agents. Supports navigation, content extraction, "
         "screenshots, element interaction, and form filling. Maintains browser session "
@@ -208,6 +210,7 @@ class WebSurferTool:
         full_page: bool = True,
         timeout: int = 30000,
         max_chars: int | None = None,
+        ctx: Any = None,
     ) -> ToolExecutionResult:
         """Execute web surfing action.
 

@@ -124,3 +124,35 @@ def test_i22_a_tool_from_an_mcp_server_needs_approval_unless_the_operator_says_o
         idempotent=True,
     )  # type: ignore[arg-type]
     assert vouched.risk is ToolRisk.SAFE and vouched.idempotent is True
+
+
+async def test_i22_the_engine_calls_every_tool_with_ctx_and_each_built_in_accepts_it() -> None:
+    """The invoker always calls ``tool.execute(ctx=ctx, **arguments)``. A tool that does not accept ``ctx`` fails on
+    every call the engine makes, whatever it was written to do."""
+    import inspect
+
+    from loamz.runtime.toolkit.communication.http_request import HttpRequestTool
+    from loamz.runtime.toolkit.web.surfer import WebSurferTool
+
+    for tool in (HttpRequestTool(), WebSurferTool()):
+        parameters = inspect.signature(tool.execute).parameters
+        accepts = "ctx" in parameters or any(
+            p.kind is inspect.Parameter.VAR_KEYWORD for p in parameters.values()
+        )
+        assert accepts, f"{type(tool).__name__}.execute does not accept ctx"
+
+
+def test_i22_a_tool_that_clicks_and_fills_forms_is_not_declared_safe() -> None:
+    from loamz.runtime.toolkit.web.surfer import WebSurferTool
+
+    tool = WebSurferTool()
+    assert tool.risk != ToolRisk.SAFE and tool.idempotent is False
+
+
+async def test_i22_the_http_tool_reaches_no_host_until_the_operator_names_one() -> None:
+    from loamz.runtime.toolkit.communication.http_request import HttpRequestTool
+
+    refused = await HttpRequestTool().execute(url="https://httpbin.org/get", ctx=None)
+    assert refused.is_error
+    allowed = HttpRequestTool(allowed_domains=["example.org"])
+    assert allowed._is_allowed("https://example.org/x")
