@@ -88,3 +88,34 @@ async def test_i15_a_run_is_refused_by_a_different_version(tmp_path: Path) -> No
         "the new code must not continue the old run"
     )
     assert "version" in str(payload.get("error", "")), payload
+
+
+class Compatible(Waiter):
+    """A new version of the agent that says it can continue runs started by version 1."""
+
+    def replays_from(self, pinned: str) -> bool:
+        return pinned in ("1", self.version)
+
+
+async def test_i15_a_new_version_can_declare_the_older_runs_it_continues(tmp_path: Path) -> None:
+    path = tmp_path / "rt.sqlite3"
+    run_id = await _suspend_under(path, "1")
+
+    newer = Compatible("2")
+    async with open_runtime(path) as rt:
+        await rt.register(newer)
+        await rt.store.signal(run_id, "go", {})
+        kind, _ = await _terminal(rt, run_id)
+
+    assert kind == RunLogKind.RUN_COMPLETED and newer.resumed
+
+
+def test_i15_the_version_a_run_is_pinned_to_is_the_agents_own_not_the_packages() -> None:
+    """A release of this package must not fail every run that is waiting on a person: an agent's version is
+    declared by its author and moves only when its behaviour changes incompatibly."""
+    from loamz.runtime.kernel.agents.base import BaseAgent
+    from loamz.runtime.kernel.agents.routed import RoutedAgent
+    from loamz.runtime.kernel.version import __version__ as package
+
+    assert BaseAgent.version == RoutedAgent.version
+    assert BaseAgent.version != package

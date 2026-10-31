@@ -26,6 +26,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
 from loamz.runtime.kernel.errors import UnroutableMessageError
 from loamz.runtime.kernel.runtime.message import Message
+from loamz.runtime.kernel.runtime.versioning import DEFAULT_AGENT_VERSION
 from loamz.runtime.kernel.telemetry import semconv
 from loamz.runtime.kernel.telemetry.tracing import span
 
@@ -54,9 +55,10 @@ class RoutedAgent:
     """Base for agents that dispatch by payload type. Subclasses set ``id`` and declare handlers."""
 
     id: Any
-    version: str = "0"
+    version: str = DEFAULT_AGENT_VERSION
     """What a run is pinned to when it starts: the worker will not continue it under a
-    different one (see ``Worker``). Override when behaviour changes incompatibly."""
+    different one unless ``replays_from(pinned)`` says it can (see ``Worker``). Override when
+    behaviour changes incompatibly."""
 
     _routes: ClassVar[dict[type, str]] = {}
 
