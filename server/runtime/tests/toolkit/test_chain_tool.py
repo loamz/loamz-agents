@@ -228,3 +228,44 @@ async def test_tool_chain_tool_prelude_includes_registry_names():
     await tool.execute(code="pass")
     # The injected code should contain the tool name
     assert "echo" in interpreter.last_code
+
+
+# ---------------------------------------------------------------------------
+# What the script may do is what the interpreter may do
+# ---------------------------------------------------------------------------
+
+
+class _ScopedInterpreter(FakeInterpreter):
+    """Like the real interpreter: it needs the run's ctx, and it classifies the code it is asked to run."""
+
+    risk = ToolRisk.CRITICAL
+
+    def __init__(self) -> None:
+        super().__init__(output="ok")
+        self.ctx: Any = "unset"
+
+    async def execute(self, *, code: str, ctx: Any = None, **kwargs: Any) -> ToolExecutionResult:
+        self.ctx = ctx
+        return await super().execute(code=code)
+
+    async def classify_risk(self, arguments: dict[str, Any]) -> tuple[ToolRisk, str | None]:
+        return ToolRisk.CRITICAL, "runs a shell command"
+
+
+@pytest.mark.asyncio
+async def test_a_chain_is_as_risky_as_the_code_it_runs_and_runs_with_the_callers_ctx() -> None:
+    from loamz.runtime.toolkit.chain.tool import ToolChainTool
+
+    interpreter = _ScopedInterpreter()
+    chain = ToolChainTool(invoker=ToolInvoker(make_registry(EchoTool())), interpreter=interpreter)
+
+    assert chain.risk == ToolRisk.CRITICAL, (
+        "arbitrary code needs the approval the interpreter needs"
+    )
+    risk, why = await chain.classify_risk({"code": "import os; os.system('x')"})
+    assert (risk, why) == (ToolRisk.CRITICAL, "runs a shell command")
+
+    ctx = object()
+    result = await chain.execute(code="return 1", ctx=ctx)
+    assert not result.is_error
+    assert interpreter.ctx is ctx, "the interpreter needs the run's scope, or it refuses to run"

@@ -52,6 +52,7 @@ from loamz.runtime.kernel.types.finish_reason import FinishReason
 from loamz.runtime.kernel.types.run import RunMeta
 from loamz.runtime.kernel.types.stream import CompletionEvent, ReasoningDelta, TextDelta
 from loamz.runtime.kernel.types.usage import Usage
+from loamz.runtime.providers.llm._tools import function_specs
 from loamz.runtime.providers.llm.base import off_effort
 
 logger = logging.getLogger(__name__)
@@ -141,11 +142,7 @@ def _tool_result_text(block: ToolResultBlock) -> str:
 
 
 def _tools_to_dicts(tools: Any) -> list[dict[str, Any]] | None:
-    if not tools:
-        return None
-    return [
-        {"name": t.name, "description": t.description, "parameters": t.input_schema} for t in tools
-    ]
+    return function_specs(tools, client="OpenAI-compatible")
 
 
 # ── Strict-schema helpers (inlined — no adapter dependency) ──────────────

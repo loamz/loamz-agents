@@ -6,8 +6,9 @@ every ``tools.<name>(...)`` call is routed back via the bridge to the
 framework-side ``ToolInvoker`` for risk/approval/ctx enforcement.
 
 The tool is a normal ``Tool`` (LOCAL execution) so the existing ReAct dispatch
-path is unchanged.  Its risk is SAFE because ToolInvoker enforces per-call
-risk inside the chain.
+path is unchanged.  Its risk is CRITICAL, like the interpreter that runs the
+script: the script is arbitrary code, and the per-call risk of the tools it
+calls is enforced by ToolInvoker inside the chain on top of that.
 
 Wiring (lifespan)::
 
@@ -58,13 +59,15 @@ class ToolChainTool:
         chart_ref = artifacts.put("/workspace/chart.png", "image/png")
         return {"summary": summary.text, "chart": chart_ref}
 
-    The tool_chain tool itself is SAFE; individual tool risks are enforced by
-    ToolInvoker inside the chain (HIGH/CRITICAL tools still require approval —
-    but with a bounded timeout so the sandbox never hangs).
+    The script is arbitrary code, so the tool carries the interpreter's risk and asks the
+    interpreter to classify each script (exploratory scripts stay SAFE, a shell call is
+    CRITICAL). On top of that, individual tool risks are enforced by ToolInvoker inside
+    the chain (HIGH/CRITICAL tools still require approval, with a bounded timeout so the
+    sandbox never hangs).
     """
 
     name: str = "tool_chain"
-    risk = ToolRisk.SAFE
+    risk = ToolRisk.CRITICAL
     idempotent = False
     description: str = (
         "Execute a Python script that chains multiple tools together in one "
@@ -119,6 +122,13 @@ class ToolChainTool:
         self._bridge_registry = bridge_registry or ChainBridgeRegistry()
         self._bridge_base_url = bridge_base_url
 
+    async def classify_risk(self, arguments: dict[str, Any]) -> tuple[ToolRisk, str | None]:
+        """The script is judged as the interpreter judges the code it would run."""
+        classify = getattr(self._interpreter, "classify_risk", None)
+        if classify is None:
+            return ToolRisk.CRITICAL, "runs arbitrary code in a sandbox"
+        return await classify(arguments)
+
     async def execute(
         self,
         *,
@@ -165,10 +175,6 @@ class ToolChainTool:
         policy = self._invoker.policy
         effective_timeout = min(timeout, int(policy.total_timeout_s))
 
-        # Set the session_id on the interpreter so it reuses the agent's VM
-        if ctx is not None and hasattr(ctx, "session_id"):
-            self._interpreter.session_id = ctx.session_id
-
         # Build prelude
         tool_names = list(self._invoker._registry.names())
         prelude = build_prelude(
@@ -194,6 +200,7 @@ class ToolChainTool:
                 code=full_code,
                 exec_type="python",
                 timeout=effective_timeout,
+                ctx=ctx,
             )
         except Exception as exc:
             logger.exception("chain[%s]: interpreter error", chain_id)

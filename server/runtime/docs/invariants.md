@@ -9,7 +9,7 @@ sentence in a docstring. A row is *enforced* when its test passes today, and
 marked `xfail(strict=True)`, so the build fails the moment one starts passing
 and the marker has to come off. That is what keeps this document honest.
 
-**119 enforced · 0 pending · 119 total**
+**122 enforced · 0 pending · 122 total**
 
 ## approvals
 
@@ -265,6 +265,12 @@ and the marker has to come off. That is what keeps this document honest.
   `test_i22_every_shipped_tool_declares_its_risk_and_idempotency`
 - ✅ **i22 a tool from an mcp server needs approval unless the operator says otherwise**
   `test_i22_a_tool_from_an_mcp_server_needs_approval_unless_the_operator_says_otherwise`
+- ✅ **The invoker always calls ``tool.execute(ctx=ctx, **arguments)``. A tool that does not accept ``ctx`` fails on every call the engine makes, whatever it was written to do.**
+  `test_i22_the_engine_calls_every_tool_with_ctx_and_each_built_in_accepts_it`
+- ✅ **i22 a tool that clicks and fills forms is not declared safe**
+  `test_i22_a_tool_that_clicks_and_fills_forms_is_not_declared_safe`
+- ✅ **i22 the http tool reaches no host until the operator names one**
+  `test_i22_the_http_tool_reaches_no_host_until_the_operator_names_one`
 
 ## type safety
 
