@@ -1,6 +1,6 @@
 [project]
 name = "loamz-agents-server"
-version = "0.1.0"
+version = "0.1.1"
 description = "Loamz Agents: agent hosting (HTTP API, console, channels, automation) on the loamz-runtime."
 readme = "README.md"
 license = "Apache-2.0"
