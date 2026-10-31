@@ -45,6 +45,7 @@ from loamz.runtime.kernel.errors import (
 from loamz.runtime.kernel.runtime.cancellation import CancellationToken
 from loamz.runtime.kernel.runtime.context import RunContext
 from loamz.runtime.kernel.runtime.journal import Journal
+from loamz.runtime.kernel.runtime.message import Message
 from loamz.runtime.kernel.runtime.scheduler import RunRetryPolicy
 from loamz.runtime.kernel.runtime.store import (
     Cancel,
@@ -273,7 +274,7 @@ class Worker:
         if lease.thread_id:
             attributes[semconv.RUN_THREAD] = lease.thread_id
         heartbeat: asyncio.Task[None] | None = None
-        seen: list[Any] = []
+        seen: list[Message] = []
         try:
             with span(semconv.SPAN_RUN, attributes=attributes, parent=lease.trace) as handle:
                 try:
@@ -375,10 +376,10 @@ class Worker:
             self._tasks.pop(run_id, None)
             self._stop_reason.pop(run_id, None)
 
-    async def _journaled_drain(self, ctx: RunContext, journal: Journal, lease: Lease) -> list[Any]:
+    async def _journaled_drain(self, ctx: RunContext, journal: Journal, lease: Lease) -> list[Message]:
         """Drain the inbox once and remember which messages: a replay must process
         exactly the messages the first attempt saw, not whatever has arrived since."""
-        fetched: list[Any] = []
+        fetched: list[Message] = []
 
         async def build(_path: str, _effect: str):
             fetched.extend(await self._store.drain(lease.agent, limit=100))
