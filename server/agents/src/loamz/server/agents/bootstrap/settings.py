@@ -317,25 +317,30 @@ class SafetySettings(BaseModel):
 
 
 class DataSettings(BaseModel):
-    """Loamz Data: where files (and later documents, memory and the runtime database) are kept."""
+    """Loamz Data: where files are kept, and how agents reach governed data for the person they act for."""
 
     url: str = Field(
         default="",
         description="Loamz Data API address. Empty: files live in a local folder (`files.path`).",
     )
-    token_key_file: str = Field(
-        default="./.loamz/keys/data-token.pem",
-        description="Ed25519 key this server signs per-request data tokens with (created on first use).",
+    audience: str = Field(
+        default="loamz-data", description="The audience a credential for Loamz Data is issued for."
     )
-    files_issuer: str = Field(
-        default="loamz-agents-files",
-        description="Issuer name the data service trusts to change files; its JWKS is served at /.well-known/data-token-jwks.json.",
+    workspace: str = Field(
+        default="",
+        description="The Loamz Data workspace agents query, when a person's context names none (`loamz.data/workspace`).",
     )
-    read_issuer: str = Field(
-        default="loamz-agents",
-        description="Issuer name the data service trusts for read-only access on behalf of a signed-in person (data tools and sandboxes).",
+    exchange_client_id: str = Field(
+        default="",
+        description="This server's own client at the identity provider: it exchanges a person's token for one for Loamz Data.",
     )
-    audience: str = "loamz-data"
+    exchange_client_secret_file: str = Field(
+        default="", description="A file holding that client's secret."
+    )
+    # Signing keys for the older file adapters (replaced by the exchange above; removed with them).
+    token_key_file: str = Field(default="./.loamz/keys/data-token.pem")
+    files_issuer: str = Field(default="loamz-agents-files")
+    read_issuer: str = Field(default="loamz-agents")
 
 
 class ToolServerSettings(BaseModel):

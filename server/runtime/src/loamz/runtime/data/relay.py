@@ -18,11 +18,10 @@ import contextlib
 import json
 import logging
 import os
-import re
 import socket
 import ssl
 import stat
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from http.cookiejar import DefaultCookiePolicy
 from pathlib import Path
@@ -31,6 +30,8 @@ from urllib.parse import urlsplit
 import httpx
 import uvicorn
 
+from loamz.runtime.data.policy import AllowAll, RequestPolicy
+
 logger = logging.getLogger(__name__)
 
 UNIX_PATH_LIMIT = 100
@@ -38,19 +39,6 @@ LOOPBACK = {"localhost", "127.0.0.1", "::1"}
 MAX_REQUEST_BYTES = 1 << 20  # 1 MiB max
 DEFAULT_BUDGET_BYTES = 512 << 20  # what one run may receive in total
 DEFAULT_BUDGET_REQUESTS = 500
-
-_SEGMENT = r"[A-Za-z0-9_.$-]{1,128}"
-ALLOWED = (
-    (
-        "GET",
-        re.compile(
-            rf"^/api/v1/(search|catalogs(/{_SEGMENT}(/schemas(/{_SEGMENT}"
-            rf"(/(tables|views)(/{_SEGMENT})?)?)?)?)?)$"
-        ),
-    ),
-    ("POST", re.compile(r"^/api/v1/statements$")),
-    ("POST", re.compile(rf"^/api/v1/statements/{_SEGMENT}:cancel$")),
-)
 
 FORWARDED_REQUEST_HEADERS = {
     "content-type",
@@ -84,7 +72,8 @@ class Channel:
     """One run's socket, identity and budget."""
 
     directory: Path
-    token: Callable[[], str] = field(repr=False)
+    token: Callable[[], Awaitable[str]] = field(repr=False)
+    policy: RequestPolicy = field(repr=False, default_factory=lambda: AllowAll())
     budget_bytes: int = DEFAULT_BUDGET_BYTES
     budget_requests: int = DEFAULT_BUDGET_REQUESTS
     bytes_out: int = 0
@@ -147,14 +136,15 @@ class DataGateway:
     async def open(
         self,
         directory: Path,
-        token: Callable[[], str],
+        token: Callable[[], Awaitable[str]],
         *,
+        policy: RequestPolicy,
         budget_bytes: int = DEFAULT_BUDGET_BYTES,
         budget_requests: int = DEFAULT_BUDGET_REQUESTS,
         owner: int | None = None,
     ) -> Channel:
-        """A new socket in `directory` (created private to this process) that speaks for the identity `token()` returns."""
-        channel = Channel(directory, token, budget_bytes, budget_requests)
+        """A new socket in `directory` (created private to this process) that speaks for the identity `await token()` returns, and forwards only what `policy` allows."""
+        channel = Channel(directory, token, policy, budget_bytes, budget_requests)
         if len(str(channel.socket_path)) > UNIX_PATH_LIMIT:
             raise ValueError(f"Gateway path is too long for a Unix socket: {channel.socket_path}")
         directory.mkdir(parents=True, exist_ok=True)
@@ -201,7 +191,7 @@ class DataGateway:
             return
         method, path = scope["method"], scope["path"]
         dotted = {".", ".."} & set(path.split("/"))
-        if dotted or not any(m == method and rx.match(path) for m, rx in ALLOWED):
+        if dotted or not channel.policy.allows(method, path):
             await self._reply(
                 send,
                 *_problem(
@@ -251,7 +241,7 @@ class DataGateway:
         }
         headers["accept-encoding"] = "identity"
         try:
-            headers["authorization"] = f"Bearer {channel.token()}"
+            headers["authorization"] = f"Bearer {await channel.token()}"
         except Exception as exc:  # noqa: BLE001
             logger.warning("data channel could not mint a token: %s", exc)
             await self._reply(

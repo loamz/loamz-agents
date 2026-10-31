@@ -26,6 +26,8 @@ class Caller:
     scopes: frozenset[str] | None = None
     email: str | None = None
     name: str | None = None
+    # The verified access token the request carried: the person's authority when an agent acts for them. Never printed or stored.
+    token: str | None = field(default=None, repr=False)
 
     def has_role(self, *roles: str) -> bool:
         return bool(self.roles & set(roles))

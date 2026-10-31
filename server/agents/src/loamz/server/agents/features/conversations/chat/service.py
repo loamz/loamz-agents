@@ -8,6 +8,7 @@ from loamz.runtime.kernel.caller import Caller
 from loamz.runtime.kernel.runtime import ChatPayload, Message, Runtime
 from loamz.runtime.kernel.tools import ToolRisk
 from loamz.runtime.kernel.tools.approval import ApprovalDecision, DurableApproval
+from loamz.runtime.kernel.types.auth import AsUser
 from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
 from loamz.runtime.kernel.types.identity import Actor
 from loamz.runtime.kernel.types.run_log import RunLogKind
@@ -234,6 +235,8 @@ class ChatService:
             tenant=caller.tenant_id,
             max_retries=0,
             thread_id=req.thread_id,
+            # The person's own authority, for as long as this run is live; the engine never stores it.
+            auth=AsUser(caller.token) if caller.token else None,
         )
 
         async for line in self._relay(run_id):

@@ -18,6 +18,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Protocol, runtime_checkable
 
+from loamz.runtime.kernel.types.data import DataMount
 from loamz.runtime.stores.workspace.scope import WorkspaceScope
 
 
@@ -72,22 +73,11 @@ class Mount:
             raise ValueError(f"invalid mount name: {self.label!r}")
 
 
-@dataclass(frozen=True, slots=True)
-class DataMount:
-    """Governed-data access for one run, with no network and no credential.
+class Capability(enum.StrEnum):
+    """What a sandbox runtime can do beyond running code. The tool refuses to use one a runtime does not declare."""
 
-    ``socket_dir`` is a host directory holding this run's gateway socket (``api.sock``); it is shown read-only at
-    ``/run/loamz-data``. The sandbox holds no token: the gateway behind the socket owns the run's identity, adds it to
-    each request and forwards a short allow-list of read requests to the (remote) data service. What the code may read
-    is decided there from that identity, never by anything the code or the model sends.
-    """
-
-    socket_dir: str
-
-    def __post_init__(self) -> None:
-        # ``:`` separates the two halves of a bind mount, so a path holding one could name a destination of its own.
-        if not self.socket_dir.startswith("/") or ":" in self.socket_dir:
-            raise ValueError("DataMount needs an absolute socket_dir without ':'")
+    DATA_SOCKET = "data_socket"
+    """Shows a run one Unix socket to governed data (see ``DataMount``) while the network stays closed."""
 
 
 @dataclass(slots=True)
@@ -119,6 +109,8 @@ class SandboxSpec:
     mounts: tuple[Mount, ...] = ()
     # Access to the governed data service for this run (a gateway socket and a token); None for none.
     data: DataMount | None = None
+    # Non-secret variables the run's data access needs in its environment (a workspace id), never a credential.
+    data_env: tuple[tuple[str, str], ...] = ()
     # Extra runtime-specific hints (e.g. a venv path for PIP_ONLY). Kept opaque
     # so backends can differ without widening this dataclass.
     extra: dict[str, Any] = field(default_factory=dict)
@@ -181,6 +173,7 @@ class SandboxRuntime(Protocol):
     """
 
     name: str
+    capabilities: frozenset[Capability]
 
     async def execute(self, spec: SandboxSpec) -> ExecResult: ...
 
@@ -189,6 +182,7 @@ class SandboxRuntime(Protocol):
 
 
 __all__ = [
+    "Capability",
     "DataMount",
     "ExecResult",
     "Mount",

@@ -30,12 +30,14 @@ from loamz.runtime.stores.workspace.layout import is_persistent_workspace
 from loamz.runtime.stores.workspace.scope import WorkspaceScope, workspace_scope
 
 from .code_risk import classify_and_summarize
-from .data_access import DATA_GUIDANCE, DataAccess
+from .data_access import DataSource
 from .runtimes.base import (
+    Capability,
     Mount,
     NetworkPolicy,
     SandboxRuntime,
     SandboxSpec,
+    SandboxUnavailableError,
     valid_mount_label,
 )
 from .sandbox_response import (
@@ -66,7 +68,7 @@ class CodeInterpreterTool:
         default_timeout_s: int = 60,
         memory_bytes: int = 2 * 1024 * 1024 * 1024,
         model_client: Any | None = None,
-        data: DataAccess | None = None,
+        data: DataSource | None = None,
     ) -> None:
         self._runtime = runtime
         self._network = network
@@ -74,8 +76,13 @@ class CodeInterpreterTool:
         self._memory_bytes = memory_bytes
         # Only used to summarize dangerous code for the approval card.
         self._model_client = model_client
-        # Governed data for each run, only when the runtime can keep it inside the sandbox.
-        self._data = data if getattr(runtime, "supports_data", False) else None
+        # Governed data for each run. A runtime that cannot keep it inside the sandbox is refused here, not quietly
+        # given none: a person who asked for an agent with data should not get one without.
+        if data is not None and Capability.DATA_SOCKET not in runtime.capabilities:
+            raise SandboxUnavailableError(
+                f"the {runtime.name} sandbox cannot give a run governed data without a network (no DATA_SOCKET)"
+            )
+        self._data = data
         # Set by chain callers that have no ContextVar in scope.
         self.session_id: str = _DEFAULT_SESSION
 
@@ -90,7 +97,7 @@ class CodeInterpreterTool:
             "Each execution runs in a fresh interpreter, so Python variables do NOT "
             "persist between calls — save anything you need later to a file. "
             "Network access is disabled by default."
-            + (DATA_GUIDANCE if self._data is not None else "")
+            + (" " + self._data.guidance if self._data is not None else "")
             + PRESENTATION_GUIDANCE
         )
         self.input_schema: dict[str, Any] = {
@@ -180,10 +187,12 @@ class CodeInterpreterTool:
             else f".private/{scope.conversation_id}/{scope.branch_id}/{agent_id}"
         )
 
-        data = None
+        grant = None
         if self._data is not None:
             try:
-                data = await self._data.grant(run_scope, timeout_s=timeout_s)
+                grant = await self._data.grant(
+                    run_scope, getattr(ctx, "auth", None), timeout_s=timeout_s
+                )
             except Exception as exc:  # noqa: BLE001 - the run still works, just without data
                 logger.warning("code_interpreter[%s]: data access unavailable: %s", session_id, exc)
 
@@ -199,7 +208,8 @@ class CodeInterpreterTool:
             network=self._network,
             memory_bytes=self._memory_bytes,
             mounts=mounts,
-            data=data,
+            data=grant.mount if grant is not None else None,
+            data_env=grant.env if grant is not None else (),
         )
 
         logger.info(
@@ -217,8 +227,8 @@ class CodeInterpreterTool:
             logger.error("code_interpreter[%s] runtime error: %s", session_id, exc)
             return sandbox_error_result(f"Sandbox error: {exc}")
         finally:
-            if data is not None and self._data is not None:
-                await self._data.release(data)  # the run's identity ends with the run
+            if grant is not None and self._data is not None:
+                await self._data.release(grant)  # the run's identity ends with the run
 
         if result.workspace_snapshot_id is not None and ctx is not None:
             record = getattr(ctx, "record_workspace_snapshot", None)

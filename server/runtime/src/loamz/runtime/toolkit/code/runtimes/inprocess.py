@@ -24,13 +24,14 @@ from pathlib import Path
 from typing import Any
 
 from ._files import collect_changed, snapshot
-from .base import ExecResult, SandboxSpec
+from .base import Capability, ExecResult, SandboxSpec
 
 
 class InProcessRuntime:
     """Run code directly in this process. No security boundary whatsoever."""
 
     name = "inprocess"
+    capabilities: frozenset[Capability] = frozenset()
 
     def __init__(self, workspace_root: str | Path) -> None:
         self._root = Path(workspace_root).resolve()

@@ -24,7 +24,7 @@ import logging
 from typing import Any
 
 from ..sandbox_service import CodeInterpreterConfig, CodeInterpreterService
-from .base import ExecResult, NetworkPolicy, SandboxSpec
+from .base import Capability, ExecResult, NetworkPolicy, SandboxSpec
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +33,7 @@ class K8sRuntime:
     """Execute code in a per-session Kubernetes sandbox pod."""
 
     name = "k8s"
+    capabilities: frozenset[Capability] = frozenset()
 
     def __init__(
         self,

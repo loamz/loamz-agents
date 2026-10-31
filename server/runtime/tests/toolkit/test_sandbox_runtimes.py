@@ -407,7 +407,7 @@ def test_a_data_mount_must_be_an_absolute_path_that_cannot_add_a_mount_option(
 def test_nsjail_shows_only_the_runs_socket_read_only_and_no_token_file(
     workspace: Path, tmp_path: Path
 ) -> None:
-    from loamz.runtime.toolkit.code.runtimes.base import DataMount
+    from loamz.runtime.toolkit.code.runtimes.base import Capability, DataMount
 
     runtime = NsjailRuntime(workspace)
     base = runtime._nsjail_argv(spec(code="1"), tmp_path)
@@ -421,8 +421,8 @@ def test_nsjail_shows_only_the_runs_socket_read_only_and_no_token_file(
     assert f"-R {tmp_path}:/run/loamz-data" in joined
     assert "/run/loamz-data/token" not in joined
     assert "--disable_clone_newnet" not in mounted  # the network namespace stays closed
-    assert runtime.supports_data is True
-    assert getattr(InProcessRuntime(workspace), "supports_data", False) is False
+    assert Capability.DATA_SOCKET in runtime.capabilities
+    assert Capability.DATA_SOCKET not in InProcessRuntime(workspace).capabilities
 
 
 async def test_a_run_reaches_data_only_through_the_mounted_socket(

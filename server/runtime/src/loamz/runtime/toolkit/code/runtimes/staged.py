@@ -56,7 +56,7 @@ from loamz.runtime.stores.workspace.materialize import materialize as materializ
 from loamz.runtime.stores.workspace.scope import WorkspaceScope
 from loamz.runtime.stores.workspace.snapshots import commit_turn
 
-from .base import ExecResult, SandboxSpec
+from .base import Capability, ExecResult, SandboxSpec
 from .prefix_sync import PrefixSync
 
 logger = logging.getLogger(__name__)
@@ -97,9 +97,9 @@ class StagedSandboxRuntime:
         return f"staged({self._inner.name})"
 
     @property
-    def supports_data(self) -> bool:
-        """Whether the wrapped runtime can give a run governed-data access (see ``DataMount``)."""
-        return bool(getattr(self._inner, "supports_data", False))
+    def capabilities(self) -> frozenset[Capability]:
+        """What the wrapped runtime can do: staging adds nothing and removes nothing."""
+        return self._inner.capabilities
 
     def _lock_for(self, session_dir: str) -> asyncio.Lock:
         lock = self._locks.get(session_dir)

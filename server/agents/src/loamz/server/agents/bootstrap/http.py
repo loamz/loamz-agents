@@ -27,6 +27,11 @@ def container(request: HTTPConnection) -> Container:
     return request.app.state.container
 
 
+def _bearer(header: str | None) -> str | None:
+    scheme, _, value = (header or "").partition(" ")
+    return value.strip() or None if scheme.lower() == "bearer" else None
+
+
 async def _verified(request: Request) -> Caller:
     """The caller the bearer token proves, verified once per request."""
     cached: Caller | None = getattr(request.state, "caller", None)
@@ -51,6 +56,7 @@ async def _verified(request: Request) -> Caller:
         scopes=who.scopes,
         email=who.email,
         name=who.name,
+        token=_bearer(request.headers.get("authorization")),
     )
     return request.state.caller
 

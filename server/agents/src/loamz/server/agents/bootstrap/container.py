@@ -22,7 +22,6 @@ from loamz.runtime.kernel.runtime import Runtime
 from loamz.runtime.kernel.runtime.sealing import Sealer
 from loamz.runtime.kernel.telemetry import set_capture_content
 from loamz.runtime.stores import AgentStore
-from loamz.server.agents.bootstrap.data_access import GatewayDataAccess
 from loamz.server.agents.bootstrap.settings import Settings
 
 if TYPE_CHECKING:
@@ -110,6 +109,27 @@ class Container:
         )
 
     @cached_property
+    def data_broker(self) -> object | None:
+        """Turns a person's token into a credential for Loamz Data (OIDC token exchange); None when it is not configured."""
+        from pathlib import Path
+
+        data, oidc = self.settings.data, self.settings.oidc
+        if not (
+            data.url
+            and oidc.issuer
+            and data.exchange_client_id
+            and data.exchange_client_secret_file
+        ):
+            return None
+        from loamz.runtime.auth import OidcTokenExchange
+
+        return OidcTokenExchange(
+            issuer=oidc.issuer,
+            client_id=data.exchange_client_id,
+            client_secret=Path(data.exchange_client_secret_file).read_text().strip(),
+        )
+
+    @cached_property
     def data_tool_set(self) -> dict[str, object]:
         """The data tools (search, describe, SQL) by name; empty without a data service."""
         minter, connection = self.data_read_tokens, self.data_connection
@@ -130,7 +150,7 @@ class Container:
         log = logging.getLogger(__name__)
         sandbox = self.settings.sandbox
         try:
-            from loamz.runtime.data import DataGateway
+            from loamz.runtime.data import DataGateway, LoamzData
             from loamz.runtime.toolkit.code import CodeInterpreterTool
             from loamz.runtime.toolkit.code.runtimes.factory import (
                 build_runtime,
@@ -161,15 +181,25 @@ class Container:
                 scratch_root=scratch,
             )
         data = None
-        minter, url = self.data_read_tokens, self.settings.data.url
-        if minter is not None and url:
-            gateway = DataGateway(url, insecure_hosts=(urlsplit(url).hostname or "",))
-            data = GatewayDataAccess(
-                gateway,
-                minter,
-                Path(sandbox.scratch_root or "/data/sandbox").parent / "sandbox-data",
-                socket_owner=jail_uid,
-            )
+        broker, url = self.data_broker, self.settings.data.url
+        if broker is not None and url:
+            from loamz.runtime.toolkit.code.runtimes.base import Capability
+
+            if Capability.DATA_SOCKET not in runtime.capabilities:
+                log.warning(
+                    "the %s sandbox cannot reach governed data; agents will run code without it",
+                    sandbox.runtime,
+                )
+            else:
+                gateway = DataGateway(url, insecure_hosts=(urlsplit(url).hostname or "",))
+                data = LoamzData(
+                    gateway,
+                    broker,  # type: ignore[arg-type]
+                    Path(sandbox.scratch_root or "/data/sandbox").parent / "sandbox-data",
+                    audience=self.settings.data.audience,
+                    workspace=self.settings.data.workspace or None,
+                    socket_owner=jail_uid,
+                )
         tool = CodeInterpreterTool(
             runtime,
             network=network_policy(sandbox.network_policy),

@@ -106,7 +106,7 @@ import textwrap
 from pathlib import Path
 
 from ._files import collect_changed, snapshot
-from .base import ExecResult, NetworkPolicy, SandboxSpec, SandboxUnavailableError
+from .base import Capability, ExecResult, NetworkPolicy, SandboxSpec, SandboxUnavailableError
 
 # The id code runs as outside the jail when this process is root: "nobody".
 JAIL_UID = 65534
@@ -266,7 +266,7 @@ class NsjailRuntime:
 
     name = "nsjail"
     # A run can be given a data-service socket through ``SandboxSpec.data``.
-    supports_data = True
+    capabilities = frozenset({Capability.DATA_SOCKET})
 
     def __init__(
         self,
@@ -519,6 +519,8 @@ class NsjailRuntime:
             # The network namespace stays closed: the only way out is this one socket, whose far end is the platform's
             # gateway on this host, which alone holds the run's identity and talks to the data service. Read-only.
             argv += ["-R", f"{spec.data.socket_dir}:{DATA_MOUNT_POINT}"]
+            for key, value in spec.data_env:
+                argv += ["-E", f"{key}={value}"]
 
         argv += ["-T", "/tmp", "-E", "HOME=/tmp"]
         for key, value in _sandbox_env().items():

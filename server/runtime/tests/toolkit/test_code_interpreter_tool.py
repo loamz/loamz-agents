@@ -4,13 +4,15 @@ snapshot id back to ctx so persist_turns can stamp the turn's MessageNode."""
 
 from __future__ import annotations
 
+from loamz.runtime.kernel.types.auth import AsUser
 from loamz.runtime.kernel.types.run import RunScope
-from loamz.runtime.toolkit.code.runtimes.base import ExecResult, NetworkPolicy
+from loamz.runtime.toolkit.code.runtimes.base import Capability, ExecResult, NetworkPolicy
 from loamz.runtime.toolkit.code.tool import CodeInterpreterTool
 
 
 class _FakeRuntime:
     name = "fake"
+    capabilities: frozenset = frozenset()
 
     def __init__(self, result: ExecResult) -> None:
         self.result = result
@@ -36,6 +38,7 @@ SCOPE = RunScope(
 class _FakeCtx:
     def __init__(self, scope: RunScope = SCOPE) -> None:
         self.scope = scope
+        self.auth = AsUser("host-gave-this")
         self.recorded: list[str] = []
 
     def record_workspace_snapshot(self, snapshot_id: str) -> None:
@@ -176,26 +179,32 @@ async def test_a_mount_that_is_not_a_home_or_a_drive_is_refused_before_anything_
 
 
 class _Data:
-    """A DataAccess that records what it was asked and hands out a fixed mount."""
+    """A DataSource that records what it was asked and hands out a fixed grant."""
+
+    guidance = "Use `import loamz.data as sd` for the warehouse."
 
     def __init__(self, mount=None, fail: bool = False) -> None:
         self.mount, self.fail, self.asked, self.stopped, self.released = mount, fail, [], False, []
 
-    async def grant(self, scope, *, timeout_s):
-        self.asked.append((scope, timeout_s))
+    async def grant(self, scope, auth, *, timeout_s):
+        from loamz.runtime.toolkit.code.data_access import DataGrant
+
+        self.asked.append((scope, auth, timeout_s))
         if self.fail:
             raise RuntimeError("relay down")
-        return self.mount
+        return (
+            None if self.mount is None else DataGrant(self.mount, (("LOAMZ_DATA_WORKSPACE", "w1"),))
+        )
 
-    async def release(self, mount) -> None:
-        self.released.append(mount)
+    async def release(self, grant) -> None:
+        self.released.append(grant)
 
     async def stop(self) -> None:
         self.stopped = True
 
 
 class _DataRuntime(_FakeRuntime):
-    supports_data = True
+    capabilities = frozenset({Capability.DATA_SOCKET})
 
 
 def _mount():
@@ -213,19 +222,22 @@ async def test_a_run_gets_data_access_for_its_own_scope_and_the_model_is_told_ho
     await tool.execute(ctx=_FakeCtx(), code="print(1)", timeout=90)
 
     assert runtime.last_spec.data == _mount()
-    assert data.released == [_mount()]  # the run's access ends with the run
-    scope, timeout_s = data.asked[0]
+    assert runtime.last_spec.data_env == (("LOAMZ_DATA_WORKSPACE", "w1"),)
+    assert [g.mount for g in data.released] == [_mount()]  # the run's access ends with the run
+    scope, auth, timeout_s = data.asked[0]
     assert (scope.user_id, scope.tenant_id, timeout_s) == ("user-a", "tenant-a", 90)
+    assert auth == AsUser("host-gave-this"), (
+        "the run's authority reaches the data source from ctx, not from the model"
+    )
 
 
-async def test_data_is_not_offered_where_the_runtime_cannot_keep_it_inside_the_sandbox():
-    data = _Data(_mount())
-    runtime = _FakeRuntime(ExecResult(stdout="ok"))  # no supports_data
-    tool = CodeInterpreterTool(runtime, data=data)
+def test_data_is_refused_where_the_runtime_cannot_keep_it_inside_the_sandbox():
+    import pytest
 
-    assert "loamz.data" not in tool.description
-    await tool.execute(ctx=_FakeCtx(), code="print(1)")
-    assert runtime.last_spec.data is None and data.asked == []
+    from loamz.runtime.toolkit.code.runtimes.base import SandboxUnavailableError
+
+    with pytest.raises(SandboxUnavailableError, match="DATA_SOCKET"):
+        CodeInterpreterTool(_FakeRuntime(ExecResult(stdout="ok")), data=_Data(_mount()))
 
 
 async def test_a_failing_data_service_degrades_to_a_run_without_data():
