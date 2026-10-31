@@ -139,6 +139,7 @@
     "ToolDeclarationError",
     "UnroutableMessageError",
     "UnsupportedContentError",
+    "UnsupportedToolError",
     "WorkspacePathError"
   ],
   "loamz.runtime.kernel.telemetry": [
