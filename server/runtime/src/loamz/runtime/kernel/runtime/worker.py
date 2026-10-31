@@ -59,6 +59,7 @@ from loamz.runtime.kernel.runtime.store import (
     RuntimeStore,
     Suspend,
 )
+from loamz.runtime.kernel.runtime.versioning import can_replay
 from loamz.runtime.kernel.telemetry import semconv
 from loamz.runtime.kernel.telemetry.metrics import instruments
 from loamz.runtime.kernel.telemetry.tracing import span
@@ -295,7 +296,7 @@ class Worker:
                         ),
                         None,
                     )
-                    if pinned is not None and pinned != version:
+                    if pinned is not None and not can_replay(agent, str(pinned), version):
                         raise NonDeterminismError(
                             f"run {run_id} was started by agent version {pinned!r} but this worker has "
                             f"{version!r}; replaying it could attach old results to new code",

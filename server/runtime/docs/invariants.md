@@ -9,7 +9,7 @@ sentence in a docstring. A row is *enforced* when its test passes today, and
 marked `xfail(strict=True)`, so the build fails the moment one starts passing
 and the marker has to come off. That is what keeps this document honest.
 
-**117 enforced · 0 pending · 117 total**
+**119 enforced · 0 pending · 119 total**
 
 ## approvals
 
@@ -301,3 +301,7 @@ and the marker has to come off. That is what keeps this document honest.
   `test_i15_a_run_continues_under_the_version_that_started_it`
 - ✅ **i15 a run is refused by a different version**
   `test_i15_a_run_is_refused_by_a_different_version`
+- ✅ **i15 a new version can declare the older runs it continues**
+  `test_i15_a_new_version_can_declare_the_older_runs_it_continues`
+- ✅ **A release of this package must not fail every run that is waiting on a person: an agent's version is declared by its author and moves only when its behaviour changes incompatibly.**
+  `test_i15_the_version_a_run_is_pinned_to_is_the_agents_own_not_the_packages`

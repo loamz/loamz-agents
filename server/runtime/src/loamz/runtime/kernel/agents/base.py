@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Any
 
 from loamz.runtime.kernel.agents.routed import RoutedAgent
 from loamz.runtime.kernel.runtime.message import ChatPayload, DataPayload, Message
+from loamz.runtime.kernel.runtime.versioning import DEFAULT_AGENT_VERSION
 from loamz.runtime.kernel.types.content import (
     ChatMessage,
     Role,
@@ -29,7 +30,6 @@ from loamz.runtime.kernel.types.content import (
 )
 from loamz.runtime.kernel.types.identity import Actor, Topic
 from loamz.runtime.kernel.types.run_log import RunLogKind
-from loamz.runtime.kernel.version import __version__ as _PACKAGE_VERSION
 
 if TYPE_CHECKING:
     from loamz.runtime.kernel.context.context import ContextConfig
@@ -178,11 +178,12 @@ class BaseAgent(RoutedAgent):
     repeats identically (see module docstring).
     """
 
-    version: str = _PACKAGE_VERSION
+    version: str = DEFAULT_AGENT_VERSION
     """The version a run is pinned to when it starts. The worker will not replay a run under
     a different one: its journal records what the old code did, and attaching those results
-    to changed code is how a replay quietly goes wrong. An agent whose behaviour changes
-    incompatibly overrides this."""
+    to changed code is how a replay quietly goes wrong. It is the agent author's to move,
+    only when behaviour changes incompatibly (a release of this package does not change it).
+    A new version that can still continue older runs says so with ``replays_from(pinned)``."""
 
     _context_config: ContextConfig | None = None
 
