@@ -26,6 +26,7 @@ from typing import Protocol, runtime_checkable
 from loamz.runtime.kernel.errors import CancellationError
 from loamz.runtime.kernel.types.supervision import Supervision
 from loamz.runtime.kernel.types.trace import TraceContext
+from loamz.runtime.kernel.types.user import UserCtx
 
 
 @runtime_checkable
@@ -101,6 +102,32 @@ class RunScope:
     parent_agent_id: str | None = None
     # The teams the person belongs to, from their verified sign-in. Data grants are made to teams, so a run reads what its person's teams may.
     groups: tuple[str, ...] = ()
+    # Namespaced facts a connector reads about the person (``"loamz.data/workspace"``), as the application stated them.
+    attributes: tuple[tuple[str, str], ...] = ()
+
+    @classmethod
+    def from_user(cls, user: UserCtx, *, thread_id: str = "", **fields: str) -> RunScope:
+        """The scope of a run for ``user``: identity from the context the application passed, never from the model."""
+        return cls(
+            tenant_id=user.tenant,
+            user_id=user.subject,
+            groups=user.groups,
+            attributes=user.attributes,
+            thread_id=thread_id,
+            **fields,
+        )
+
+    @property
+    def user(self) -> UserCtx | None:
+        """Who this run acts for, or None when there is no person (no tenant or no user)."""
+        if not self.tenant_id or not self.user_id:
+            return None
+        return UserCtx(
+            subject=self.user_id,
+            tenant=self.tenant_id,
+            groups=self.groups,
+            attributes=self.attributes,
+        )
 
     @classmethod
     def from_metadata(
@@ -138,6 +165,12 @@ class RunScope:
             if isinstance(raw_groups, (list, tuple, set, frozenset))
             else ()
         )
+        raw_attributes = metadata.get("user_attributes")
+        attributes = (
+            tuple(sorted((str(k), str(v)) for k, v in raw_attributes.items() if k and v))
+            if isinstance(raw_attributes, Mapping)
+            else ()
+        )
         return cls(
             tenant_id=_str("tenant_id"),
             user_id=_str("user_id"),
@@ -149,6 +182,7 @@ class RunScope:
             agent_label=agent_label,
             parent_agent_id=_str("parent_agent_id"),
             groups=groups,
+            attributes=attributes,
         )
 
     @property
@@ -168,6 +202,7 @@ class RunScope:
             "workspace_mounts": dict(self.mounts),
             "parent_agent_id": self.agent_id or None,
             "groups": list(self.groups),
+            "user_attributes": dict(self.attributes),
         }
         return {k: v for k, v in inherited.items() if v}
 

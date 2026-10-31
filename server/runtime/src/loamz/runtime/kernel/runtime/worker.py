@@ -376,7 +376,9 @@ class Worker:
             self._tasks.pop(run_id, None)
             self._stop_reason.pop(run_id, None)
 
-    async def _journaled_drain(self, ctx: RunContext, journal: Journal, lease: Lease) -> list[Message]:
+    async def _journaled_drain(
+        self, ctx: RunContext, journal: Journal, lease: Lease
+    ) -> list[Message]:
         """Drain the inbox once and remember which messages: a replay must process
         exactly the messages the first attempt saw, not whatever has arrived since."""
         fetched: list[Message] = []

@@ -89,6 +89,7 @@ from loamz.runtime.kernel.types.supervision import (
 )
 from loamz.runtime.kernel.types.trace import TraceContext
 from loamz.runtime.kernel.types.usage import Usage
+from loamz.runtime.kernel.types.user import UserCtx
 from loamz.runtime.kernel.types.wakeup import Wakeup
 
 __all__ = [
@@ -168,6 +169,7 @@ __all__ = [
     "content_blocks_to_str",
     "new_id",
     "new_run_id",
+    "UserCtx",
     "parse_content_block",
     "scope_of",
 ]
