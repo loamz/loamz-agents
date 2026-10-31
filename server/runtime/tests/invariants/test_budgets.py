@@ -146,3 +146,54 @@ def test_i20_spawning_more_agents_is_not_a_way_around_a_cap() -> None:
     )
     assert spent <= 200 + 4 * 50
     assert failed >= 1
+
+
+class _PlainBoss:
+    """A boss that spawns its workers the ordinary way: it names no supervision, and the cap is its own."""
+
+    id = Actor("agent", "plain-boss")
+
+    def __init__(self, workers: list[_Worker], cap: int) -> None:
+        self._workers = workers
+        self.execution_budget = ExecutionBudget(max_tokens=cap)
+
+    async def run(self, ctx: Any, inbox: list[Message]) -> None:
+        handles = [
+            await ctx.spawn(
+                w.id, boot=Message(target=w.id, sender=self.id, payload=DataPayload(data={}))
+            )
+            for w in self._workers
+        ]
+        for handle in handles:
+            await ctx.join(handle)
+
+
+def test_i20_children_spawned_without_a_supervision_still_count_against_the_root_runs_cap() -> None:
+    children, calls, tokens, cap = 3, 5, 10, 40
+
+    async def go() -> tuple[int, int, set[str]]:
+        workers = [_Worker(f"pw{i}", calls, tokens) for i in range(children)]
+        boss = _PlainBoss(workers, cap)
+        async with ephemeral_runtime() as rt:
+            for w in workers:
+                await rt.register(w)
+            await rt.register(boss)
+            run_id = await rt.submit(
+                boss.id,
+                Message(target=boss.id, sender=Actor.system("t"), payload=DataPayload(data={})),
+                max_retries=0,
+            )
+            async for entry in rt.tail(run_id):
+                if entry.kind in (RunLogKind.RUN_COMPLETED, RunLogKind.RUN_FAILED):
+                    break
+            runs = [
+                r for w in workers for r in await rt.store.find_runs(agent=w.id, active_only=False)
+            ]
+            spent = (await rt.store.tree_spend(run_id)).tokens
+            trees = {r.supervision.run_id for r in runs if r.supervision is not None}
+            return spent, sum(1 for r in runs if r.status == "failed"), trees | {str(run_id)}
+
+    spent, failed, trees = asyncio.run(asyncio.wait_for(go(), 30))
+    assert len(trees) == 1, "every child belongs to the root run's own execution tree"
+    assert spent <= cap + children * tokens, f"the tree spent {spent} against a cap of {cap}"
+    assert failed >= 1, "a cap this tight stops some children"

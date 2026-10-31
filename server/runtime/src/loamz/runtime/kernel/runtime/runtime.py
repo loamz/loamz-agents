@@ -41,8 +41,8 @@ from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
 from loamz.runtime.kernel.types.identity import Actor, Topic
 from loamz.runtime.kernel.types.ids import new_id
 from loamz.runtime.kernel.types.run_log import RunLogEntry, RunLogKind
-from loamz.runtime.kernel.types.run_status import RunId, RunStatus
-from loamz.runtime.kernel.types.supervision import Priority
+from loamz.runtime.kernel.types.run_status import RunId, RunStatus, new_run_id
+from loamz.runtime.kernel.types.supervision import Priority, Supervision
 from loamz.runtime.kernel.types.trace import TraceContext
 
 if TYPE_CHECKING:
@@ -197,13 +197,23 @@ class Runtime:
         ``ThreadBusyError`` and leaves nothing behind. ``recipe`` is opaque to the engine:
         whatever a host needs to rebuild this run's agent after a restart.
         """
-        await self._resolver.resolve(
-            agent_id
-        )  # an unknown agent is refused here, not after a lease
+        # An agent that is not registered yet is allowed: the run waits for it (see the worker).
+        agent = await self._resolver.resolve(agent_id)
+        # A top-level run is the root of its own execution tree, carrying its agent's own budget, so everything
+        # it spawns is counted against that budget.
+        run_id = new_run_id()
+        tree = Supervision.root(
+            agent_id,
+            session_id=thread_id,
+            execution_budget=getattr(agent, "execution_budget", None),
+            priority=priority,
+        ).model_copy(update={"run_id": str(run_id)})
         run = await self._store.create_run(
             RunSpec(
                 agent=agent_id,
                 tenant=tenant,
+                run_id=run_id,
+                supervision=tree,
                 thread_id=thread_id,
                 priority=priority,
                 retry_policy=retry_policy or RunRetryPolicy(max_retries=max_retries),

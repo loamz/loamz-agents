@@ -944,15 +944,19 @@ class RunContext:
             supervision=supervision,
         )
 
+    def _tree(self) -> Supervision:
+        if self._meta.supervision is not None:
+            return self._meta.supervision
+        return Supervision.root(
+            self.agent.id, execution_budget=getattr(self.agent, "execution_budget", None)
+        ).model_copy(update={"run_id": self.run_id})
+
     async def _spawn(
         self, child_agent: Actor, *, boot: Message, supervision: Supervision | None
     ) -> RunHandle:
-        if supervision is not None:
-            sup = supervision
-        elif self._meta.supervision is not None:
-            sup = self._meta.supervision.spawn_child(child_agent)
-        else:
-            sup = Supervision.root(child_agent)
+        # A child belongs to this run's tree: its spend and headcount count against the same budget. A run the
+        # host created without a supervision is the root of a tree of its own.
+        sup = supervision or self._tree().spawn_child(self.agent.id)
 
         def build(path: str, effect_id: str):
             # The correlation id comes from this call's own path, never from anything the

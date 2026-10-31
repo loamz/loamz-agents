@@ -9,7 +9,7 @@ sentence in a docstring. A row is *enforced* when its test passes today, and
 marked `xfail(strict=True)`, so the build fails the moment one starts passing
 and the marker has to come off. That is what keeps this document honest.
 
-**116 enforced · 0 pending · 116 total**
+**117 enforced · 0 pending · 117 total**
 
 ## approvals
 
@@ -28,6 +28,8 @@ and the marker has to come off. That is what keeps this document honest.
   `test_i20_total_spend_never_exceeds_the_cap_by_more_than_the_calls_in_flight`
 - ✅ **The same budget, split across many children, stops the tree as one agent would.**
   `test_i20_spawning_more_agents_is_not_a_way_around_a_cap`
+- ✅ **i20 children spawned without a supervision still count against the root runs cap**
+  `test_i20_children_spawned_without_a_supervision_still_count_against_the_root_runs_cap`
 
 ## contracts
 
