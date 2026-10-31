@@ -39,6 +39,7 @@ from loamz.runtime.kernel.runtime.channel import SPOKEN, AppendResult, ChannelEn
 from loamz.runtime.kernel.runtime.communication import AskOutcome, RunStatusSummary
 from loamz.runtime.kernel.runtime.journal import Journal, current_idempotency_key
 from loamz.runtime.kernel.runtime.message import DataPayload, Message
+from loamz.runtime.kernel.runtime.run_auth import RunAuths
 from loamz.runtime.kernel.runtime.store import (
     Commit,
     CommitResult,
@@ -55,6 +56,7 @@ from loamz.runtime.kernel.telemetry import semconv
 from loamz.runtime.kernel.telemetry.metrics import instruments
 from loamz.runtime.kernel.telemetry.tracing import span
 from loamz.runtime.kernel.tools.chain import InvocationResult
+from loamz.runtime.kernel.types.auth import Auth
 from loamz.runtime.kernel.types.content import (
     ChatMessage,
     JsonObject,
@@ -122,7 +124,9 @@ class RunContext:
         llm_client: ChatModel | None = None,
         tool_invoker: ToolInvoker | None = None,
         agent: Any | None = None,
+        auths: RunAuths | None = None,
     ) -> None:
+        self._auths = auths or RunAuths()
         self.run_id = meta.run_id
         self.tenant_id = meta.tenant_id
         self._meta = meta
@@ -944,6 +948,11 @@ class RunContext:
             supervision=supervision,
         )
 
+    @property
+    def auth(self) -> Auth | None:
+        """How this run proves who it acts for, as its host gave it; None when it was given nothing."""
+        return self._meta.auth
+
     def _tree(self) -> Supervision:
         if self._meta.supervision is not None:
             return self._meta.supervision
@@ -963,6 +972,8 @@ class RunContext:
             # caller builds fresh each time: a later ``ask(handle)`` has to find the reply.
             correlation_id = f"{self.run_id}.{path}"
             child_run = new_run_id()
+            # A child acts with its parent's authority, so a person's run never reaches data as anyone else.
+            self._auths.put(str(child_run), self._meta.auth)
             boot_msg = boot.model_copy(
                 update={"reply_to": self.run_id, "correlation_id": correlation_id}
             )

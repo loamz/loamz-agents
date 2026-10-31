@@ -1,26 +1,11 @@
-"""The contracts: how a call is authorized, and the broker that turns that into a credential."""
+"""The broker contract: who is asking and how they prove it, turned into a credential for one audience."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import Protocol, runtime_checkable
 
+from loamz.runtime.kernel.types.auth import AsServicePrincipal, AsUser, Auth
 from loamz.runtime.kernel.types.user import UserCtx
-
-
-@dataclass(frozen=True, slots=True)
-class AsUser:
-    """Act as the person: their access token, from the application's sign-in. Never printed."""
-
-    token: str = field(repr=False)
-
-
-@dataclass(frozen=True, slots=True)
-class AsServicePrincipal:
-    """Act as the deployment itself (its service account), for data no single person owns."""
-
-
-type Auth = AsUser | AsServicePrincipal
 
 
 @runtime_checkable

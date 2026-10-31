@@ -35,6 +35,7 @@ from loamz.runtime.kernel.errors import (
     ThreadBusyError,
     UnsupportedContentError,
 )
+from loamz.runtime.kernel.types.auth import AsServicePrincipal, AsUser, Auth
 from loamz.runtime.kernel.types.content import (
     ChatMessage,
     ContentBlock,
@@ -170,6 +171,9 @@ __all__ = [
     "new_id",
     "new_run_id",
     "UserCtx",
+    "AsUser",
+    "AsServicePrincipal",
+    "Auth",
     "parse_content_block",
     "scope_of",
 ]

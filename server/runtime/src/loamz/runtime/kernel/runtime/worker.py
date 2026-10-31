@@ -46,6 +46,7 @@ from loamz.runtime.kernel.runtime.cancellation import CancellationToken
 from loamz.runtime.kernel.runtime.context import RunContext
 from loamz.runtime.kernel.runtime.journal import Journal
 from loamz.runtime.kernel.runtime.message import Message
+from loamz.runtime.kernel.runtime.run_auth import RunAuths
 from loamz.runtime.kernel.runtime.scheduler import RunRetryPolicy
 from loamz.runtime.kernel.runtime.store import (
     Cancel,
@@ -119,6 +120,7 @@ class Worker:
         worker_id: str,
         store: RuntimeStore,
         resolver: ActorResolver,
+        auths: RunAuths | None = None,
         max_concurrency: int = 10,
         lease_s: float = 30.0,
         poll_interval_s: float = 0.05,
@@ -126,6 +128,7 @@ class Worker:
         self._worker_id = worker_id
         self._store = store
         self._resolver = resolver
+        self._auths = auths or RunAuths()
         self._max_concurrency = max_concurrency
         self._lease_s = lease_s
         self._poll_interval_s = poll_interval_s
@@ -285,6 +288,7 @@ class Worker:
                         deadline=self._deadline(lease),
                         trace=handle.context(),
                         tenant_id=lease.tenant,
+                        auth=self._auths.get(run_id),
                     )
                     version = str(getattr(agent, "version", "0"))
                     events = await self._store.read_events(run_id, durable_only=True)
@@ -321,6 +325,7 @@ class Worker:
                         llm_client=getattr(agent, "model", None),
                         tool_invoker=self._build_tool_invoker(agent),
                         agent=agent,
+                        auths=self._auths,
                     )
                     started_before = any(e.kind == RunLogKind.RUN_STARTED for e in events)
                     await commit(
@@ -367,6 +372,8 @@ class Worker:
                 except asyncio.CancelledError:
                     pass
             if outcome_label in ("completed", "failed", "cancelled"):
+                # A run that only suspended still needs its authority when it wakes; one that ended does not.
+                self._auths.forget(run_id)
                 instruments().runs.add(1, {semconv.RUN_OUTCOME: outcome_label})
                 instruments().run_duration.record(
                     (_now() - started).total_seconds(),

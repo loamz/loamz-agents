@@ -31,12 +31,14 @@ from loamz.runtime.kernel.errors import ThreadBusyError
 from loamz.runtime.kernel.ports.threads import ThreadStore
 from loamz.runtime.kernel.runtime.message import ChatPayload, Message
 from loamz.runtime.kernel.runtime.resolver import ActorFactory, ActorResolver
+from loamz.runtime.kernel.runtime.run_auth import RunAuths
 from loamz.runtime.kernel.runtime.scheduler import RunRetryPolicy
 from loamz.runtime.kernel.runtime.sealing import Sealer
 from loamz.runtime.kernel.runtime.store import Delivery, RunRecord, RunSpec, RuntimeStore
 from loamz.runtime.kernel.runtime.tail import tail
 from loamz.runtime.kernel.runtime.worker import Worker
 from loamz.runtime.kernel.tools.approval import ApprovalDecision, approval_signal
+from loamz.runtime.kernel.types.auth import Auth
 from loamz.runtime.kernel.types.content import ChatMessage, Role, TextBlock
 from loamz.runtime.kernel.types.identity import Actor, Topic
 from loamz.runtime.kernel.types.ids import new_id
@@ -126,7 +128,9 @@ class Runtime:
         self._store = store
         self._resolver = resolver or ActorResolver()
         self._resolver.add_preparer(self._bind_history)
+        self._auths = RunAuths()
         self._worker = Worker(
+            auths=self._auths,
             worker_id=f"worker-{new_id()}",
             store=store,
             resolver=self._resolver,
@@ -188,13 +192,14 @@ class Runtime:
         retry_policy: RunRetryPolicy | None = None,
         thread_id: str | None = None,
         recipe: dict[str, Any] | None = None,
+        auth: Auth | None = None,
     ) -> RunId:
         """Create a run for ``agent_id`` carrying ``msg`` and return its id.
 
         The message and the run are created in one step, so a worker that leases the run
         always finds its message. With ``thread_id`` the thread allows one active run at
         a time, across every worker sharing the store: a second ``submit`` for it raises
-        ``ThreadBusyError`` and leaves nothing behind. ``recipe`` is opaque to the engine:
+        ``ThreadBusyError`` and leaves nothing behind. ``auth`` is how this run proves who it acts for (never stored, see ``RunAuths``). ``recipe`` is opaque to the engine:
         whatever a host needs to rebuild this run's agent after a restart.
         """
         # An agent that is not registered yet is allowed: the run waits for it (see the worker).
@@ -202,6 +207,8 @@ class Runtime:
         # A top-level run is the root of its own execution tree, carrying its agent's own budget, so everything
         # it spawns is counted against that budget.
         run_id = new_run_id()
+        # Known before the run exists: a worker may lease it the moment it is created.
+        self._auths.put(str(run_id), auth)
         tree = Supervision.root(
             agent_id,
             session_id=thread_id,

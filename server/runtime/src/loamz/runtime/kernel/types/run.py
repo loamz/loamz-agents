@@ -24,6 +24,7 @@ from datetime import UTC, datetime
 from typing import Protocol, runtime_checkable
 
 from loamz.runtime.kernel.errors import CancellationError
+from loamz.runtime.kernel.types.auth import Auth
 from loamz.runtime.kernel.types.supervision import Supervision
 from loamz.runtime.kernel.types.trace import TraceContext
 from loamz.runtime.kernel.types.user import UserCtx
@@ -245,6 +246,7 @@ class RunMeta:
     trace: TraceContext | None = None
     tenant_id: str | None = None
     scope: RunScope = field(default_factory=RunScope)
+    auth: Auth | None = field(default=None, repr=False)
 
     def __post_init__(self) -> None:
         # A naive deadline makes every ``check()`` raise TypeError when compared
