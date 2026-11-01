@@ -51,7 +51,8 @@ class LoamzData:
         root: Path,
         *,
         audience: str = "loamz-data",
-        scopes: frozenset[str] = frozenset({"data:read"}),
+        # Loamz Data decides what a person may read from who they are; the credential names the audience, not a scope.
+        scopes: frozenset[str] = frozenset(),
         workspace: str | None = None,
         budget_bytes: int = DEFAULT_BUDGET_BYTES,
         socket_owner: int | None = None,

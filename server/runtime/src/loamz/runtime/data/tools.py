@@ -24,7 +24,9 @@ from loamz.runtime.kernel.types.user import UserCtx
 
 MAX_CHARS = 24_000
 MAX_ROWS = 200
-SCOPES = frozenset({"data:read"})
+SCOPES: frozenset[str] = (
+    frozenset()
+)  # Loamz Data decides from who the person is; the audience says where it is for
 
 
 class DataConnection:

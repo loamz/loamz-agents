@@ -169,7 +169,7 @@ async def test_a_grant_asks_as_the_person_for_the_data_audience_and_ends_with_th
         assert upstream.seen[0].headers["authorization"] == "Bearer exchanged-token"
         user, auth, audience, scopes = broker.asked[0]
         assert user == ANA and auth == AsUser("ana-token")
-        assert (audience, scopes) == ("loamz-data", frozenset({"data:read"}))
+        assert (audience, scopes) == ("loamz-data", frozenset())
     finally:
         await source.release(grant)
     assert not Path(mount.socket_dir).exists()
