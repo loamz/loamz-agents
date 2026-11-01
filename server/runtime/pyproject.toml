@@ -69,7 +69,7 @@ safety = ["pillow>=12.0.0", "onnxruntime>=1.23.0", "tokenizers>=0.20.0", "huggin
 # structured JSON logs
 logging = ["python-json-logger>=2.0.7"]
 # Loamz Data adapters: files, documents, memory and databases through the data service
-data = ["loamz-data"]
+data = ["loamz-data", "httpx>=0.27.0", "uvicorn>=0.34,<1"]
 # the conformance suites and test helpers in loamz.runtime.testing and loamz.engine.testing
 testing = ["pytest>=9.0.3", "pytest-asyncio>=1.4.0", "httpx>=0.27.0"]
 

@@ -25,7 +25,6 @@ from loamz.runtime.stores import AgentStore
 from loamz.server.agents.bootstrap.settings import Settings
 
 if TYPE_CHECKING:
-    from loamz.runtime.data import DataServiceConnection, DataTokenMinter
     from loamz.runtime.toolkit.mcp.servers import McpToolServers
 
 type Provider[T] = Callable[["Container"], T]
@@ -81,34 +80,6 @@ class Container:
         return database
 
     @cached_property
-    def data_tokens(self) -> DataTokenMinter | None:
-        """Signs the short-lived tokens this server presents to Loamz Data; None without a data service."""
-        data = self.settings.data
-        if not data.url:
-            return None
-        from pathlib import Path
-
-        from loamz.runtime.data import DataTokenMinter
-
-        return DataTokenMinter(
-            Path(data.token_key_file), issuer=data.files_issuer, audience=data.audience
-        )
-
-    @cached_property
-    def data_read_tokens(self) -> DataTokenMinter | None:
-        """Signs the read-only tokens a person's agent presents to Loamz Data to query as them (same key, its own issuer)."""
-        data = self.settings.data
-        if not data.url:
-            return None
-        from pathlib import Path
-
-        from loamz.runtime.data import DataTokenMinter
-
-        return DataTokenMinter(
-            Path(data.token_key_file), issuer=data.read_issuer, audience=data.audience
-        )
-
-    @cached_property
     def data_broker(self) -> object | None:
         """Turns a person's token into a credential for Loamz Data (OIDC token exchange); None when it is not configured."""
         from pathlib import Path
@@ -131,13 +102,19 @@ class Container:
 
     @cached_property
     def data_tool_set(self) -> dict[str, object]:
-        """The data tools (search, describe, SQL) by name; empty without a data service."""
-        minter, connection = self.data_read_tokens, self.data_connection
-        if minter is None or connection is None:
+        """The data tools (tables, describe, SQL) by name; empty without a data service and a broker."""
+        broker, data = self.data_broker, self.settings.data
+        if broker is None or not data.url:
             return {}
-        from loamz.runtime.data import data_tools
+        from loamz.runtime.data import DataConnection, data_tools
 
-        return {tool.name: tool for tool in data_tools(connection, minter)}
+        connection = DataConnection(
+            data.url,
+            broker,  # type: ignore[arg-type]
+            audience=data.audience,
+            workspace=data.workspace or None,
+        )
+        return {tool.name: tool for tool in data_tools(connection)}
 
     @cached_property
     def code_tool(self) -> object | None:
@@ -212,28 +189,8 @@ class Container:
         return tool
 
     @cached_property
-    def data_connection(self) -> DataServiceConnection | None:
-        """The pooled connection to Loamz Data; None when files are kept locally."""
-        data = self.settings.data
-        if not data.url:
-            return None
-        from loamz.runtime.data import DataServiceConnection
-
-        connection = DataServiceConnection(data.url)
-        self.on_close(connection.aclose)
-        return connection
-
-    @cached_property
     def file_store(self) -> FileStore:
-        """File bytes: Loamz Data's governed Files domain when `data.url` is set, otherwise a local folder."""
-        minter, connection = self.data_tokens, self.data_connection
-        if minter is not None and connection is not None:
-            from loamz.runtime.data import DataFileStore
-
-            def token(tenant: str, user: str | None) -> str:
-                return minter.mint(tenant, user, scopes={"files:read", "files:write"})
-
-            return DataFileStore(connection, token)
+        """File bytes: a local folder. (Governed files in Loamz Data volumes arrive with a volume-backed store.)"""
         from loamz.runtime.providers.files import LocalFileStore
 
         return LocalFileStore(self.settings.files.path)

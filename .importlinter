@@ -22,7 +22,6 @@ forbidden_modules =
     loamz.server
 ignore_imports =
     loamz.runtime.data.** -> loamz.data
-    loamz.runtime.data.** -> loamz.data.**
     loamz.runtime.data.** -> loamz.core.**
 
 [importlinter:contract:agents-layers]

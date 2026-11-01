@@ -337,10 +337,6 @@ class DataSettings(BaseModel):
     exchange_client_secret_file: str = Field(
         default="", description="A file holding that client's secret."
     )
-    # Signing keys for the older file adapters (replaced by the exchange above; removed with them).
-    token_key_file: str = Field(default="./.loamz/keys/data-token.pem")
-    files_issuer: str = Field(default="loamz-agents-files")
-    read_issuer: str = Field(default="loamz-agents")
 
 
 class ToolServerSettings(BaseModel):
