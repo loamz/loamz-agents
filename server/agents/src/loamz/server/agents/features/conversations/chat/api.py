@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
-from loamz.server.agents.bootstrap.http import CallerDep, use
+from loamz.server.agents.bootstrap.http import CallerDep, RateLimit, use
 from loamz.server.agents.features.conversations.chat.model import (
     ApprovalOut,
     CancelResponse,
@@ -20,7 +20,7 @@ Service = Annotated[ChatService, Depends(use(chat))]
 router = APIRouter(tags=["chat"])
 
 
-@router.post("/api/v1/chat")
+@router.post("/api/v1/chat", dependencies=[RateLimit])
 async def start_chat(body: ChatRequest, caller: CallerDep, service: Service) -> StreamingResponse:
     await service.admit(caller, body)
     return StreamingResponse(

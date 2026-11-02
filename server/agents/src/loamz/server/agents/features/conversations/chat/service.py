@@ -1,10 +1,18 @@
 from __future__ import annotations
 
 import json
+import logging
 from collections.abc import AsyncIterator
 
-from loamz.engine.errors import ConflictError, InvalidRequestError, NotFoundError
+from loamz.engine.errors import (
+    ConflictError,
+    InvalidRequestError,
+    NotFoundError,
+    RateLimitedError,
+    ServiceUnavailableError,
+)
 from loamz.runtime.kernel.caller import Caller
+from loamz.runtime.kernel.ports.counters import seconds_until_tomorrow
 from loamz.runtime.kernel.runtime import ChatPayload, Message, Runtime
 from loamz.runtime.kernel.tools import ToolRisk
 from loamz.runtime.kernel.tools.approval import ApprovalDecision, DurableApproval
@@ -24,6 +32,8 @@ from loamz.server.agents.features.conversations.chat.model import (
     HitlStatus,
 )
 from loamz.server.agents.features.conversations.threads.service import ThreadsService, threads
+
+logger = logging.getLogger(__name__)
 
 INTERRUPTED = "interrupted: the server restarted while it ran"
 
@@ -86,6 +96,42 @@ class ChatService:
             if self._rt.is_live(run.agent):
                 raise ConflictError(f"A stream is already running for thread {req.thread_id}.")
             await self._rt.cancel(run.run_id, reason=INTERRUPTED)
+        await self._count_the_message(caller)
+
+    async def _count_the_message(self, caller: Caller) -> None:
+        """Count this turn against the person's own daily allowance, then the tenant's plan; either refusal is a 429 before any
+        model is called. It comes last in `admit`, so a message refused for another reason is not counted."""
+        from loamz.server.agents.features.governance.entitlements.service import entitlements
+
+        cfg = self._c.settings.rate_limit
+        key = f"usermsgs:{caller.tenant_id}:{caller.user_id}"
+        counted = False
+        try:
+            if cfg.enabled and cfg.user_daily_messages > 0:
+                day = await self._c.counters.add_day(key, limit=cfg.user_daily_messages)
+                if not day.allowed:
+                    await self._c.counters.release_day(key)
+                    wait = seconds_until_tomorrow()
+                    raise RateLimitedError(
+                        f"You have used today's {cfg.user_daily_messages} messages. They come back in {wait} seconds.",
+                        retry_after=wait,
+                    )
+                counted = True
+            await self._c.get(entitlements).enforce_daily_messages(caller.tenant_id)
+        except RateLimitedError:
+            if counted:
+                await self._c.counters.release_day(
+                    key
+                )  # the plan refused it: not this person's message to count
+            raise
+        except Exception as exc:  # noqa: BLE001 - the counters' store is down
+            if cfg.fail_open:
+                logger.exception(
+                    "message allowance: counters unavailable, letting the message through"
+                )
+                return
+            logger.exception("message allowance: counters unavailable, refusing")
+            raise ServiceUnavailableError("Message limits unavailable. Try again shortly.") from exc
 
     async def chat(self, caller: Caller, req: ChatRequest) -> AsyncIterator[str]:
         """Stream one turn. The caller has already been through `admit`."""

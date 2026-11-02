@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from loamz.engine.errors import ConflictError, InvalidRequestError
+from loamz.engine.errors import ConflictError, InvalidRequestError, RateLimitedError
 from loamz.runtime.kernel.caller import Caller
 from loamz.server.agents.features.conversations.chat.model import ChatRequest
 from loamz.server.agents.features.conversations.chat.service import ChatService
@@ -47,15 +47,53 @@ class Preferences:
         return self.paused
 
 
-def service(runtime, threads=None, paused=False):
-    return ChatService(
+class Counters:
+    """A day counter, as the real one: `add_day` counts, then says whether the count is within `limit`."""
+
+    def __init__(self):
+        self.days = {}
+
+    async def add_day(self, key, *, limit, count=1):
+        self.days[key] = (
+            self.days.get(key, 0) + count
+        )  # counted first, as the real counters do; the caller gives it back
+        return SimpleNamespace(allowed=self.days[key] <= limit)
+
+    async def release_day(self, key, *, count=1):
+        self.days[key] = max(0, self.days.get(key, 0) - count)
+
+
+class Plan:
+    """The tenant's plan: refuses with `error` once its daily limit is spent."""
+
+    def __init__(self, error=None):
+        self.error = error
+
+    async def enforce_daily_messages(self, tenant_id):
+        if self.error:
+            raise self.error
+
+
+def service(runtime, threads=None, paused=False, allowance=100, plan=None, counters=None):
+    counters = counters or Counters()
+    chat = ChatService(
         SimpleNamespace(
             runtime=runtime,
             require_model=lambda model=None: None,
-            get=lambda provider: Preferences(paused),
+            get=lambda provider: (
+                plan or Plan() if provider.__name__ == "entitlements" else Preferences(paused)
+            ),
+            counters=counters,
+            settings=SimpleNamespace(
+                rate_limit=SimpleNamespace(
+                    enabled=True, user_daily_messages=allowance, fail_open=False
+                )
+            ),
         ),
         threads or Threads(),
     )
+    chat.counters = counters
+    return chat
 
 
 def request(prompt="hello"):
@@ -80,6 +118,49 @@ async def test_an_empty_or_locked_conversation_is_refused_up_front():
         await service(Runtime([], set())).admit(CALLER, request(prompt=""))
     with pytest.raises(InvalidRequestError):
         await service(Runtime([], set()), Threads(locked=True)).admit(CALLER, request())
+
+
+async def test_a_person_may_start_only_as_many_turns_a_day_as_their_allowance_and_is_told_when_it_comes_back():
+    chat = service(Runtime([], set()), allowance=2)
+    await chat.admit(CALLER, request())
+    await chat.admit(CALLER, request())
+    with pytest.raises(RateLimitedError) as refused:
+        await chat.admit(CALLER, request())
+    assert "2 messages" in str(refused.value) and refused.value.retry_after > 0
+    assert chat.counters.days["usermsgs:acme:alice"] == 2  # the refused third did not count
+    await chat.admit(
+        Caller(tenant_id="acme", user_id="bob"), request()
+    )  # another person has their own
+
+
+async def test_a_message_refused_for_another_reason_costs_nothing_of_the_allowance():
+    chat = service(Runtime([], set()), allowance=1)
+    with pytest.raises(InvalidRequestError):
+        await chat.admit(CALLER, request(prompt=""))
+    await chat.admit(CALLER, request())  # the empty one was not counted, so this is still the first
+
+
+async def test_the_tenants_plan_limit_refuses_too_and_gives_the_persons_count_back():
+    spent = RateLimitedError("Daily message limit (5) reached.", retry_after=60)
+    chat = service(Runtime([], set()), allowance=10, plan=Plan(spent))
+    with pytest.raises(RateLimitedError):
+        await chat.admit(CALLER, request())
+    assert chat.counters.days["usermsgs:acme:alice"] == 0
+
+
+async def test_an_allowance_of_zero_means_no_limit():
+    chat = service(Runtime([], set()), allowance=0)
+    for _ in range(3):
+        await chat.admit(CALLER, request())
+    assert chat.counters.days == {}
+
+
+def test_starting_a_chat_goes_through_the_per_minute_rate_limit():
+    from loamz.server.agents.bootstrap.http import rate_limit
+    from loamz.server.agents.features.conversations.chat.api import router
+
+    route = next(r for r in router.routes if r.path == "/api/v1/chat" and "POST" in r.methods)
+    assert any(d.call is rate_limit for d in route.dependant.dependencies)
 
 
 # ── rejoining a run that waited while the console was away ───────────────────

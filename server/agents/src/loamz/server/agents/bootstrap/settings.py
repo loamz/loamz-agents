@@ -304,6 +304,12 @@ class RateLimitSettings(BaseModel):
     authed_rpm: int = 60
     anon_rpm: int = 5
     window_seconds: int = 60
+    user_daily_messages: int = Field(
+        default=100,
+        ge=0,
+        description="Chat turns one person may start per day (0: no limit). The model is the one cost that grows with use, so this "
+        "is the first line of spend control; a plan's tenant limit (entitlements) applies on top.",
+    )
     fail_open: bool = Field(
         default=False, description="Allow traffic when the counters are unavailable (dev only)."
     )
