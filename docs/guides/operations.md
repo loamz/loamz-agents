@@ -2,9 +2,8 @@
 
 ## Topologies
 - **Laptop or evaluation:** `deploy/compose` (`./gen-env.sh`, `docker compose --profile agents up -d`).
-- **Production:** the `loamz-cell` Helm chart on Kubernetes, with managed PostgreSQL and object storage from the
-  Terraform modules (`deploy/terraform/{aws,gcp,azure}`). Modes: `monolith` (one agent server) or `microservices`.
-- A *cell* is one customer's complete installation, in the customer's own cloud account.
+- **Production today:** one machine, installed by the playbooks in [loamz-deploy](https://github.com/loamz/loamz-deploy) (the Helm chart and Terraform
+  modules of the old cell model were removed). Modes: `monolith` (one agent server) or `microservices`.
 
 ## Availability
 - Stateless workloads (agent server, data API, workers, consoles) run several replicas; the chart adds a
@@ -36,7 +35,7 @@ weekly restore drill.
 
 ## Upgrades
 - Versions are tags: `cell-vX.Y.Z` images, and `loamz-*` packages released together by release-please.
-- `helm upgrade` is rolling for stateless components. Run the cell's end-to-end script (`deploy/compose/e2e.py`
+- Run the cell's end-to-end script (`deploy/compose/e2e.py`
   adapted to your endpoint) after an upgrade as a smoke test.
 - APIs are versioned under `/api/v1`; a breaking change ships as `/api/v2` beside v1.
 

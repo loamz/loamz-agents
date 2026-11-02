@@ -1,6 +1,6 @@
 # Keycloak realm for a Loamz cell
 
-`realm-loamz.json` is an importable realm template for [ADR 0007](../../docs/adr/0007-keycloak-identity-and-agent-delegation.md):
+`realm-loamz.json` is an importable realm template for [ADR 0007](https://github.com/loamz/loamz-deploy/blob/main/docs/adr/0007-keycloak-identity-and-agent-delegation.md):
 one realm `loamz` per cell, tenants are Keycloak **Organizations**, one organization is active per token.
 
 Validated against `quay.io/keycloak/keycloak:26.8.1` (`start-dev --import-realm`, ready in about 20 s): the import
