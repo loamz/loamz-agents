@@ -7,7 +7,7 @@ from loamz.server.agents.bootstrap import Container, Settings
 def test_files_are_a_local_folder_and_data_is_off_without_a_service(tmp_path):
     container = Container(Settings(files={"path": str(tmp_path)}))
     assert isinstance(container.file_store, LocalFileStore)
-    assert container.data_broker is None and container.data_tool_set == {}
+    assert container.exchange_broker is None and container.data_tool_set == {}
 
 
 def test_the_data_tools_exist_only_when_a_service_and_an_exchange_client_are_configured(tmp_path):
@@ -25,7 +25,7 @@ def test_the_data_tools_exist_only_when_a_service_and_an_exchange_client_are_con
         )
     )
     assert set(configured.data_tool_set) == {"data_tables", "data_describe", "data_sql"}
-    assert "s3cret" not in repr(configured.data_broker)
+    assert "s3cret" not in repr(configured.exchange_broker)
 
     no_client = Container(
         Settings(oidc={"issuer": "https://idp.test/realms/x"}, data={"url": "http://data-api:8020"})

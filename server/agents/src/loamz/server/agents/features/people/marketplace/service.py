@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
+
 from loamz.engine.errors import InvalidRequestError, NotFoundError
 from loamz.runtime.kernel.caller import Caller
 from loamz.server.agents.bootstrap.container import Container
@@ -25,8 +27,19 @@ SKILLS_INTRO = (
 class MarketplaceService:
     """The catalog (read-only) and each person's installs. Other features read `installed` to know what to offer."""
 
-    def __init__(self, store: InstallStore) -> None:
+    def __init__(
+        self, store: InstallStore, extra: Callable[[], Sequence[Listing]] = lambda: ()
+    ) -> None:
         self._store = store
+        self._extra = extra
+
+    def listings(self) -> list[Listing]:
+        return self._items()
+
+    def _items(self) -> list[Listing]:
+        """What Loamz ships, then the registry products (a product is listed by adding its registry file, not by editing this)."""
+        shipped = {i.id for i in CATALOG}
+        return [*CATALOG, *(i for i in self._extra() if i.id not in shipped)]
 
     def catalog(
         self,
@@ -38,7 +51,7 @@ class MarketplaceService:
     ) -> Catalog:
         items = [
             i
-            for i in CATALOG
+            for i in self._items()
             if (not kind or i.kind == kind) and (not category or i.category == category)
         ]
         if q and q.strip():
@@ -57,17 +70,18 @@ class MarketplaceService:
         }.get(sort)
         if order:
             items = sorted(items, key=order, reverse=sort == "newest")
-        return Catalog(items=items, categories=list(CATEGORIES))
+        extra = sorted({i.category for i in items} - set(CATEGORIES))
+        return Catalog(items=items, categories=[*CATEGORIES, *extra])
 
     def listing(self, item_id: str) -> Listing:
-        for i in CATALOG:
+        for i in self._items():
             if i.id == item_id:
                 return i
         raise NotFoundError("That listing does not exist.")
 
     def bundled(self, plugin: Listing) -> list[Listing]:
         """What a plugin bundles, in the order it lists them."""
-        return [self.listing(i) for i in plugin.includes if any(c.id == i for c in CATALOG)]
+        return [self.listing(i) for i in plugin.includes if any(c.id == i for c in self._items())]
 
     async def installed(self, caller: Caller) -> InstallList:
         return InstallList(items=await self._store.list(caller.tenant_id, caller.user_id))
@@ -99,9 +113,9 @@ class MarketplaceService:
     async def _skills_on(self, caller: Caller, only: set[str] | None) -> list[Listing]:
         if only is not None:
             # An agent was given these by name: that is enough, whether or not the person switched them on for themselves.
-            return [i for i in CATALOG if i.kind == "skill" and i.id in only]
+            return [i for i in self._items() if i.kind == "skill" and i.id in only]
         on = {i.id for i in (await self._store.list(caller.tenant_id, caller.user_id)) if i.enabled}
-        return [i for i in CATALOG if i.kind == "skill" and i.id in on]
+        return [i for i in self._items() if i.kind == "skill" and i.id in on]
 
     async def skill_lines(self, caller: Caller, only: set[str] | None = None) -> list[str]:
         """One line per shipped skill this person switched on: its name and description. With `only` (an agent's own abilities), just those."""
@@ -127,7 +141,7 @@ class MarketplaceService:
     ) -> dict[str, dict[str, str]]:
         """The tools this person switched on (not blocked entirely), with the choice for each group. With `only`, just those."""
         out: dict[str, dict[str, str]] = {}
-        kinds = {i.id: i.kind for i in CATALOG}
+        kinds = {i.id: i.kind for i in self._items()}
         for record in await self._store.list(caller.tenant_id, caller.user_id):
             if (
                 (only is None or record.id in only)
@@ -147,7 +161,7 @@ class MarketplaceService:
             return await self.tools_on(caller)
         have = {i.id: i for i in await self._store.list(caller.tenant_id, caller.user_id)}
         out: dict[str, dict[str, str]] = {}
-        for item in CATALOG:
+        for item in self._items():
             if item.kind != "tool" or item.id not in only:
                 continue
             record = have.get(item.id)
@@ -190,4 +204,8 @@ class MarketplaceService:
 
 def marketplace(container: Container) -> MarketplaceService:
     """Provider: how the container builds this feature's service."""
-    return MarketplaceService(InstallStore(container.database))
+    from loamz.server.agents.features.people.marketplace.products import product_listings
+
+    return MarketplaceService(
+        InstallStore(container.database), lambda: product_listings(container.products)
+    )

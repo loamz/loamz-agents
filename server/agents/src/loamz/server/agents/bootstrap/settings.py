@@ -369,6 +369,18 @@ class ToolsSettings(BaseModel):
     )
 
 
+class ProductsSettings(BaseModel):
+    """The Loamz products whose tools agents may use, from the product registry (loamz-deploy `products/`, exported with
+    `validate.py --export-agents`). Unset: only the tools built into this server."""
+
+    file: str = Field(
+        default="", description="Path of the exported registry (JSON). Empty: no registry products."
+    )
+    refresh_seconds: float = Field(
+        default=300.0, gt=0, description="How often a product's tools manifest is read again."
+    )
+
+
 class SandboxSettings(BaseModel):
     runtime: str = Field(default="nsjail", description="nsjail | k8s | inprocess (tests only)")
     network_policy: str = "deny"
@@ -436,6 +448,7 @@ class Settings(BaseSettings):
     sandbox: SandboxSettings = Field(default_factory=SandboxSettings)
     data: DataSettings = Field(default_factory=DataSettings)
     tools: ToolsSettings = Field(default_factory=ToolsSettings)
+    products: ProductsSettings = Field(default_factory=ProductsSettings)
     telemetry: TelemetrySettings = Field(default_factory=TelemetrySettings)
     roles: list[str] = Field(
         default_factory=lambda: ["all"],

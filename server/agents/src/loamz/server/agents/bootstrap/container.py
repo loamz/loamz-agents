@@ -26,6 +26,7 @@ from loamz.server.agents.bootstrap.settings import Settings
 
 if TYPE_CHECKING:
     from loamz.runtime.toolkit.mcp.servers import McpToolServers
+    from loamz.server.agents.bootstrap.products import ProductTools
 
 type Provider[T] = Callable[["Container"], T]
 
@@ -80,17 +81,13 @@ class Container:
         return database
 
     @cached_property
-    def data_broker(self) -> object | None:
-        """Turns a person's token into a credential for Loamz Data (OIDC token exchange); None when it is not configured."""
+    def exchange_broker(self) -> object | None:
+        """Turns a person's token into a credential for another product (OIDC token exchange, RFC 8693): Loamz Data, or any
+        product in the registry. None when this server's own exchange client is not configured."""
         from pathlib import Path
 
         data, oidc = self.settings.data, self.settings.oidc
-        if not (
-            data.url
-            and oidc.issuer
-            and data.exchange_client_id
-            and data.exchange_client_secret_file
-        ):
+        if not (oidc.issuer and data.exchange_client_id and data.exchange_client_secret_file):
             return None
         from loamz.runtime.auth import OidcTokenExchange
 
@@ -103,7 +100,7 @@ class Container:
     @cached_property
     def data_tool_set(self) -> dict[str, object]:
         """The data tools (tables, describe, SQL) by name; empty without a data service and a broker."""
-        broker, data = self.data_broker, self.settings.data
+        broker, data = self.exchange_broker, self.settings.data
         if broker is None or not data.url:
             return {}
         from loamz.runtime.data import DataConnection, data_tools
@@ -115,6 +112,13 @@ class Container:
             workspace=data.workspace or None,
         )
         return {tool.name: tool for tool in data_tools(connection)}
+
+    @cached_property
+    def products(self) -> ProductTools:
+        """The registry products whose tools agents may use; empty unless `products.file` is set."""
+        from loamz.server.agents.bootstrap.products import ProductTools
+
+        return ProductTools(self.settings.products, self.exchange_broker)
 
     @cached_property
     def code_tool(self) -> object | None:
@@ -158,7 +162,7 @@ class Container:
                 scratch_root=scratch,
             )
         data = None
-        broker, url = self.data_broker, self.settings.data.url
+        broker, url = self.exchange_broker, self.settings.data.url
         if broker is not None and url:
             from loamz.runtime.toolkit.code.runtimes.base import Capability
 
@@ -334,6 +338,11 @@ class Container:
             await self.runtime.start()
         else:
             await self.runtime.store.start()
+        if self.settings.products.file:
+            # Also best effort: a product that is down just has no tools until the next refresh.
+            await self.products.refresh()
+            self.on_close(self.products.stop)
+            self.products.start()
         if self.settings.tools.servers:
             # Best effort: a tool server that is down must not keep the platform from starting. The background loop retries.
             with contextlib.suppress(TimeoutError):

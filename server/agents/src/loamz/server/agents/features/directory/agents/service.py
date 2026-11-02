@@ -205,7 +205,9 @@ class AgentsService:
         """A draft agent for a sentence of description: what the person could start from. Nothing is saved."""
         from loamz.server.agents.features.directory.agents.draft import draft_agent, limit_drafts
         from loamz.server.agents.features.people.connections.service import connections
-        from loamz.server.agents.features.people.marketplace.catalog import CATALOG
+        from loamz.server.agents.features.people.marketplace.service import marketplace
+
+        catalog = self._c.get(marketplace).listings()
         from loamz.server.agents.features.people.skills.service import PREFIX
         from loamz.server.agents.features.people.skills.service import skills as skills_feature
 
@@ -228,7 +230,7 @@ class AgentsService:
                 if i.kind == "connector"
                 else ""
             )
-            for i in CATALOG
+            for i in catalog
             if i.kind in {"skill", "tool", "connector"}
             and i.id not in every_agent
             and (i.kind != "connector" or (i.mcp_url and not i.needs))
@@ -243,7 +245,7 @@ class AgentsService:
                 f"{mine.name} (app the person added, {'connected' if mine.id in connected else 'not connected yet'})"
             )
         apps = {
-            i.id: i.id in connected for i in CATALOG if i.kind == "connector" and i.id in offered
+            i.id: i.id in connected for i in catalog if i.kind == "connector" and i.id in offered
         }
         apps.update({mine.id: mine.id in connected for mine in customs})
         return await draft_agent(self._c.chat_model(), request, offered, apps)
@@ -277,11 +279,13 @@ class AgentsService:
     async def _check_abilities(self, caller: Caller, ids: list[str]) -> None:
         """Only skills, tools and connectors from the catalog, or the person's own skills: an agent is never given something
         nobody reviewed, or another person's skill."""
-        from loamz.server.agents.features.people.marketplace.catalog import CATALOG
+        from loamz.server.agents.features.people.marketplace.service import marketplace
+
+        catalog = self._c.get(marketplace).listings()
         from loamz.server.agents.features.people.skills.service import PREFIX
         from loamz.server.agents.features.people.skills.service import skills as skills_feature
 
-        kinds = {i.id: i.kind for i in CATALOG}
+        kinds = {i.id: i.kind for i in catalog}
         from loamz.server.agents.features.people.connections.service import connections
 
         mine = {f"{PREFIX}{s.id}" for s in await self._c.get(skills_feature).list(caller)}

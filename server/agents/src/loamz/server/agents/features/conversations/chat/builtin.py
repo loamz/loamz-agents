@@ -76,16 +76,30 @@ def current_time() -> object:
 
 
 def tools_for(container: Container, choices: dict[str, Choices]) -> list[object]:
-    """The built tools for `{tool id: {group: allow|ask|block}}`. A tool whose every group is blocked is left out; one that can change or
+    """The built tools for `{tool id: {group: allow|ask|block}}`; a tool id that is not built in is looked up among the registry products. A tool whose every group is blocked is left out; one that can change or
     create things (any group other than read) asks each time unless the person allowed it."""
     out: list[object] = []
     for tool_id, groups in choices.items():
         build = BUILDERS.get(tool_id)
-        if build is None or (groups and all(c == "block" for c in groups.values())):
+        if build is None:
+            out.extend(_product_tools(container, tool_id, groups))
+            continue
+        if groups and all(c == "block" for c in groups.values()):
             continue
         acting = [c for g, c in groups.items() if g != "read"]
         risk = ToolRisk.SAFE if not acting or all(c == "allow" for c in acting) else ToolRisk.HIGH
         built = build(container)
         for tool in built if isinstance(built, list) else [built]:
             out.append(tool if risk == getattr(tool, "risk", None) else Asking(tool, risk))
+    return out
+
+
+def _product_tools(container: Container, product_id: str, groups: Choices) -> list[object]:
+    """A registry product's tools, each by the choice for its own group (reading and changing are chosen apart): blocked is left out,
+    allowed runs without asking, anything else asks each time. What the product says its tools do only words the permission."""
+    out: list[object] = []
+    for tool in container.products.tools_of(product_id):
+        choice = groups.get(tool.group, "ask")
+        if choice != "block":
+            out.append(Asking(tool, ToolRisk.SAFE if choice == "allow" else ToolRisk.HIGH))
     return out
