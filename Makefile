@@ -1,13 +1,14 @@
 # Root entry points. Python: one uv workspace (uv.lock).
 # The fast tier (`make test`) needs no infrastructure and finishes in a few minutes. PostgreSQL and Redis tests run when
 # LOAMZ_TEST_POSTGRES_URL / LOAMZ_TEST_REDIS_URL point at a server, and skip otherwise.
-.PHONY: cell cell-dev sync lint format imports test test-sdk test-runtime test-server test-slow check e2e help
+.PHONY: spec cell cell-dev sync lint format imports test test-sdk test-runtime test-server test-slow check e2e help
 
 PY_DIRS := server/runtime server/agents
 PYTEST := -q -n 4 --timeout=120
 
 help:
 	@echo "make sync         install every Python package (uv)"
+	@echo "make spec         regenerate specs/agents/v1/openapi.json (a test fails when it is stale)"
 	@echo "make lint         ruff check + format --check"
 	@echo "make imports      import-linter architecture contracts (.importlinter)"
 	@echo "make test         the fast tier: runtime and server"
@@ -24,6 +25,9 @@ cell:
 
 cell-dev:
 	$(COMPOSE) -f deploy/compose/compose.dev.yml up -d agent-server
+
+spec:
+	uv run python scripts/gen_openapi.py
 
 sync:
 	uv sync --all-packages --all-extras --all-groups
