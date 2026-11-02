@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from loamz.engine.errors import LoamzError, http_status
-from loamz.identity.server import IdentityError
+from loamz.server.agents.auth import IdentityError
 
 PROBLEM_BASE = "https://loamz.com/problems/"
 MEDIA_TYPE = "application/problem+json"

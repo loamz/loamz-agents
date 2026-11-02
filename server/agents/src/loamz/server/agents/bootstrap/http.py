@@ -16,8 +16,8 @@ from loamz.engine.errors import (
     ServiceUnavailableError,
     UnauthenticatedError,
 )
-from loamz.identity.server import TokenVerifier
 from loamz.runtime.kernel.caller import Caller
+from loamz.server.agents.auth import TokenVerifier
 from loamz.server.agents.bootstrap.container import Container, Provider
 
 logger = logging.getLogger(__name__)

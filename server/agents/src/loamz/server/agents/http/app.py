@@ -8,8 +8,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from loamz.identity.server import PrimaryIssuer, TokenVerifier
 from loamz.server.agents import metrics, securitytxt
+from loamz.server.agents.auth import PrimaryIssuer, TokenVerifier
 from loamz.server.agents.bootstrap.container import Container
 from loamz.server.agents.features import FEATURES, Feature
 from loamz.server.agents.http import problems

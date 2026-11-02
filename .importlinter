@@ -33,6 +33,7 @@ layers =
     loamz.server.agents.http
     loamz.server.agents.features
     loamz.server.agents.bootstrap
+    loamz.server.agents.auth
     loamz.runtime.data | loamz.runtime.toolkit | loamz.runtime.providers
     loamz.runtime.stores
     loamz.runtime.kernel

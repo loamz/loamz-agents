@@ -51,7 +51,7 @@ class Container:
     def directory(self):
         """Only a configured service account may resolve or invite organization members."""
         from loamz.engine.errors import ServiceUnavailableError
-        from loamz.identity.server.directory import Directory
+        from loamz.server.agents.auth.directory import Directory
 
         settings = self.settings.directory
         if not settings.url or not settings.client_secret:
