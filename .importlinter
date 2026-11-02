@@ -1,7 +1,7 @@
 # Loamz Agents dependency rules. Run: uv run lint-imports --config .importlinter
 #
 #   loamz.core, loamz.identity, loamz.data   the client libraries (loamz-python repo; HTTP only)
-#   loamz.engine                             the storage engines (loamz-data repo: sql, files, vectors, documents, memory)
+#   loamz.engine                             the storage engines (this repo, server/engine: sql, files, vectors, documents, memory)
 #   loamz.runtime                            the agent runtime (this repo)
 #   loamz.server.agents                      agent hosting (this repo)
 #
@@ -68,3 +68,13 @@ forbidden_modules =
     loamz.runtime.evals
     loamz.server
     loamz.data
+
+[importlinter:contract:engine-is-self-contained]
+name = the storage engine imports no server, client or agent runtime
+type = forbidden
+source_modules =
+    loamz.engine
+forbidden_modules =
+    loamz.server
+    loamz.data
+    loamz.runtime

@@ -1,6 +1,6 @@
 # loamz-server
 
-The open server side of Loamz: engines (`server/engine`), the data and agent servers (`server/server`), the document
+The open server side of Loamz: engines (`server/engine`), the agent servers (`server/server`), the document
 reader (`server/reader`), OpenAPI specs (`specs/`) and deployment (`deploy/`).
 
 - Python: one uv workspace at the root (`uv sync --all-packages --all-extras`, `uv run --package <name> ...`); `server/reader` is outside it (Python 3.13, own lock). Use `uv`, never `pip`. Ruff is the version pinned in `uv.lock`.

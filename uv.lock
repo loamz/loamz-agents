@@ -10,6 +10,7 @@ resolution-markers = [
 [manifest]
 members = [
     "loamz-agents-server",
+    "loamz-engine",
     "loamz-runtime",
 ]
 
@@ -2117,12 +2118,12 @@ dependencies = [
     { name = "fastapi" },
     { name = "httpx" },
     { name = "loamz-core" },
-    { name = "loamz-identity", extra = ["server"] },
     { name = "loamz-runtime", extra = ["logging", "pdf", "postgres"] },
     { name = "opentelemetry-sdk" },
     { name = "orjson" },
     { name = "pillow" },
     { name = "pydantic-settings" },
+    { name = "pyjwt", extra = ["crypto"] },
     { name = "python-multipart" },
     { name = "pywebpush" },
     { name = "uvicorn" },
@@ -2158,7 +2159,6 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.128" },
     { name = "httpx", specifier = ">=0.28,<1" },
     { name = "loamz-core", git = "https://github.com/loamz/loamz-python?subdirectory=sdk%2Fpython%2Fcore" },
-    { name = "loamz-identity", extras = ["server"], git = "https://github.com/loamz/loamz-python?subdirectory=sdk%2Fpython%2Fidentity" },
     { name = "loamz-runtime", extras = ["openai", "anthropic", "gemini", "redis", "mcp", "tools", "data", "sandbox", "code"], marker = "extra == 'models'", editable = "server/runtime" },
     { name = "loamz-runtime", extras = ["postgres", "pdf", "logging"], editable = "server/runtime" },
     { name = "opentelemetry-sdk", specifier = ">=1.20.0" },
@@ -2166,6 +2166,7 @@ requires-dist = [
     { name = "pillow", specifier = ">=12.0.0" },
     { name = "prompt-toolkit", marker = "extra == 'console'", specifier = ">=3.0.0" },
     { name = "pydantic-settings", specifier = ">=2.12,<3" },
+    { name = "pyjwt", extras = ["crypto"], specifier = ">=2.10" },
     { name = "python-multipart", specifier = ">=0.0.20" },
     { name = "pywebpush", specifier = ">=2.0,<3" },
     { name = "rich", marker = "extra == 'console'", specifier = ">=14.3.2" },
@@ -2214,22 +2215,89 @@ arrow = [
 [[package]]
 name = "loamz-engine"
 version = "0.1.0"
-source = { git = "https://github.com/loamz/loamz-data?subdirectory=server%2Fengine#1320c32433e2de5c06308d880c1d9903e5ca5fad" }
+source = { editable = "server/engine" }
 dependencies = [
     { name = "opentelemetry-api" },
     { name = "pydantic" },
 ]
 
 [package.optional-dependencies]
+logging = [
+    { name = "python-json-logger" },
+]
 ocr = [
     { name = "onnxruntime" },
     { name = "rapidocr" },
+]
+openai = [
+    { name = "httpx" },
+    { name = "openai" },
+    { name = "pillow" },
+    { name = "tiktoken" },
 ]
 pdf = [
     { name = "pypdfium2" },
 ]
 postgres = [
     { name = "asyncpg" },
+]
+sentence-transformers = [
+    { name = "sentence-transformers" },
+]
+testing = [
+    { name = "httpx" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "asyncpg" },
+    { name = "httpx" },
+    { name = "hypothesis" },
+    { name = "import-linter" },
+    { name = "opentelemetry-sdk" },
+    { name = "pypdfium2" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-timeout" },
+    { name = "pytest-xdist" },
+    { name = "pyyaml" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "asyncpg", marker = "extra == 'postgres'", specifier = ">=0.31.0" },
+    { name = "httpx", marker = "extra == 'openai'", specifier = ">=0.27.0" },
+    { name = "httpx", marker = "extra == 'testing'", specifier = ">=0.27.0" },
+    { name = "onnxruntime", marker = "extra == 'ocr'", specifier = ">=1.23.0" },
+    { name = "openai", marker = "extra == 'openai'", specifier = ">=2.15.0" },
+    { name = "opentelemetry-api", specifier = ">=1.20.0" },
+    { name = "pillow", marker = "extra == 'openai'", specifier = ">=12.0.0" },
+    { name = "pydantic", specifier = ">=2.12.5" },
+    { name = "pypdfium2", marker = "extra == 'pdf'", specifier = ">=5.0.0" },
+    { name = "pytest", marker = "extra == 'testing'", specifier = ">=9.0.3" },
+    { name = "pytest-asyncio", marker = "extra == 'testing'", specifier = ">=1.4.0" },
+    { name = "python-json-logger", marker = "extra == 'logging'", specifier = ">=2.0.7" },
+    { name = "rapidocr", marker = "extra == 'ocr'", specifier = ">=3.0.0" },
+    { name = "sentence-transformers", marker = "extra == 'sentence-transformers'", specifier = ">=3.0.0" },
+    { name = "tiktoken", marker = "extra == 'openai'", specifier = ">=0.12.0" },
+]
+provides-extras = ["postgres", "pdf", "ocr", "openai", "sentence-transformers", "logging", "testing"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "asyncpg", specifier = ">=0.31.0" },
+    { name = "httpx", specifier = ">=0.28,<1" },
+    { name = "hypothesis", specifier = ">=6.168.3" },
+    { name = "import-linter", specifier = ">=2.11" },
+    { name = "opentelemetry-sdk", specifier = ">=1.20.0" },
+    { name = "pypdfium2", specifier = ">=5.0.0" },
+    { name = "pytest", specifier = ">=9" },
+    { name = "pytest-asyncio", specifier = ">=1.4" },
+    { name = "pytest-timeout", specifier = ">=2.3" },
+    { name = "pytest-xdist", specifier = ">=3.6" },
+    { name = "pyyaml", specifier = ">=6.0.3" },
 ]
 
 [[package]]
@@ -2239,12 +2307,6 @@ source = { git = "https://github.com/loamz/loamz-python?subdirectory=sdk%2Fpytho
 dependencies = [
     { name = "httpx" },
     { name = "loamz-core" },
-]
-
-[package.optional-dependencies]
-server = [
-    { name = "fastapi" },
-    { name = "pyjwt", extra = ["crypto"] },
 ]
 
 [[package]]
@@ -2385,10 +2447,10 @@ requires-dist = [
     { name = "k8s-agent-sandbox", marker = "extra == 'code'", specifier = ">=0.4.6" },
     { name = "kokoro", marker = "extra == 'tts'", specifier = ">=0.9.4" },
     { name = "loamz-data", marker = "extra == 'data'", git = "https://github.com/loamz/loamz-python?subdirectory=sdk%2Fpython%2Fdata" },
-    { name = "loamz-engine", git = "https://github.com/loamz/loamz-data?subdirectory=server%2Fengine" },
-    { name = "loamz-engine", extras = ["ocr"], marker = "extra == 'ocr'", git = "https://github.com/loamz/loamz-data?subdirectory=server%2Fengine" },
-    { name = "loamz-engine", extras = ["pdf"], marker = "extra == 'pdf'", git = "https://github.com/loamz/loamz-data?subdirectory=server%2Fengine" },
-    { name = "loamz-engine", extras = ["postgres"], marker = "extra == 'postgres'", git = "https://github.com/loamz/loamz-data?subdirectory=server%2Fengine" },
+    { name = "loamz-engine", editable = "server/engine" },
+    { name = "loamz-engine", extras = ["ocr"], marker = "extra == 'ocr'", editable = "server/engine" },
+    { name = "loamz-engine", extras = ["pdf"], marker = "extra == 'pdf'", editable = "server/engine" },
+    { name = "loamz-engine", extras = ["postgres"], marker = "extra == 'postgres'", editable = "server/engine" },
     { name = "matplotlib", marker = "extra == 'sandbox'", specifier = ">=3.9.0" },
     { name = "mcp", marker = "extra == 'mcp'", specifier = ">=1.30.0,<2" },
     { name = "onnxruntime", marker = "extra == 'safety'", specifier = ">=1.23.0" },
@@ -2430,7 +2492,7 @@ dev = [
     { name = "httpx", specifier = ">=0.28,<1" },
     { name = "hypothesis", specifier = ">=6.168.3" },
     { name = "import-linter", specifier = ">=2.11" },
-    { name = "loamz-engine", extras = ["postgres", "pdf"], git = "https://github.com/loamz/loamz-data?subdirectory=server%2Fengine" },
+    { name = "loamz-engine", extras = ["postgres", "pdf"], editable = "server/engine" },
     { name = "opentelemetry-sdk", specifier = ">=1.20.0" },
     { name = "pytest", specifier = ">=9" },
     { name = "pytest-asyncio", specifier = ">=1.4" },

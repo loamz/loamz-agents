@@ -3,6 +3,7 @@
 #
 [tool.uv.workspace]
 members = [
+    "server/engine",
     "server/runtime",
     "server/agents",
 ]
@@ -17,8 +18,7 @@ explicit = true
 torch = { index = "pytorch-cpu" }
 loamz-runtime = { workspace = true }
 loamz-agents-server = { workspace = true }
-# The storage engines come from the Loamz Data repository (until they are on PyPI).
-loamz-engine = { git = "https://github.com/loamz/loamz-data", subdirectory = "server/engine" }
+loamz-engine = { workspace = true }
 # The client libraries live in loamz-python; until they are on PyPI the server builds against its main branch.
 loamz-core = { git = "https://github.com/loamz/loamz-python", subdirectory = "sdk/python/core" }
 loamz-identity = { git = "https://github.com/loamz/loamz-python", subdirectory = "sdk/python/identity" }

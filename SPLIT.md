@@ -4,7 +4,7 @@ Both repositories were made from `loamz-server` with `git filter-repo`, so each 
 
 | Before | Now |
 |---|---|
-| `loamz.engine` (storage) | stays `loamz.engine`, in loamz-data (`loamz-engine`) |
+| `loamz.engine` (storage) | `loamz.engine`, now in this repo (`server/engine`, `loamz-engine`) |
 | `loamz.engine.agents` | `loamz.runtime`, in loamz-agents (`loamz-runtime`) |
 | `loamz.server.data`, `loamz.server.reader` | stay, in loamz-data (`loamz-data-server`, `loamz-reader`) |
 | `loamz.server.agents` | stays, in loamz-agents (`loamz-agents-server`) |
