@@ -22,6 +22,8 @@ from loamz.runtime.kernel.types.run import RunScope
 logger = logging.getLogger(__name__)
 
 WORKSPACE_ATTRIBUTE = "loamz.data/workspace"
+# The catalogs a conversation was narrowed to, comma separated; absent means every catalog the person may read.
+CATALOGS_ATTRIBUTE = "loamz.data/catalogs"
 WORKSPACE_ENV = "LOAMZ_DATA_WORKSPACE"
 MAX_TOKEN_SECONDS = 330
 
@@ -106,4 +108,4 @@ class LoamzData:
         await self._gateway.stop()
 
 
-__all__ = ["GUIDANCE", "WORKSPACE_ATTRIBUTE", "LoamzData"]
+__all__ = ["CATALOGS_ATTRIBUTE", "GUIDANCE", "WORKSPACE_ATTRIBUTE", "LoamzData"]

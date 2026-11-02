@@ -8,6 +8,7 @@ What a person may read is decided by Loamz Data; a table they may not read is si
 from __future__ import annotations
 
 import json
+import re
 from typing import ClassVar
 
 import httpx
@@ -15,7 +16,7 @@ import httpx
 from loamz.core.exceptions import HttpResponseError
 from loamz.data import AsyncDataClient
 from loamz.runtime.auth.types import CredentialBroker
-from loamz.runtime.data.source import WORKSPACE_ATTRIBUTE
+from loamz.runtime.data.source import CATALOGS_ATTRIBUTE, WORKSPACE_ATTRIBUTE
 from loamz.runtime.kernel.tools import ToolExecutionResult, ToolRisk
 from loamz.runtime.kernel.types.auth import Auth
 from loamz.runtime.kernel.types.content import TextBlock
@@ -27,6 +28,18 @@ MAX_ROWS = 200
 SCOPES: frozenset[str] = (
     frozenset()
 )  # Loamz Data decides from who the person is; the audience says where it is for
+
+
+# `catalog.schema.table`, each part bare or in double quotes: the catalog is the first.
+_CATALOG_IN_SQL = re.compile(r'"?([A-Za-z_]\w*)"?\s*\.\s*"?[A-Za-z_]\w*"?\s*\.\s*"?[A-Za-z_]\w*"?')
+
+
+def _catalog(full_name: str) -> str:
+    return full_name.split(".", 1)[0].strip('"')
+
+
+def _outside(catalog: str, scope: frozenset[str]) -> str:
+    return f"catalog {catalog} is outside the catalogs chosen for this conversation ({', '.join(sorted(scope))})"
 
 
 class DataConnection:
@@ -46,6 +59,17 @@ class DataConnection:
 
     def workspace_of(self, user: UserCtx | None) -> str | None:
         return (user.attribute(WORKSPACE_ATTRIBUTE) if user else None) or self.workspace
+
+    @staticmethod
+    def catalogs_of(user: UserCtx | None) -> frozenset[str] | None:
+        """The catalogs the conversation was narrowed to, or None for every catalog the person may read.
+
+        This narrows what the agent is shown and may name in its tools; it is not a boundary. What a person may read is decided by
+        Loamz Data, and a narrowing can only take away from that, never add to it.
+        """
+        raw = user.attribute(CATALOGS_ATTRIBUTE) if user else None
+        names = frozenset(c.strip() for c in (raw or "").split(",") if c.strip())
+        return names or None
 
     async def client(self, user: UserCtx | None, auth: Auth, workspace: str) -> AsyncDataClient:
         credential = await self.broker.credential(
@@ -84,7 +108,7 @@ class _DataTool:
         client = await self.connection.client(user, auth, workspace)
         try:
             async with client:
-                text = await self.run(client, **arguments)
+                text = await self.run(client, self.connection.catalogs_of(user), **arguments)
         except HttpResponseError as error:
             # The service's own explanation is what lets the model correct itself (a missing column, a table it may not read).
             return self._reply(call_id, error.detail or str(error), True)
@@ -98,7 +122,9 @@ class _DataTool:
             call_id=call_id, content=[TextBlock(text=text[:MAX_CHARS])], is_error=is_error
         )
 
-    async def run(self, client: AsyncDataClient, **arguments: str | int) -> str:
+    async def run(
+        self, client: AsyncDataClient, scope: frozenset[str] | None, **arguments: str | int
+    ) -> str:
         raise NotImplementedError
 
 
@@ -114,9 +140,17 @@ class DataTables(_DataTool):
         "additionalProperties": False,
     }
 
-    async def run(self, client: AsyncDataClient, **arguments: str | int) -> str:
-        names = await client.tables()
-        return json.dumps(names) if names else "Nothing here is readable by you yet."
+    async def run(
+        self, client: AsyncDataClient, scope: frozenset[str] | None, **arguments: str | int
+    ) -> str:
+        names = [n for n in await client.tables() if scope is None or _catalog(n) in scope]
+        if names:
+            return json.dumps(names)
+        return (
+            "Nothing in the chosen catalogs is readable by you."
+            if scope
+            else "Nothing here is readable by you yet."
+        )
 
 
 class DataDescribe(_DataTool):
@@ -129,8 +163,13 @@ class DataDescribe(_DataTool):
         "additionalProperties": False,
     }
 
-    async def run(self, client: AsyncDataClient, **arguments: str | int) -> str:
-        info = await client.describe(str(arguments["table"]))
+    async def run(
+        self, client: AsyncDataClient, scope: frozenset[str] | None, **arguments: str | int
+    ) -> str:
+        table = str(arguments["table"])
+        if scope is not None and _catalog(table) not in scope:
+            raise ValueError(_outside(_catalog(table), scope))
+        info = await client.describe(table)
         return json.dumps(
             {
                 "table": info.full_name,
@@ -152,8 +191,17 @@ class DataSql(_DataTool):
         "additionalProperties": False,
     }
 
-    async def run(self, client: AsyncDataClient, **arguments: str | int) -> str:
-        result = await client.rows(str(arguments["sql"]), limit=MAX_ROWS)
+    async def run(
+        self, client: AsyncDataClient, scope: frozenset[str] | None, **arguments: str | int
+    ) -> str:
+        sql = str(arguments["sql"])
+        if scope is not None:
+            # Only a catalog the person can read is worth refusing by name; anything else is not a table of theirs.
+            readable = {_catalog(n) for n in await client.tables()}
+            for named in _CATALOG_IN_SQL.findall(sql):
+                if named in readable and named not in scope:
+                    raise ValueError(_outside(named, scope))
+        result = await client.rows(sql, limit=MAX_ROWS)
         return json.dumps(
             {
                 "columns": [c.name for c in result.columns],

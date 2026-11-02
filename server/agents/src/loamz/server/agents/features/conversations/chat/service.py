@@ -227,6 +227,8 @@ class ChatService:
                 "user_id": caller.user_id,
                 "groups": sorted(caller.groups),
                 "thread_id": req.thread_id,
+                # Where this person's data is for this conversation, as the application stated it (see `DataContext`).
+                **({"user_attributes": req.data.attributes()} if req.data else {}),
             },
         )
         run_id = await self._rt.submit(

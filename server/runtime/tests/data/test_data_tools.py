@@ -80,3 +80,84 @@ async def test_a_run_with_no_authority_or_no_workspace_gets_no_data_and_calls_no
     )
     nobody = await t.execute(ctx=None, call_id="c")
     assert all(r.is_error for r in (no_auth, no_workspace, nobody))
+
+
+# --- a conversation narrowed to some catalogs -------------------------------------------------------------------------------
+
+
+def two_catalogs(statements: list[httpx.Request]):  # type: ignore[no-untyped-def]
+    """A workspace with catalogs `nyc` and `shop`, one schema and one table each; every statement it is asked to run is kept."""
+    tree = {
+        "": [
+            {"id": "c1", "kind": "catalog", "name": "nyc"},
+            {"id": "c2", "kind": "catalog", "name": "shop"},
+        ],
+        "c1": [{"id": "s1", "kind": "schema", "name": "main"}],
+        "c2": [{"id": "s2", "kind": "schema", "name": "main"}],
+        "s1": [{"id": "t1", "kind": "table", "name": "yellow_trips"}],
+        "s2": [{"id": "t2", "kind": "table", "name": "sales"}],
+    }
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == f"{BASE}/securables":
+            return httpx.Response(
+                200, json={"items": tree[request.url.params.get("parent_id", "")]}
+            )
+        statements.append(request)
+        return httpx.Response(
+            200,
+            json={
+                "id": "r",
+                "state": "succeeded",
+                "result": {"columns": [], "rows": [], "truncated": False},
+            },
+        )
+
+    return handler
+
+
+NARROWED = Ctx(
+    RunScope.from_user(
+        UserCtx.of(
+            "ana", "acme", attributes={"loamz.data/workspace": WS, "loamz.data/catalogs": "shop"}
+        )
+    ),
+    AsUser("ana-token"),
+)
+
+
+async def test_a_narrowed_conversation_lists_only_the_chosen_catalogs() -> None:
+    kept: list[httpx.Request] = []
+    everything = await tools(two_catalogs(kept))["data_tables"].execute(ctx=RUN, call_id="c")
+    narrowed = await tools(two_catalogs(kept))["data_tables"].execute(ctx=NARROWED, call_id="c")
+    assert json.loads(everything.content[0].text) == ["nyc.main.yellow_trips", "shop.main.sales"]
+    assert json.loads(narrowed.content[0].text) == ["shop.main.sales"]
+
+
+async def test_a_table_outside_the_chosen_catalogs_is_refused_by_describe_and_by_sql_before_anything_is_asked() -> (
+    None
+):
+    kept: list[httpx.Request] = []
+    described = await tools(two_catalogs(kept))["data_describe"].execute(
+        ctx=NARROWED, call_id="c", table="nyc.main.yellow_trips"
+    )
+    queried = await tools(two_catalogs(kept))["data_sql"].execute(
+        ctx=NARROWED, call_id="c", sql='SELECT count(*) FROM "nyc"."main"."yellow_trips"'
+    )
+    assert described.is_error and "outside the catalogs chosen" in described.content[0].text
+    assert queried.is_error and "catalog nyc is outside" in queried.content[0].text
+    assert kept == []  # no statement was sent
+
+
+async def test_sql_inside_the_chosen_catalogs_runs_and_an_unnarrowed_conversation_is_not_restricted() -> (
+    None
+):
+    kept: list[httpx.Request] = []
+    inside = await tools(two_catalogs(kept))["data_sql"].execute(
+        ctx=NARROWED, call_id="c", sql="SELECT * FROM shop.main.sales"
+    )
+    everywhere = await tools(two_catalogs(kept))["data_sql"].execute(
+        ctx=RUN, call_id="c", sql="SELECT * FROM nyc.main.yellow_trips"
+    )
+    assert not inside.is_error and not everywhere.is_error
+    assert len(kept) == 2
