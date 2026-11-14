@@ -87,19 +87,29 @@ class CodeInterpreterTool:
         self.session_id: str = _DEFAULT_SESSION
 
         self.name = "code_interpreter"
-        self.description = (
-            "Execute Python code or a shell command in a secure, isolated sandbox. "
-            "Your working directory is this conversation's own workspace: files you "
-            "read and write there persist across turns, and no other user's files "
-            "are visible. Available packages: numpy, pandas, matplotlib, scipy, "
-            "scikit-learn, seaborn, plotly, openpyxl, polars, Pillow, requests, "
-            "python-docx, python-pptx, reportlab, pdfplumber. "
-            "Each execution runs in a fresh interpreter, so Python variables do NOT "
-            "persist between calls — save anything you need later to a file. "
-            "Network access is disabled by default."
-            + (" " + self._data.guidance if self._data is not None else "")
-            + PRESENTATION_GUIDANCE
-        )
+        if runtime.name == "loamz-data":
+            self.description = (
+                "Execute Python code in Loamz Data's secure, isolated compute sandbox. "
+                "Network access is disabled. Read query results with pl.scan_parquet(loamz.path('agent_files', path)) "
+                "(Polars, DuckDB and pyarrow read it by range). Write files that should be kept with "
+                "loamz.out('name') so they are committed to this thread's folder in the volume; files left in plain "
+                "/workspace disappear when the run ends. Available packages: numpy, pandas, polars, pyarrow, duckdb, matplotlib."
+                + PRESENTATION_GUIDANCE
+            )
+        else:
+            self.description = (
+                "Execute Python code or a shell command in a secure, isolated sandbox. "
+                "Your working directory is this conversation's own workspace: files you "
+                "read and write there persist across turns, and no other user's files "
+                "are visible. Available packages: numpy, pandas, matplotlib, scipy, "
+                "scikit-learn, seaborn, plotly, openpyxl, polars, Pillow, requests, "
+                "python-docx, python-pptx, reportlab, pdfplumber. "
+                "Each execution runs in a fresh interpreter, so Python variables do NOT "
+                "persist between calls — save anything you need later to a file. "
+                "Network access is disabled by default."
+                + (" " + self._data.guidance if self._data is not None else "")
+                + PRESENTATION_GUIDANCE
+            )
         self.input_schema: dict[str, Any] = {
             "type": "object",
             "properties": {
@@ -196,12 +206,23 @@ class CodeInterpreterTool:
             except Exception as exc:  # noqa: BLE001 - the run still works, just without data
                 logger.warning("code_interpreter[%s]: data access unavailable: %s", session_id, exc)
 
+        extra_spec: dict[str, Any] = {
+            "private_dir": private_key,
+            "workspace_scope": scope,
+            "auth": getattr(ctx, "auth", None),
+            "user": run_scope.user,
+            "workspace": (
+                run_scope.user.attribute("loamz.data/workspace") if run_scope.user else None
+            )
+            or getattr(self._runtime, "workspace", None),
+        }
+
         spec = SandboxSpec(
             user_id=scope.user_id,
             thread_id=session_id,
             session_dir=session_key,
             tenant_id=scope.tenant_id,
-            extra={"private_dir": private_key, "workspace_scope": scope},
+            extra=extra_spec,
             code=code or None,
             argv=shlex.split(command) if command else None,
             timeout_s=timeout_s,

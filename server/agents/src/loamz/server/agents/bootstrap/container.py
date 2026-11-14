@@ -110,6 +110,8 @@ class Container:
             broker,  # type: ignore[arg-type]
             audience=data.audience,
             workspace=data.workspace or None,
+            code_backend=self.settings.code_interpreter.backend,
+            schema=self.settings.code_interpreter.schema,
         )
         return {tool.name: tool for tool in data_tools(connection)}
 
@@ -129,6 +131,33 @@ class Container:
         from urllib.parse import urlsplit
 
         log = logging.getLogger(__name__)
+        ci = self.settings.code_interpreter
+        if ci.backend == "loamz-data":
+            from loamz.runtime.toolkit.code import CodeInterpreterTool
+            from loamz.runtime.toolkit.code.runtimes.loamz_data import LoamzDataRuntime
+
+            url = ci.url or self.settings.data.url
+            broker = self.exchange_broker
+            runtime = LoamzDataRuntime(
+                url,
+                broker,  # type: ignore[arg-type]
+                schema=ci.schema,
+                workspace=self.settings.data.workspace or None,
+                audience=self.settings.data.audience,
+                timeout_seconds=ci.timeout_seconds,
+                memory_mb=ci.memory_mb,
+                cpu_millis=ci.cpu_millis,
+            )
+            tool = CodeInterpreterTool(
+                runtime,
+                default_timeout_s=ci.timeout_seconds,
+                memory_bytes=ci.memory_mb * 1024 * 1024,
+                model_client=self.chat_model(),
+                data=None,
+            )
+            self.on_close(tool.stop)
+            return tool
+
         sandbox = self.settings.sandbox
         try:
             from loamz.runtime.data import DataGateway, LoamzData
@@ -348,6 +377,38 @@ class Container:
             with contextlib.suppress(TimeoutError):
                 await asyncio.wait_for(self.tool_servers.refresh(), 15)
             self.tool_servers.start(self.settings.tools.refresh_seconds)
+
+    async def delete_loamz_data_thread(self, caller: object, thread_id: str) -> None:
+        """Call DELETE /api/v1/workspaces/{ws}/volumes/{id}/threads/{thread} when a thread is deleted."""
+        url = self.settings.code_interpreter.url or self.settings.data.url
+        broker = self.exchange_broker
+        if not url or broker is None or not getattr(caller, "token", None):
+            return
+        from loamz.runtime.auth.types import AsUser
+        from loamz.runtime.kernel.types.user import UserCtx
+        from loamz.runtime.toolkit.code.runtimes.loamz_data import delete_agent_volume_thread
+
+        user = UserCtx(tenant=caller.tenant_id, subject=caller.user_id)
+        auth = AsUser(caller.token)
+        try:
+            token = await broker.credential(  # type: ignore[union-attr]
+                user, auth, audience=self.settings.data.audience, scopes=frozenset(), ttl_s=60
+            )
+            ws = self.settings.data.workspace
+            await delete_agent_volume_thread(
+                url,
+                ws,
+                caller.user_id,
+                token,
+                thread_id,
+                schema_spec=self.settings.code_interpreter.schema,
+            )
+        except Exception as exc:  # noqa: BLE001
+            import logging
+
+            logging.getLogger(__name__).warning(
+                "Failed to delete Loamz Data thread %s: %s", thread_id, exc
+            )
 
     async def aclose(self) -> None:
         if "runtime" in self.__dict__:
