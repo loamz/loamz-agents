@@ -1,4 +1,4 @@
 {
-  "server/runtime": "0.1.0",
-  "server/agents": "0.1.0"
+  "server/runtime": "0.1.1",
+  "server/agents": "0.1.1"
 }
