@@ -2101,7 +2101,7 @@ wheels = [
 [[package]]
 name = "loamz-agents"
 version = "0.1.0"
-source = { git = "https://github.com/loamz/loamz-python?subdirectory=sdk%2Fpython%2Fagents#5b04d8038de16ca49e5af09327d44232aa7b79a6" }
+source = { git = "https://github.com/loamz/loamz-python?subdirectory=sdk%2Fpython%2Fagents#471209ed5bd4952ce7907d76c2b7f29be850bbb5" }
 dependencies = [
     { name = "httpx" },
     { name = "loamz-core" },
@@ -2191,7 +2191,7 @@ dev = [
 [[package]]
 name = "loamz-core"
 version = "0.1.0"
-source = { git = "https://github.com/loamz/loamz-python?subdirectory=sdk%2Fpython%2Fcore#5b04d8038de16ca49e5af09327d44232aa7b79a6" }
+source = { git = "https://github.com/loamz/loamz-python?subdirectory=sdk%2Fpython%2Fcore#471209ed5bd4952ce7907d76c2b7f29be850bbb5" }
 dependencies = [
     { name = "httpx" },
 ]
@@ -2199,7 +2199,7 @@ dependencies = [
 [[package]]
 name = "loamz-data"
 version = "0.1.0"
-source = { git = "https://github.com/loamz/loamz-python?subdirectory=sdk%2Fpython%2Fdata#5b04d8038de16ca49e5af09327d44232aa7b79a6" }
+source = { git = "https://github.com/loamz/loamz-python?subdirectory=sdk%2Fpython%2Fdata#471209ed5bd4952ce7907d76c2b7f29be850bbb5" }
 dependencies = [
     { name = "httpx" },
     { name = "loamz-core" },
@@ -2303,7 +2303,7 @@ dev = [
 [[package]]
 name = "loamz-identity"
 version = "0.1.0"
-source = { git = "https://github.com/loamz/loamz-python?subdirectory=sdk%2Fpython%2Fidentity#5b04d8038de16ca49e5af09327d44232aa7b79a6" }
+source = { git = "https://github.com/loamz/loamz-python?subdirectory=sdk%2Fpython%2Fidentity#471209ed5bd4952ce7907d76c2b7f29be850bbb5" }
 dependencies = [
     { name = "httpx" },
     { name = "loamz-core" },

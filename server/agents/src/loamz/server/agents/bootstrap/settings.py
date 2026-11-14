@@ -403,6 +403,26 @@ class SandboxSettings(BaseModel):
         return data
 
 
+class CodeInterpreterSettings(BaseModel):
+    backend: str = Field(default="local", description="local | loamz-data")
+    schema_name: str = Field(
+        default="main.agents",
+        alias="schema",
+        description="The schema for agent files in Loamz Data (default main.agents).",
+    )
+    url: str = Field(
+        default="",
+        description="Loamz Data API address. If empty, falls back to settings.data.url.",
+    )
+    timeout_seconds: int = Field(default=60, ge=1, le=300)
+    memory_mb: int = Field(default=2048, ge=128)
+    cpu_millis: int = Field(default=1000, ge=100)
+
+    @property
+    def schema(self) -> str:
+        return self.schema_name
+
+
 class PushSettings(BaseModel):
     vapid_public_key: str = ""
     vapid_private_key: str = ""
@@ -446,6 +466,7 @@ class Settings(BaseSettings):
     rate_limit: RateLimitSettings = Field(default_factory=RateLimitSettings)
     safety: SafetySettings = Field(default_factory=SafetySettings)
     sandbox: SandboxSettings = Field(default_factory=SandboxSettings)
+    code_interpreter: CodeInterpreterSettings = Field(default_factory=CodeInterpreterSettings)
     data: DataSettings = Field(default_factory=DataSettings)
     tools: ToolsSettings = Field(default_factory=ToolsSettings)
     products: ProductsSettings = Field(default_factory=ProductsSettings)

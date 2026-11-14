@@ -23,6 +23,7 @@ from .base import (
     SandboxUnavailableError,
 )
 from .inprocess import InProcessRuntime
+from .loamz_data import LoamzDataRuntime
 from .nsjail import NsjailRuntime
 
 if TYPE_CHECKING:
@@ -41,6 +42,7 @@ __all__ = [
     "ExecResult",
     "InProcessRuntime",
     "K8sRuntime",
+    "LoamzDataRuntime",
     "Mount",
     "NetworkPolicy",
     "NsjailRuntime",

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from collections.abc import Awaitable, Callable
 
 from loamz.engine.errors import NotFoundError
@@ -29,6 +30,7 @@ from loamz.server.agents.features.conversations.threads.model import (
 ADMIN_ROLES = ("platform_admin", "tenant_admin")
 SCHEDULED_TAG = "scheduled_task"
 MAX_SCAN_PAGES = 20
+logger = logging.getLogger(__name__)
 
 
 def is_agent_chat(header: ThreadHeader) -> bool:
@@ -39,9 +41,17 @@ def is_agent_chat(header: ThreadHeader) -> bool:
 class ThreadsService:
     """Conversations as their owners organise them. Another person's thread is exactly a thread that does not exist."""
 
-    def __init__(self, store: AgentStore, runtime: Runtime, bus: EventBus) -> None:
+    def __init__(
+        self,
+        store: AgentStore,
+        runtime: Runtime,
+        bus: EventBus,
+        *,
+        on_delete: Callable[[Caller, str], Awaitable[None]] | None = None,
+    ) -> None:
         self._store = store
         self._bus = bus
+        self._on_delete = on_delete
         self.journal = ThreadJournal(runtime, store)
 
     @property
@@ -172,6 +182,11 @@ class ThreadsService:
         header = await self.require(caller, thread_id)
         if not await self.headers.delete(caller.tenant_id, thread_id):
             raise NotFoundError("Thread not found")
+        if self._on_delete is not None:
+            try:
+                await self._on_delete(caller, thread_id)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("on_delete hook failed for thread %s: %s", thread_id, exc)
         await self._bus.publish(
             ThreadDeleted(
                 tenant_id=caller.tenant_id, user_id=header.user_id, thread_id=thread_id
@@ -235,7 +250,12 @@ class ThreadsService:
 
 
 def threads(container: Container) -> ThreadsService:
-    return ThreadsService(container.agent_store, container.runtime, container.event_bus)
+    on_delete = None
+    if container.settings.code_interpreter.backend == "loamz-data":
+        on_delete = container.delete_loamz_data_thread
+    return ThreadsService(
+        container.agent_store, container.runtime, container.event_bus, on_delete=on_delete
+    )
 
 
 __all__ = ["ThreadHeader", "ThreadsService", "is_agent_chat", "threads"]

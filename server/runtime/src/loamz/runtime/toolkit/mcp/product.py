@@ -120,13 +120,17 @@ class ProductTool(MCPTool):
         user = scope_of(ctx).user
         auth: Auth | None = getattr(ctx, "auth", None)
         if user is None or auth is None:
-            return self._failed(call_id, f"{self.endpoint.id} needs a signed-in person; this run has none.")
+            return self._failed(
+                call_id, f"{self.endpoint.id} needs a signed-in person; this run has none."
+            )
         client = self.client_factory()
         try:
             token = await self.broker.credential(
                 user, auth, audience=self.endpoint.audience, scopes=frozenset(), ttl_s=120
             )
-            await client.connect_http(self.endpoint.mcp_url, headers={"Authorization": f"Bearer {token}"})
+            await client.connect_http(
+                self.endpoint.mcp_url, headers={"Authorization": f"Bearer {token}"}
+            )
             return self.to_result(call_id, await client.call_tool(self.remote_name, kwargs))
         except Exception as error:  # noqa: BLE001 - the model is told, the run goes on
             return self._failed(call_id, f"Tool execution failed: {error}")

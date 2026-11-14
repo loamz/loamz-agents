@@ -80,8 +80,13 @@ def build_runtime(
         )
         return InProcessRuntime(workspace_root)
 
+    if name in ("loamz-data", "loamz_data"):
+        from .loamz_data import LoamzDataRuntime
+
+        return LoamzDataRuntime(url="", broker=None)
+
     raise SandboxUnavailableError(
-        f"Unknown SANDBOX_RUNTIME {kind!r}. Valid: nsjail, k8s, inprocess."
+        f"Unknown SANDBOX_RUNTIME {kind!r}. Valid: nsjail, k8s, inprocess, loamz-data."
     )
 
 
